@@ -70,8 +70,8 @@
       <p class="footer__desc">Stop guessing. Start understanding.</p>
       <a href="mailto:admin@tryhowwespeak.com" style="margin-top:16px;display:block;color:var(--charcoal-mid);text-decoration:underline;">admin@tryhowwespeak.com</a>
       <div style="display:flex;gap:16px;margin-top:20px;">
-        <a href="#" style="color:var(--charcoal);" aria-label="Instagram">Instagram</a>
-        <a href="#" style="color:var(--charcoal);" aria-label="Facebook">Facebook</a>
+        <a href="https://www.instagram.com/anass_paccino/" target="_blank" rel="noopener noreferrer" style="color:var(--charcoal);" aria-label="Instagram">Instagram</a>
+        <a href="https://www.facebook.com/anas.ziraoui.7/" target="_blank" rel="noopener noreferrer" style="color:var(--charcoal);" aria-label="Facebook">Facebook</a>
       </div>
     </div>
     <div>
