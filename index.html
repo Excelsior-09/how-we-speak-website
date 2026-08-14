@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- SEO META -->
   <title>How We Speak — Communication Guides for Couples | Understand Your Partner</title>
-  <meta name="description" content="Psychology-backed communication guides for couples. Stop guessing. Start understanding. Four premium ebooks to help you communicate with more clarity, confidence and connection." />
+  <meta name="description"
+    content="Psychology-backed communication guides for couples. Stop guessing. Start understanding. Four premium ebooks to help you communicate with more clarity, confidence and connection." />
 
   <!-- Open Graph -->
   <meta property="og:title" content="How We Speak — Stop Guessing. Start Understanding." />
-  <meta property="og:description" content="Premium communication guides for couples. Research-backed. Practical. Written for how couples actually think." />
+  <meta property="og:description"
+    content="Premium communication guides for couples. Research-backed. Practical. Written for how couples actually think." />
   <meta property="og:image" content="https://tryhowwespeak.com/og-image.jpg" />
   <meta property="og:url" content="https://tryhowwespeak.com" />
   <meta property="og:type" content="website" />
@@ -40,16 +43,59 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
 
-  
-  <link rel="stylesheet" href="assets/css/main.css"/>
-  <link rel="stylesheet" href="assets/css/components.css"/>
-  <link rel="stylesheet" href="assets/css/animations.css"/>
-  <link rel="stylesheet" href="assets/css/index.css"/>
-  <link rel="stylesheet" href="assets/css/responsive.css"/>
+
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <link rel="stylesheet" href="assets/css/index.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
 </head>
+
 <body>
+
+  <!-- ============================================================
+       ENTRY POPUP
+  ============================================================ -->
+  <div class="entry-popup" id="entryPopup" role="dialog" aria-modal="true" aria-labelledby="entryPopupTitle">
+    <div class="entry-popup__backdrop"></div>
+    <div class="entry-popup__panel">
+      <button class="entry-popup__close" aria-label="Close">✕</button>
+
+      <div class="entry-popup__badge">FREE GUIDE</div>
+
+      <div class="entry-popup__cover">
+        <!-- FRONT COVER IMAGE GOES HERE -->
+        <img src="https://i.ibb.co/gLV5mWjg/Chat-GPT-Image-Aug-14-2026-10-50-32-AM.png"
+          alt="20 Conversations You've Been Avoiding" width="200" height="300" loading="eager" />
+      </div>
+
+      <h2 id="entryPopupTitle" class="entry-popup__title">
+        Grab a Free PDF
+      </h2>
+      <p class="entry-popup__subtitle">
+        20 Conversations You've Been Avoiding
+      </p>
+      <p class="entry-popup__desc">
+        Twenty ready-to-use scripts for the conversations you've
+        been putting off — plus the reasoning behind why each
+        one works. Completely free. No card required.
+      </p>
+
+      <a href="https://themindly.gumroad.com/l/howwespeak-free?wanted=true"
+        class="btn btn-primary btn-lg btn-full entry-popup__cta" target="_blank" rel="noopener noreferrer"
+        style="margin-bottom: 14px; display: block; width: 100%;">
+        Claim Your Free Copy →
+      </a>
+
+      <button class="entry-popup__dismiss" onclick="closeEntryPopup()">
+        No thanks, take me to the site
+      </button>
+    </div>
+  </div>
 
   <!-- ============================================================
        NAVIGATION
@@ -60,15 +106,8 @@
 
         <!-- LOGO -->
         <a href="index.html" class="nav__logo" aria-label="How We Speak — Home">
-          <img
-            src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
-            alt="How We Speak"
-            class="nav__logo-img"
-            width="156"
-            height="62"
-            fetchpriority="high"
-            decoding="async"
-          />
+          <img src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
+            alt="How We Speak" class="nav__logo-img" width="156" height="62" fetchpriority="high" decoding="async" />
         </a>
 
         <!-- CENTER LINKS -->
@@ -83,7 +122,8 @@
 
         <!-- CTA -->
         <div class="nav__cta">
-          <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Start Understanding</a>
+          <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
+            class="btn btn-primary">Start Understanding</a>
         </div>
 
         <!-- MOBILE TOGGLE -->
@@ -130,7 +170,10 @@
           <div class="hero__ctas reveal reveal-delay-3">
             <a href="#bundle" class="btn btn-primary btn-lg">
               Get The Complete Bundle
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
             </a>
             <a href="#guides" class="btn btn-secondary btn-lg">Explore Individual Guides</a>
           </div>
@@ -165,7 +208,8 @@
             <div class="img-placeholder" style="height:100%;">
               <!-- <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="#9ca3af" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="#9ca3af" stroke-width="1.5"/><path d="M4 28l8-8 6 6 4-4 10 10" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> -->
               <span></span>
-              <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/fdbkn9P9/Image-20260807002710-599-9.jpg" alt=""></span>
+              <span style="font-size:10px;opacity:0.6;"><img
+                  src="https://i.ibb.co/fdbkn9P9/Image-20260807002710-599-9.jpg" alt=""></span>
             </div>
           </div>
 
@@ -230,19 +274,31 @@
   <div class="ticker" role="marquee" aria-label="Customer testimonials">
     <div class="ticker__track" aria-hidden="true">
       <!-- Duplicated for seamless loop -->
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I finally understand why he goes quiet." — Sarah M., UK</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We stopped having the same argument every week." — James T., USA</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I've read 6 relationship books. This is different." — Priya K., Canada</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "The Scripts Collection gave me the words I never had." — Marcus A., Australia</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We communicate so much better now. Worth every penny." — Aisha B., UAE</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "My husband read the Women Edition. Game changer." — Charlotte R., France</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I finally understand why he goes quiet." —
+        Sarah M., UK</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We stopped having the same argument every
+        week." — James T., USA</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I've read 6 relationship books. This is
+        different." — Priya K., Canada</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "The Scripts Collection gave me the words I
+        never had." — Marcus A., Australia</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We communicate so much better now. Worth every
+        penny." — Aisha B., UAE</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "My husband read the Women Edition. Game
+        changer." — Charlotte R., France</div>
       <!-- Duplicate for infinite loop -->
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I finally understand why he goes quiet." — Sarah M., UK</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We stopped having the same argument every week." — James T., USA</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I've read 6 relationship books. This is different." — Priya K., Canada</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "The Scripts Collection gave me the words I never had." — Marcus A., Australia</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We communicate so much better now. Worth every penny." — Aisha B., UAE</div>
-      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "My husband read the Women Edition. Game changer." — Charlotte R., France</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I finally understand why he goes quiet." —
+        Sarah M., UK</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We stopped having the same argument every
+        week." — James T., USA</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "I've read 6 relationship books. This is
+        different." — Priya K., Canada</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "The Scripts Collection gave me the words I
+        never had." — Marcus A., Australia</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "We communicate so much better now. Worth every
+        penny." — Aisha B., UAE</div>
+      <div class="ticker__item"><span class="ticker__stars">★★★★★</span> "My husband read the Women Edition. Game
+        changer." — Charlotte R., France</div>
     </div>
   </div>
 
@@ -271,37 +327,43 @@
         <div class="problem__card reveal reveal-delay-1">
           <div class="problem__card-icon" aria-hidden="true">🔇</div>
           <h3 class="problem__card-title">He Goes Silent</h3>
-          <p class="problem__card-body">He shuts down during conflict and you feel abandoned. You push, he withdraws. The cycle repeats.</p>
+          <p class="problem__card-body">He shuts down during conflict and you feel abandoned. You push, he withdraws.
+            The cycle repeats.</p>
         </div>
 
         <div class="problem__card reveal reveal-delay-2">
           <div class="problem__card-icon" aria-hidden="true">🔁</div>
           <h3 class="problem__card-title">Old Arguments Return</h3>
-          <p class="problem__card-body">She brings up something from months ago. You thought it was resolved. She never did.</p>
+          <p class="problem__card-body">She brings up something from months ago. You thought it was resolved. She never
+            did.</p>
         </div>
 
         <div class="problem__card reveal reveal-delay-3">
           <div class="problem__card-icon" aria-hidden="true">🌀</div>
           <h3 class="problem__card-title">Lost in Translation</h3>
-          <p class="problem__card-body">You say something innocent. Your partner hears something completely different. Both of you are confused.</p>
+          <p class="problem__card-body">You say something innocent. Your partner hears something completely different.
+            Both of you are confused.</p>
         </div>
 
         <div class="problem__card reveal reveal-delay-1">
           <div class="problem__card-icon" aria-hidden="true">🤝</div>
           <h3 class="problem__card-title">He Solves, She Needs Support</h3>
-          <p class="problem__card-body">He offers solutions when you just want to be heard. She vents when he expected a clear problem to fix.</p>
+          <p class="problem__card-body">He offers solutions when you just want to be heard. She vents when he expected a
+            clear problem to fix.</p>
         </div>
 
         <div class="problem__card reveal reveal-delay-2">
           <div class="problem__card-icon" aria-hidden="true">📏</div>
           <h3 class="problem__card-title">Emotional Distance</h3>
-          <p class="problem__card-body">You're in the same room and feel miles apart. You love each other but can't seem to reach each other.</p>
+          <p class="problem__card-body">You're in the same room and feel miles apart. You love each other but can't seem
+            to reach each other.</p>
         </div>
 
         <div class="problem__card reveal reveal-delay-3">
           <div class="problem__card-icon" aria-hidden="true">💭</div>
           <h3 class="problem__card-title">Overthinking Everything</h3>
-          <p class="problem__card-body">You analyze every message, pause, and tone. Wondering if you said the wrong thing — again.</p>
+          <p class="problem__card-body">You analyze every message, pause, and tone. Wondering if you said the wrong
+            thing — again.</p>
         </div>
 
       </div>
@@ -330,7 +392,12 @@
           <!-- [SOLUTION IMAGE — Marketing hero shot or product spread] -->
           <!-- alt="How We Speak guides displayed on a modern desk" -->
           <div class="img-placeholder" style="height:100%;min-height:520px;">
-            <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="#9ca3af" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="#9ca3af" stroke-width="1.5"/><path d="M4 28l8-8 6 6 4-4 10 10" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none">
+              <rect x="4" y="4" width="32" height="32" rx="4" stroke="#9ca3af" stroke-width="1.5" />
+              <circle cx="15" cy="15" r="4" stroke="#9ca3af" stroke-width="1.5" />
+              <path d="M4 28l8-8 6 6 4-4 10 10" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
             <span><img src="https://i.ibb.co/BKrQ9R53/Chat-GPT-Image-Aug-7-2026-12-06-50-AM.png" alt=""></span>
             <span style="font-size:10px;opacity:0.6;">All 4 books — desk or lifestyle scene</span>
           </div>
@@ -352,23 +419,28 @@
           <ul class="solution__features" role="list">
             <li class="solution__feature">
               <div class="solution__feature-dot" aria-hidden="true"></div>
-              <p class="solution__feature-text"><strong>Research-grounded frameworks</strong> — drawn from 20+ years of communication psychology and behavioral science, explained in plain language.</p>
+              <p class="solution__feature-text"><strong>Research-grounded frameworks</strong> — drawn from 20+ years of
+                communication psychology and behavioral science, explained in plain language.</p>
             </li>
             <li class="solution__feature">
               <div class="solution__feature-dot" aria-hidden="true"></div>
-              <p class="solution__feature-text"><strong>75+ ready-to-use scripts</strong> — real conversation starters you can use today. For apologies, boundaries, intimacy, conflict, and everything in between.</p>
+              <p class="solution__feature-text"><strong>75+ ready-to-use scripts</strong> — real conversation starters
+                you can use today. For apologies, boundaries, intimacy, conflict, and everything in between.</p>
             </li>
             <li class="solution__feature">
               <div class="solution__feature-dot" aria-hidden="true"></div>
-              <p class="solution__feature-text"><strong>Both perspectives, equally</strong> — the Men Edition is written for women; the Women Edition for men. True cross-understanding.</p>
+              <p class="solution__feature-text"><strong>Both perspectives, equally</strong> — the Men Edition is written
+                for women; the Women Edition for men. True cross-understanding.</p>
             </li>
             <li class="solution__feature">
               <div class="solution__feature-dot" aria-hidden="true"></div>
-              <p class="solution__feature-text"><strong>Immediately practical</strong> — not theory. Every chapter ends with a reflection question, action step, and conversation to try.</p>
+              <p class="solution__feature-text"><strong>Immediately practical</strong> — not theory. Every chapter ends
+                with a reflection question, action step, and conversation to try.</p>
             </li>
           </ul>
 
-          <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get The Complete Bundle</a>
+          <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
+            class="btn btn-primary">Get The Complete Bundle</a>
 
         </div>
 
@@ -387,26 +459,77 @@
       <div class="products__intro reveal">
         <p class="eyebrow" style="margin-bottom:14px;">Our Guides</p>
         <h2 class="display-md">Four guides. One system.</h2>
-        <p class="body-md" style="margin-top:14px;">Each guide stands alone. Together, they're a complete communication toolkit for couples.</p>
+        <p class="body-md" style="margin-top:14px;">Each guide stands alone. Together, they're a complete communication
+          toolkit for couples.</p>
       </div>
 
       <div class="grid-4">
+
+        <!-- FREE GUIDE: 20 CONVERSATIONS -->
+        <div class="product-card product-card--free reveal" role="article">
+          <div class="product-card__image-area">
+            <img src="https://i.ibb.co/gLV5mWjg/Chat-GPT-Image-Aug-14-2026-10-50-32-AM.png"
+              alt="20 Conversations You've Been Avoiding — front cover" class="img-cover" width="400" height="300"
+              loading="lazy" />
+            <div class="product-card__image-back">
+              <img src="https://i.ibb.co/JjG5Z7cV/Chat-GPT-Image-Aug-14-2026-10-50-38-AM.png"
+                alt="20 Conversations You've Been Avoiding — back cover" class="img-cover" width="400" height="300"
+                loading="lazy" />
+            </div>
+            <div class="product-card__badge" style="background: var(--gold); color: var(--charcoal);">
+              Free
+            </div>
+          </div>
+          <div class="product-card__body">
+            <p class="product-card__tag">Free Guide</p>
+            <h3 class="product-card__title">
+              20 Conversations You've Been Avoiding
+            </h3>
+            <p class="product-card__desc">
+              Twenty ready-to-use scripts for the conversations you've
+              been putting off — plus why each one actually works.
+            </p>
+            <ul class="product-card__outcomes" role="list">
+              <li>20 ready-to-use conversation scripts</li>
+              <li>The reasoning behind why each one works</li>
+              <li>4 bonus sections including The 20-Minute Rule</li>
+            </ul>
+            <div class="product-card__footer"
+              style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+              <span class="product-card__price" style="color: var(--gold);">
+                Free
+              </span>
+              <div style="display:flex; gap:8px;">
+                <a href="https://themindly.gumroad.com/l/howwespeak-free?wanted=true" class="btn btn-primary"
+                  style="padding:12px 22px;font-size:14px;" target="_blank" rel="noopener noreferrer">
+                  Claim Free Copy
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- CARD 1: MEN EDITION -->
         <div class="product-card reveal reveal-delay-1" role="article">
           <div class="product-card__image-area">
             <!-- [FRONT COVER — MEN EDITION] alt="How We Speak Men Edition front cover" -->
             <div class="img-placeholder" style="height:100%;">
-              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af" stroke-width="1.5"/><path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none">
+                <path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af"
+                  stroke-width="1.5" />
+                <path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
               <span></span>
-              <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/rffWKyGB/Chat-GPT-Image-Aug-5-2026-07-50-17-PM.png" alt=""></span>
+              <span style="font-size:10px;opacity:0.6;"><img
+                  src="https://i.ibb.co/rffWKyGB/Chat-GPT-Image-Aug-5-2026-07-50-17-PM.png" alt=""></span>
             </div>
             <!-- HOVER: BACK COVER -->
             <div class="product-card__image-back">
               <!-- [BACK COVER — MEN EDITION] alt="How We Speak Men Edition back cover" -->
               <div class="img-placeholder" style="height:100%;">
                 <span></span>
-                <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/SgZSkGv/Chat-GPT-Image-Aug-5-2026-08-07-55-PM.png" alt=""></span>
+                <span style="font-size:10px;opacity:0.6;"><img
+                    src="https://i.ibb.co/SgZSkGv/Chat-GPT-Image-Aug-5-2026-08-07-55-PM.png" alt=""></span>
               </div>
             </div>
             <span class="product-card__badge">For Women</span>
@@ -414,16 +537,20 @@
           <div class="product-card__body">
             <p class="product-card__tag">Men Edition</p>
             <h3 class="product-card__title">Understanding How Men Think</h3>
-            <p class="product-card__desc">Written for women. Explains why men go silent, how they process conflict, and what they need but rarely ask for.</p>
+            <p class="product-card__desc">Written for women. Explains why men go silent, how they process conflict, and
+              what they need but rarely ask for.</p>
             <ul class="product-card__outcomes" role="list">
               <li>Why he withdraws during arguments</li>
               <li>How to ask for support he'll actually give</li>
               <li>Phrases that open him up vs. shut him down</li>
             </ul>
-            <div class="product-card__footer" style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div class="product-card__footer"
+              style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
               <span class="product-card__price">$37</span>
               <div style="display:flex; gap:8px;">
-                <a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read Now</a>
+                <a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read
+                  Now</a>
               </div>
             </div>
           </div>
@@ -434,15 +561,21 @@
           <div class="product-card__image-area">
             <!-- [FRONT COVER — WOMEN EDITION] alt="How We Speak Women Edition front cover" -->
             <div class="img-placeholder" style="height:100%;">
-              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af" stroke-width="1.5"/><path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none">
+                <path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af"
+                  stroke-width="1.5" />
+                <path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
               <span>WOMEN EDITION</span>
-              <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/j9fk1Qq0/Chat-GPT-Image-Aug-6-2026-10-23-22-AM.png" alt=""></span>
+              <span style="font-size:10px;opacity:0.6;"><img
+                  src="https://i.ibb.co/j9fk1Qq0/Chat-GPT-Image-Aug-6-2026-10-23-22-AM.png" alt=""></span>
             </div>
             <div class="product-card__image-back">
               <!-- [BACK COVER — WOMEN EDITION] alt="How We Speak Women Edition back cover" -->
               <div class="img-placeholder" style="height:100%;">
                 <span>WOMEN EDITION</span>
-                <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/b51mxMRh/Chat-GPT-Image-Aug-7-2026-12-21-33-AM.png" alt=""></span>
+                <span style="font-size:10px;opacity:0.6;"><img
+                    src="https://i.ibb.co/b51mxMRh/Chat-GPT-Image-Aug-7-2026-12-21-33-AM.png" alt=""></span>
               </div>
             </div>
             <span class="product-card__badge">For Men</span>
@@ -450,16 +583,20 @@
           <div class="product-card__body">
             <p class="product-card__tag">Women Edition</p>
             <h3 class="product-card__title">Understanding How Women Think</h3>
-            <p class="product-card__desc">Written for men. Explains why she brings up the past, what emotional support actually means to her, and what she needs to feel safe.</p>
+            <p class="product-card__desc">Written for men. Explains why she brings up the past, what emotional support
+              actually means to her, and what she needs to feel safe.</p>
             <ul class="product-card__outcomes" role="list">
               <li>Why old arguments resurface and how to resolve them</li>
               <li>What she hears vs. what you said</li>
               <li>How to make her feel genuinely understood</li>
             </ul>
-            <div class="product-card__footer" style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div class="product-card__footer"
+              style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
               <span class="product-card__price">$37</span>
               <div style="display:flex; gap:8px;">
-                <a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read Now</a>
+                <a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read
+                  Now</a>
               </div>
             </div>
           </div>
@@ -470,15 +607,21 @@
           <div class="product-card__image-area">
             <!-- [FRONT COVER — SCRIPTS] alt="How We Speak Complete Script Collection front cover" -->
             <div class="img-placeholder" style="height:100%;">
-              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af" stroke-width="1.5"/><path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none">
+                <path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af"
+                  stroke-width="1.5" />
+                <path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
               <span>SCRIPT COLLECTION</span>
-              <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/KxgzQmtY/Chat-GPT-Image-Aug-6-2026-11-17-13-AM.png" alt=""></span>
+              <span style="font-size:10px;opacity:0.6;"><img
+                  src="https://i.ibb.co/KxgzQmtY/Chat-GPT-Image-Aug-6-2026-11-17-13-AM.png" alt=""></span>
             </div>
             <div class="product-card__image-back">
               <!-- [BACK COVER — SCRIPTS] alt="How We Speak Complete Script Collection back cover" -->
               <div class="img-placeholder" style="height:100%;">
                 <span>SCRIPT COLLECTION</span>
-                <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/My7dwTJH/Chat-GPT-Image-Aug-6-2026-11-26-29-AM.png" alt=""></span>
+                <span style="font-size:10px;opacity:0.6;"><img
+                    src="https://i.ibb.co/My7dwTJH/Chat-GPT-Image-Aug-6-2026-11-26-29-AM.png" alt=""></span>
               </div>
             </div>
             <span class="product-card__badge">75+ Scripts</span>
@@ -486,16 +629,20 @@
           <div class="product-card__body">
             <p class="product-card__tag">Script Collection</p>
             <h3 class="product-card__title">The Words You've Been Searching For</h3>
-            <p class="product-card__desc">75+ ready-to-use conversation scripts for every relationship moment — from difficult talks to deep connection.</p>
+            <p class="product-card__desc">75+ ready-to-use conversation scripts for every relationship moment — from
+              difficult talks to deep connection.</p>
             <ul class="product-card__outcomes" role="list">
               <li>Starting conversations without starting fights</li>
               <li>Apologizing in a way that lands</li>
               <li>Setting limits without pushing them away</li>
             </ul>
-            <div class="product-card__footer" style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div class="product-card__footer"
+              style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
               <span class="product-card__price">$27</span>
               <div style="display:flex; gap:8px;">
-                <a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read Now</a>
+                <a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read
+                  Now</a>
               </div>
             </div>
           </div>
@@ -506,15 +653,21 @@
           <div class="product-card__image-area">
             <!-- [FRONT COVER — SEX TALK] alt="How We Speak Sex Talk Framework front cover" -->
             <div class="img-placeholder" style="height:100%;">
-              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af" stroke-width="1.5"/><path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none">
+                <path d="M8 4h24a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#9ca3af"
+                  stroke-width="1.5" />
+                <path d="M13 14h14M13 19h14M13 24h8" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
               <span>SEX TALK</span>
-              <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/dJpxv1hb/Chat-GPT-Image-Aug-6-2026-11-36-39-AM.png" alt=""></span>
+              <span style="font-size:10px;opacity:0.6;"><img
+                  src="https://i.ibb.co/dJpxv1hb/Chat-GPT-Image-Aug-6-2026-11-36-39-AM.png" alt=""></span>
             </div>
             <div class="product-card__image-back">
               <!-- [BACK COVER — SEX TALK] alt="How We Speak Sex Talk Framework back cover" -->
               <div class="img-placeholder" style="height:100%;">
                 <span>SEX TALK FRAMEWORK</span>
-                <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/TqhrG4kK/Chat-GPT-Image-Aug-7-2026-12-26-10-AM.png" alt=""></span>
+                <span style="font-size:10px;opacity:0.6;"><img
+                    src="https://i.ibb.co/TqhrG4kK/Chat-GPT-Image-Aug-7-2026-12-26-10-AM.png" alt=""></span>
               </div>
             </div>
             <span class="product-card__badge">For Couples</span>
@@ -522,16 +675,20 @@
           <div class="product-card__body">
             <p class="product-card__tag">Sex Talk Framework</p>
             <h3 class="product-card__title">Intimacy Starts With a Conversation</h3>
-            <p class="product-card__desc">A respectful, practical guide to communicating about physical and emotional intimacy — without shame, awkwardness, or guesswork.</p>
+            <p class="product-card__desc">A respectful, practical guide to communicating about physical and emotional
+              intimacy — without shame, awkwardness, or guesswork.</p>
             <ul class="product-card__outcomes" role="list">
               <li>Express desires without embarrassment</li>
               <li>Navigate mismatched libido with empathy</li>
               <li>Build the trust that deepens physical connection</li>
             </ul>
-            <div class="product-card__footer" style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <div class="product-card__footer"
+              style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
               <span class="product-card__price">$27</span>
               <div style="display:flex; gap:8px;">
-                <a href="https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read Now</a>
+                <a href="https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary" style="padding:10px 14px; font-size:13px;">Read
+                  Now</a>
               </div>
             </div>
           </div>
@@ -637,15 +794,27 @@
               <td style="font-weight:600;color:var(--charcoal);">$37</td>
               <td style="font-weight:600;color:var(--charcoal);">$27</td>
               <td style="font-weight:600;color:var(--charcoal);">$27</td>
-              <td class="bundle-col" style="font-weight:700;font-size:18px;color:var(--crimson);">$97 <span style="font-weight:400;font-size:13px;color:var(--gray);text-decoration:line-through;">$128</span></td>
+              <td class="bundle-col" style="font-weight:700;font-size:18px;color:var(--crimson);">$97 <span
+                  style="font-weight:400;font-size:13px;color:var(--gray);text-decoration:line-through;">$128</span>
+              </td>
             </tr>
             <tr>
               <td></td>
-              <td><a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
-              <td><a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
-              <td><a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
-              <td><a href="https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
-              <td class="bundle-col"><a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px 16px;font-size:14px;">Get Bundle</a></td>
+              <td><a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary"
+                  style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
+              <td><a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary"
+                  style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
+              <td><a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary"
+                  style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
+              <td><a href="https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-secondary"
+                  style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;">Read Now</a></td>
+              <td class="bundle-col"><a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank"
+                  rel="noopener noreferrer" class="btn btn-primary"
+                  style="width:100%;justify-content:center;padding:12px 16px;font-size:14px;">Get Bundle</a></td>
             </tr>
           </tbody>
         </table>
@@ -655,7 +824,7 @@
   </section>
 
 
-  
+
   <!-- ============================================================
        MEGA BUNDLE
        High converting pricing tier ($580)
@@ -667,8 +836,12 @@
         <div class="bundle__content reveal">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
             <p class="eyebrow" style="color:var(--gold-light);margin-bottom:0;">Mega Bundle</p>
-            <span style="background:var(--gold-light);color:var(--charcoal);padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Best Value</span>
-            <span style="background:#fff;color:var(--crimson);padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Most Popular</span>
+            <span
+              style="background:var(--gold-light);color:var(--charcoal);padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Best
+              Value</span>
+            <span
+              style="background:#fff;color:var(--crimson);padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Most
+              Popular</span>
           </div>
           <h2 class="bundle__headline" style="color:#fff;">
             The Ultimate<br>
@@ -676,7 +849,8 @@
             <em>Everything.</em>
           </h2>
           <p class="bundle__desc" style="color:rgba(255,255,255,0.85);">
-            Includes all four How We Speak guides plus the private, 45-minute live Couples Communication Session with the founders.
+            Includes all four How We Speak guides plus the private, 45-minute live Couples Communication Session with
+            the founders.
           </p>
           <ul class="bundle__includes" role="list" style="color:rgba(255,255,255,0.9);">
             <li>How We Speak: Men Edition (for women)</li>
@@ -689,12 +863,18 @@
           <div class="bundle__pricing" style="color:#fff;border-color:rgba(255,255,255,0.15);">
             <span class="bundle__price-current">$580</span>
             <span class="bundle__price-was" style="color:rgba(255,255,255,0.4);">$628</span>
-            <span class="bundle__price-save" style="background:rgba(255,255,255,0.1);color:var(--gold-light);">Save $48</span>
+            <span class="bundle__price-save" style="background:rgba(255,255,255,0.1);color:var(--gold-light);">Save
+              $48</span>
           </div>
           <div class="bundle__ctas">
-            <a href="https://themindly.gumroad.com/l/howwespeak-transform?wanted=true" target="_blank" rel="noopener noreferrer" class="btn btn-white btn-lg" style="color:var(--crimson);padding:20px 40px;font-size:17px;">
+            <a href="https://themindly.gumroad.com/l/howwespeak-transform?wanted=true" target="_blank"
+              rel="noopener noreferrer" class="btn btn-white btn-lg"
+              style="color:var(--crimson);padding:20px 40px;font-size:17px;">
               Get The Mega Bundle
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="margin-left:8px;"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="margin-left:8px;">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
             </a>
           </div>
           <p class="bundle__fine-print" style="color:rgba(255,255,255,0.5);">
@@ -703,9 +883,16 @@
         </div>
         <!-- RIGHT: MEGA BUNDLE MOCKUP IMAGE -->
         <div class="bundle__image reveal reveal-delay-2">
-          <div class="img-placeholder" style="height:520px;background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.1);">
-            <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none" style="opacity:0.3"><rect x="4" y="4" width="32" height="32" rx="4" stroke="white" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="white" stroke-width="1.5"/><path d="M4 28l8-8 6 6 4-4 10 10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="color:rgba(255,255,255,0.35);"><img src="https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png" alt=""></span>
+          <div class="img-placeholder"
+            style="height:520px;background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.1);">
+            <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none" style="opacity:0.3">
+              <rect x="4" y="4" width="32" height="32" rx="4" stroke="white" stroke-width="1.5" />
+              <circle cx="15" cy="15" r="4" stroke="white" stroke-width="1.5" />
+              <path d="M4 28l8-8 6 6 4-4 10 10" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            <span style="color:rgba(255,255,255,0.35);"><img
+                src="https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png" alt=""></span>
             <span style="font-size:10px;color:rgba(255,255,255,0.20);">Mega Bundle Mockup</span>
           </div>
         </div>
@@ -713,7 +900,7 @@
     </div>
   </section>
 
-<!-- ============================================================
+  <!-- ============================================================
        BUNDLE
        Dark section — full offer presentation
   ============================================================ -->
@@ -750,7 +937,12 @@
           </div>
 
           <div class="bundle__ctas">
-            <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer" class="btn btn-white btn-lg">Get The Complete Bundle <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
+              class="btn btn-white btn-lg">Get The Complete Bundle <svg width="16" height="16" viewBox="0 0 16 16"
+                fill="none" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg></a>
             <a href="#guides" class="btn btn-ghost-white">See Individual Guides</a>
           </div>
 
@@ -764,8 +956,14 @@
           <!-- [BUNDLE IMAGE HERE] — All 4 books stacked/arranged -->
           <!-- alt="Complete How We Speak bundle — all four communication guides" -->
           <div class="img-placeholder" style="height:520px;">
-            <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none" style="opacity:0.3"><rect x="4" y="4" width="32" height="32" rx="4" stroke="white" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="white" stroke-width="1.5"/><path d="M4 28l8-8 6 6 4-4 10 10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="color:rgba(255,255,255,0.35);"><img src="https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png" alt=""></span>
+            <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none" style="opacity:0.3">
+              <rect x="4" y="4" width="32" height="32" rx="4" stroke="white" stroke-width="1.5" />
+              <circle cx="15" cy="15" r="4" stroke="white" stroke-width="1.5" />
+              <path d="M4 28l8-8 6 6 4-4 10 10" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            <span style="color:rgba(255,255,255,0.35);"><img
+                src="https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png" alt=""></span>
             <span style="font-size:10px;color:rgba(255,255,255,0.20);">All 4 books — 3D stacked mockup</span>
           </div>
         </div>
@@ -790,7 +988,8 @@
 
         <div class="testimonial-card reveal reveal-delay-1">
           <div class="testimonial-card__stars" aria-label="5 stars">★★★★★</div>
-          <p class="testimonial-card__quote">"I've been married 8 years and never understood why my husband went silent during hard conversations. This explained everything in a way I could actually use."</p>
+          <p class="testimonial-card__quote">"I've been married 8 years and never understood why my husband went silent
+            during hard conversations. This explained everything in a way I could actually use."</p>
           <div class="testimonial-card__author">
             <div class="testimonial-card__avatar" aria-hidden="true">S</div>
             <div>
@@ -802,7 +1001,8 @@
 
         <div class="testimonial-card reveal reveal-delay-2">
           <div class="testimonial-card__stars" aria-label="5 stars">★★★★★</div>
-          <p class="testimonial-card__quote">"My wife asked me to read the Women Edition. I was resistant. After finishing it, I apologised to her for things from years ago that I didn't even know had hurt her."</p>
+          <p class="testimonial-card__quote">"My wife asked me to read the Women Edition. I was resistant. After
+            finishing it, I apologised to her for things from years ago that I didn't even know had hurt her."</p>
           <div class="testimonial-card__author">
             <div class="testimonial-card__avatar" aria-hidden="true">J</div>
             <div>
@@ -814,7 +1014,8 @@
 
         <div class="testimonial-card reveal reveal-delay-3">
           <div class="testimonial-card__stars" aria-label="5 stars">★★★★★</div>
-          <p class="testimonial-card__quote">"I've read 6 relationship books. This is the only one that gave me language I could use the next day. Not theory — actual words for actual moments."</p>
+          <p class="testimonial-card__quote">"I've read 6 relationship books. This is the only one that gave me language
+            I could use the next day. Not theory — actual words for actual moments."</p>
           <div class="testimonial-card__author">
             <div class="testimonial-card__avatar" aria-hidden="true">P</div>
             <div>
@@ -826,7 +1027,8 @@
 
         <div class="testimonial-card reveal reveal-delay-1">
           <div class="testimonial-card__stars" aria-label="5 stars">★★★★★</div>
-          <p class="testimonial-card__quote">"The Script Collection gave me the words for conversations I'd been avoiding for months. We finally talked about our finances properly. And it went well."</p>
+          <p class="testimonial-card__quote">"The Script Collection gave me the words for conversations I'd been
+            avoiding for months. We finally talked about our finances properly. And it went well."</p>
           <div class="testimonial-card__author">
             <div class="testimonial-card__avatar" aria-hidden="true">M</div>
             <div>
@@ -838,7 +1040,8 @@
 
         <div class="testimonial-card reveal reveal-delay-2">
           <div class="testimonial-card__stars" aria-label="5 stars">★★★★★</div>
-          <p class="testimonial-card__quote">"We communicate so differently. I always thought that meant we were incompatible. Turns out we just needed to understand why. We're so much closer now."</p>
+          <p class="testimonial-card__quote">"We communicate so differently. I always thought that meant we were
+            incompatible. Turns out we just needed to understand why. We're so much closer now."</p>
           <div class="testimonial-card__author">
             <div class="testimonial-card__avatar" aria-hidden="true">A</div>
             <div>
@@ -850,7 +1053,8 @@
 
         <div class="testimonial-card reveal reveal-delay-3">
           <div class="testimonial-card__stars" aria-label="5 stars">★★★★★</div>
-          <p class="testimonial-card__quote">"We started with the Sex Talk Framework because that's where we struggled most. I didn't expect it to improve every other part of our relationship. But it did."</p>
+          <p class="testimonial-card__quote">"We started with the Sex Talk Framework because that's where we struggled
+            most. I didn't expect it to improve every other part of our relationship. But it did."</p>
           <div class="testimonial-card__author">
             <div class="testimonial-card__avatar" aria-hidden="true">C</div>
             <div>
@@ -880,9 +1084,15 @@
             <!-- [FOUNDER PHOTO — Image 4 corrected: Anas + Ilayda, white outfits, sea wall] -->
             <!-- alt="Anas Ziraoui and Ilayda Demir, founders of How We Speak, standing by the Mediterranean sea" -->
             <div class="img-placeholder" style="height:100%;min-height:560px;">
-              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="#9ca3af" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="#9ca3af" stroke-width="1.5"/><path d="M4 28l8-8 6 6 4-4 10 10" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg class="img-placeholder-icon" viewBox="0 0 40 40" fill="none">
+                <rect x="4" y="4" width="32" height="32" rx="4" stroke="#9ca3af" stroke-width="1.5" />
+                <circle cx="15" cy="15" r="4" stroke="#9ca3af" stroke-width="1.5" />
+                <path d="M4 28l8-8 6 6 4-4 10 10" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
               <span>FOUNDER PHOTO</span>
-              <span style="font-size:10px;opacity:0.6;"><img src="https://i.ibb.co/67tXYqrh/Gemini-Generated-Image-u49ddbu49ddbu49d.png" alt=""></span>
+              <span style="font-size:10px;opacity:0.6;"><img
+                  src="https://i.ibb.co/67tXYqrh/Gemini-Generated-Image-u49ddbu49ddbu49d.png" alt=""></span>
             </div>
           </div>
           <div class="about__quote-card" aria-hidden="true">
@@ -925,19 +1135,36 @@
           </h2>
 
           <div class="about__story">
-            <p>Anas was confident, ambitious, and — if he's honest — a little too proud to ever make the first move. Ilayda was just as independent, equally stubborn, and never the type to chase someone. At least not openly.</p>
-            <p>Yet every weekend, she would travel to Luoyang, China, where Anas was living. Officially, there were always reasons for the visit. Unofficially, everyone could see there was someone she hoped to spend time with.</p>
-            <p>For months, neither of them was willing to admit what they felt. Conversations were playful, the chemistry was obvious, but their pride kept getting in the way. Each was waiting for the other to make the first real move.</p>
+            <p>Anas was confident, ambitious, and — if he's honest — a little too proud to ever make the first move.
+              Ilayda was just as independent, equally stubborn, and never the type to chase someone. At least not
+              openly.</p>
+            <p>Yet every weekend, she would travel to Luoyang, China, where Anas was living. Officially, there were
+              always reasons for the visit. Unofficially, everyone could see there was someone she hoped to spend time
+              with.</p>
+            <p>For months, neither of them was willing to admit what they felt. Conversations were playful, the
+              chemistry was obvious, but their pride kept getting in the way. Each was waiting for the other to make the
+              first real move.</p>
             <p><strong>Then one ordinary day changed everything.</strong></p>
-            <p>After spending time together, Anas drove Ilayda to the train station. During the drive, there was a quiet moment where neither of them needed to say anything. Before she stepped out, Anas finally stopped overthinking, ignored his ego, and kissed her. That single kiss changed everything. The uncertainty disappeared.</p>
-            <p>Weekend visits became dates. Long conversations turned into unforgettable memories. They explored new places, laughed through countless adventures, learned how to communicate through disagreements, and slowly built a relationship based on trust, respect, and genuine friendship.</p>
-            <p>Like every couple, they discovered that love alone isn't enough. Every misunderstanding became an opportunity to learn. Every difficult conversation taught them something new about each other.</p>
-            <p><strong>Those experiences inspired us to create How We Speak.</strong> Not because we believe we have the perfect relationship — but because we learned that healthy communication isn't something most people are ever taught.</p>
-            <p>Our mission is simple: to help couples understand each other a little better, argue a little less, and build relationships where both people truly feel heard. If our guides can help even one couple have the conversation they were afraid to start, then every page we've written has been worth it.</p>
+            <p>After spending time together, Anas drove Ilayda to the train station. During the drive, there was a quiet
+              moment where neither of them needed to say anything. Before she stepped out, Anas finally stopped
+              overthinking, ignored his ego, and kissed her. That single kiss changed everything. The uncertainty
+              disappeared.</p>
+            <p>Weekend visits became dates. Long conversations turned into unforgettable memories. They explored new
+              places, laughed through countless adventures, learned how to communicate through disagreements, and slowly
+              built a relationship based on trust, respect, and genuine friendship.</p>
+            <p>Like every couple, they discovered that love alone isn't enough. Every misunderstanding became an
+              opportunity to learn. Every difficult conversation taught them something new about each other.</p>
+            <p><strong>Those experiences inspired us to create How We Speak.</strong> Not because we believe we have the
+              perfect relationship — but because we learned that healthy communication isn't something most people are
+              ever taught.</p>
+            <p>Our mission is simple: to help couples understand each other a little better, argue a little less, and
+              build relationships where both people truly feel heard. If our guides can help even one couple have the
+              conversation they were afraid to start, then every page we've written has been worth it.</p>
           </div>
 
           <div style="display:flex;align-items:center;gap:12px;margin-top:8px;margin-bottom:32px;">
-            <span style="font-size:13px;color:var(--gray);font-style:italic;">— Anas &amp; Ilayda, Luoyang, China → The World</span>
+            <span style="font-size:13px;color:var(--gray);font-style:italic;">— Anas &amp; Ilayda, Luoyang, China → The
+              World</span>
           </div>
 
           <a href="#bundle" class="btn btn-primary">Read Our Guides</a>
@@ -965,7 +1192,8 @@
             Read the guide. Use it with your partner. If you don't have a single conversation
             that wouldn't have happened before — if you don't understand your partner
             better than you did on Day 1 — email us at
-            <a href="mailto:admin@tryhowwespeak.com" style="color:rgba(255,255,255,0.75);text-decoration:underline;">admin@tryhowwespeak.com</a>
+            <a href="mailto:admin@tryhowwespeak.com"
+              style="color:rgba(255,255,255,0.75);text-decoration:underline;">admin@tryhowwespeak.com</a>
             and we'll refund you in full. We have no interest in keeping money that wasn't earned.
             No complicated forms. No questions. No stress.
           </p>
@@ -994,7 +1222,10 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-1" role="region">
-            <p class="faq__answer-inner">Every How We Speak guide draws from 20+ years of research in communication psychology, gender studies, and behavioral science. We're not relationship coaches — we're researchers who found something that worked and built a system around it. All claims are grounded in evidence, not anecdote.</p>
+            <p class="faq__answer-inner">Every How We Speak guide draws from 20+ years of research in communication
+              psychology, gender studies, and behavioral science. We're not relationship coaches — we're researchers who
+              found something that worked and built a system around it. All claims are grounded in evidence, not
+              anecdote.</p>
           </div>
         </div>
 
@@ -1004,7 +1235,10 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-2" role="region">
-            <p class="faq__answer-inner">Most readers start alone. Understanding your partner's psychology doesn't require their participation — only yours. Many people notice a shift in their relationship within days, even before their partner reads anything. The guides are designed to work immediately for the person holding them.</p>
+            <p class="faq__answer-inner">Most readers start alone. Understanding your partner's psychology doesn't
+              require their participation — only yours. Many people notice a shift in their relationship within days,
+              even before their partner reads anything. The guides are designed to work immediately for the person
+              holding them.</p>
           </div>
         </div>
 
@@ -1014,7 +1248,9 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-3" role="region">
-            <p class="faq__answer-inner">After checkout, you'll receive an email with a download link within seconds. The guides are PDF files that work on all devices — phone, tablet, laptop, or desktop. No app required.</p>
+            <p class="faq__answer-inner">After checkout, you'll receive an email with a download link within seconds.
+              The guides are PDF files that work on all devices — phone, tablet, laptop, or desktop. No app required.
+            </p>
           </div>
         </div>
 
@@ -1024,7 +1260,9 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-4" role="region">
-            <p class="faq__answer-inner">No. These guides are designed for couples who want to communicate better, not couples in crisis. If you're experiencing serious relational difficulties, a licensed therapist is the appropriate next step. How We Speak works best as a proactive tool, not a crisis intervention.</p>
+            <p class="faq__answer-inner">No. These guides are designed for couples who want to communicate better, not
+              couples in crisis. If you're experiencing serious relational difficulties, a licensed therapist is the
+              appropriate next step. How We Speak works best as a proactive tool, not a crisis intervention.</p>
           </div>
         </div>
 
@@ -1034,7 +1272,8 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-5" role="region">
-            <p class="faq__answer-inner">Yes. Once purchased, the guides are yours permanently. Any future updates to the content will be sent to you at no additional cost.</p>
+            <p class="faq__answer-inner">Yes. Once purchased, the guides are yours permanently. Any future updates to
+              the content will be sent to you at no additional cost.</p>
           </div>
         </div>
 
@@ -1044,7 +1283,9 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-6" role="region">
-            <p class="faq__answer-inner">Each guide is 40-50 pages. Most readers finish them in 2-3 hours. They're structured for re-reading and reference — many people return to specific chapters when a particular situation arises.</p>
+            <p class="faq__answer-inner">Each guide is 40-50 pages. Most readers finish them in 2-3 hours. They're
+              structured for re-reading and reference — many people return to specific chapters when a particular
+              situation arises.</p>
           </div>
         </div>
 
@@ -1054,7 +1295,9 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-7" role="region">
-            <p class="faq__answer-inner">We offer a 30-day money-back guarantee. If the guides don't help you communicate better with your partner, email us at admin@tryhowwespeak.com and we'll process a full refund. No forms. No friction.</p>
+            <p class="faq__answer-inner">We offer a 30-day money-back guarantee. If the guides don't help you
+              communicate better with your partner, email us at admin@tryhowwespeak.com and we'll process a full refund.
+              No forms. No friction.</p>
           </div>
         </div>
 
@@ -1064,7 +1307,9 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-8" role="region">
-            <p class="faq__answer-inner">Yes. PDF format works on iPhone, Android, iPad, Mac, and Windows PC. You can read on any app that opens PDFs — including your phone's native reader, Apple Books, or Google Play Books.</p>
+            <p class="faq__answer-inner">Yes. PDF format works on iPhone, Android, iPad, Mac, and Windows PC. You can
+              read on any app that opens PDFs — including your phone's native reader, Apple Books, or Google Play Books.
+            </p>
           </div>
         </div>
 
@@ -1074,7 +1319,8 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-9" role="region">
-            <p class="faq__answer-inner">Yes. All transactions are processed through secure, encrypted payment processors. We never store your payment details. Your information is fully protected.</p>
+            <p class="faq__answer-inner">Yes. All transactions are processed through secure, encrypted payment
+              processors. We never store your payment details. Your information is fully protected.</p>
           </div>
         </div>
 
@@ -1084,7 +1330,10 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-10" role="region">
-            <p class="faq__answer-inner">Not necessarily. Each edition stands alone. The Men Edition is for women who want to understand their male partner; the Women Edition is for men who want to understand their female partner. Many couples buy both for full mutual understanding. The Bundle includes all four guides at the best price.</p>
+            <p class="faq__answer-inner">Not necessarily. Each edition stands alone. The Men Edition is for women who
+              want to understand their male partner; the Women Edition is for men who want to understand their female
+              partner. Many couples buy both for full mutual understanding. The Bundle includes all four guides at the
+              best price.</p>
           </div>
         </div>
 
@@ -1094,7 +1343,10 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-11" role="region">
-            <p class="faq__answer-inner">We're Anas and Ilayda — a real couple who built this because we needed it. We're not licensed therapists or credentialed coaches. We're researchers who tested everything on our own relationship first. Our credibility is in the specificity and accuracy of what's inside, not in a certification.</p>
+            <p class="faq__answer-inner">We're Anas and Ilayda — a real couple who built this because we needed it.
+              We're not licensed therapists or credentialed coaches. We're researchers who tested everything on our own
+              relationship first. Our credibility is in the specificity and accuracy of what's inside, not in a
+              certification.</p>
           </div>
         </div>
 
@@ -1104,7 +1356,10 @@
             <span class="faq__icon" aria-hidden="true">+</span>
           </button>
           <div class="faq__answer" id="faq-12" role="region">
-            <p class="faq__answer-inner">Most relationship books give advice to both partners together. How We Speak gives one partner a window into the other's psychology — specifically. The Men Edition doesn't tell men how to communicate; it tells women how men already communicate, and why. That cross-understanding is what makes the difference.</p>
+            <p class="faq__answer-inner">Most relationship books give advice to both partners together. How We Speak
+              gives one partner a window into the other's psychology — specifically. The Men Edition doesn't tell men
+              how to communicate; it tells women how men already communicate, and why. That cross-understanding is what
+              makes the difference.</p>
           </div>
         </div>
 
@@ -1128,7 +1383,8 @@
       </p>
 
       <div class="final-cta__ctas reveal reveal-delay-2">
-        <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">Get The Complete Bundle — $97</a>
+        <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
+          class="btn btn-primary btn-lg">Get The Complete Bundle — $97</a>
         <a href="#guides" class="btn btn-secondary btn-lg">Explore Individual Guides</a>
       </div>
 
@@ -1164,14 +1420,8 @@
 
         <div>
           <a href="index.html" aria-label="How We Speak — Home" style="display:inline-block;margin-bottom:20px;">
-            <img
-              src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
-              alt="How We Speak"
-              width="160"
-              height="64"
-              loading="lazy"
-              decoding="async"
-              style="
+            <img src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
+              alt="How We Speak" width="160" height="64" loading="lazy" decoding="async" style="
                 display: block;
                 width: 160px;
                 height: auto;
@@ -1181,23 +1431,30 @@
                 opacity: 0.92;
                 image-rendering: -webkit-optimize-contrast;
                 transition: opacity 250ms ease;
-              "
-              onmouseover="this.style.opacity='1'"
-              onmouseout="this.style.opacity='0.92'"
-            />
+              " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.92'" />
           </a>
           <p class="footer__brand-desc">
             Helping couples build stronger relationships through better communication.
           </p>
           <p style="font-size:13px;color:rgba(255,255,255,0.40);margin-top:8px;margin-bottom:20px;">
-            <a href="mailto:admin@tryhowwespeak.com" style="color:rgba(255,255,255,0.40);transition:color 250ms ease;" onmouseover="this.style.color='rgba(255,255,255,0.75)'" onmouseout="this.style.color='rgba(255,255,255,0.40)'">admin@tryhowwespeak.com</a>
+            <a href="mailto:admin@tryhowwespeak.com" style="color:rgba(255,255,255,0.40);transition:color 250ms ease;"
+              onmouseover="this.style.color='rgba(255,255,255,0.75)'"
+              onmouseout="this.style.color='rgba(255,255,255,0.40)'">admin@tryhowwespeak.com</a>
           </p>
           <div class="footer__socials">
-            <a href="https://www.instagram.com/anass_paccino/" class="footer__social" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            <a href="https://www.instagram.com/anass_paccino/" class="footer__social" aria-label="Instagram"
+              target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+              </svg>
             </a>
-            <a href="https://www.facebook.com/anas.ziraoui.7/" class="footer__social" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <a href="https://www.facebook.com/anas.ziraoui.7/" class="footer__social" aria-label="Facebook"
+              target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
             </a>
           </div>
         </div>
@@ -1205,11 +1462,16 @@
         <div>
           <h3 class="footer__col-title">Products</h3>
           <ul class="footer__links" role="list">
-            <li><a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank" rel="noopener noreferrer">Men Edition</a></li>
-            <li><a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank" rel="noopener noreferrer">Women Edition</a></li>
-            <li><a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank" rel="noopener noreferrer">Complete Script Collection</a></li>
-            <li><a href="https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true" target="_blank" rel="noopener noreferrer">Sex Talk Framework</a></li>
-            <li><a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer">Complete Bundle</a></li>
+            <li><a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank"
+                rel="noopener noreferrer">Men Edition</a></li>
+            <li><a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank"
+                rel="noopener noreferrer">Women Edition</a></li>
+            <li><a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank"
+                rel="noopener noreferrer">Complete Script Collection</a></li>
+            <li><a href="https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true" target="_blank"
+                rel="noopener noreferrer">Sex Talk Framework</a></li>
+            <li><a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank"
+                rel="noopener noreferrer">Complete Bundle</a></li>
             <li><a href="mailto:admin@tryhowwespeak.com?subject=Couple Session Booking">Couple Session</a></li>
           </ul>
         </div>
@@ -1379,4 +1641,5 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/components.js"></script>
 </body>
+
 </html>

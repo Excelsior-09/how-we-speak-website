@@ -34,7 +34,7 @@ function initNav() {
 /* ── GALLERY THUMBS ── */
 function initGallery() {
   const mainImg = document.getElementById('galleryMain');
-  const thumbs  = document.querySelectorAll('.gallery-thumb');
+  const thumbs = document.querySelectorAll('.gallery-thumb');
   if (!mainImg || !thumbs.length) return;
 
   thumbs.forEach(thumb => {
@@ -49,8 +49,58 @@ function initGallery() {
   });
 }
 
+/* ── ENTRY POPUP ── */
+function initEntryPopup() {
+  const popup = document.getElementById('entryPopup');
+  if (!popup) return;
+
+  const alreadyShown = sessionStorage.getItem('hws_entry_popup_shown');
+  if (alreadyShown === 'true') return;
+
+  setTimeout(() => {
+    popup.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+    sessionStorage.setItem('hws_entry_popup_shown', 'true');
+  }, 1500);
+
+  const closeBtn = popup.querySelector('.entry-popup__close');
+  const backdrop = popup.querySelector('.entry-popup__backdrop');
+  const dismissBtn = popup.querySelector('.entry-popup__dismiss');
+
+  function close() {
+    popup.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', close);
+  dismissBtn.addEventListener('click', close);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popup.classList.contains('visible')) {
+      close();
+    }
+  });
+
+  const ctaBtn = popup.querySelector('.entry-popup__cta');
+  if (ctaBtn) {
+    ctaBtn.addEventListener('click', () => {
+      setTimeout(close, 300);
+    });
+  }
+}
+
+window.closeEntryPopup = function () {
+  const popup = document.getElementById('entryPopup');
+  if (popup) {
+    popup.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+};
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {
+  initEntryPopup();
   initNav();
   initCartUI();
   initQtyControl();
