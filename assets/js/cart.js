@@ -108,8 +108,16 @@ const Cart = {
     if (body) body.innerHTML = html;
     if (bSubtotal) bSubtotal.textContent = '$' + subtotal;
     if (bTotal) bTotal.textContent = '$' + subtotal;
-    if (navBadge) navBadge.textContent = totalItems;
-    if (floatBadge) floatBadge.textContent = totalItems;
+    if (navBadge) {
+      navBadge.textContent = totalItems;
+      if (totalItems > 0) navBadge.classList.add('has-items');
+      else navBadge.classList.remove('has-items');
+    }
+    if (floatBadge) {
+      floatBadge.textContent = totalItems;
+      if (totalItems > 0) floatBadge.classList.add('has-items');
+      else floatBadge.classList.remove('has-items');
+    }
   },
 
   showToast(msg) {

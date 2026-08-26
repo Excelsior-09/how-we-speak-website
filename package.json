@@ -1,0 +1,24 @@
+{
+  "name": "how-we-speak-website",
+  "version": "1.0.0",
+  "description": "A premium digital education platform focused on helping couples improve communication and build healthier relationships.",
+  "main": "extract.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Excelsior-09/how-we-speak-website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Excelsior-09/how-we-speak-website/issues"
+  },
+  "homepage": "https://github.com/Excelsior-09/how-we-speak-website#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

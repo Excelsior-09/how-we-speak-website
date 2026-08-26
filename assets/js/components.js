@@ -8,6 +8,34 @@
 (function () {
   const LOGO = 'https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png';
 
+  /* Quiz page gets a minimal, distraction-free nav — just Home + Take the Quiz. */
+  const isQuizPage = /(^|\/)quiz\.html$/.test(window.location.pathname);
+
+  const NAV_LINKS_FULL = `
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#guides">Our Guides</a></li>
+        <li>
+          <a href="quiz.html" class="nav-quiz">
+            Take the Quiz
+            <span class="nav-quiz-badge">New</span>
+          </a>
+        </li>
+        <li><a href="/index.html#bundle">Bundle</a></li>
+        <li><a href="index.html#story">Our Story</a></li>
+        <li><a href="index.html#faq">FAQ</a></li>
+        <li class="mobile-cta" style="display:none;">
+          <a href="/index.html#bundle" class="btn btn-primary">Start Understanding</a>
+        </li>`;
+
+  const NAV_LINKS_QUIZ = `
+        <li><a href="index.html">Home</a></li>
+        <li>
+          <a href="quiz.html" class="nav-quiz" aria-current="page">
+            Take the Quiz
+            <span class="nav-quiz-badge">New</span>
+          </a>
+        </li>`;
+
   /* ── NAV HTML ─────────────────────────────────────────── */
   const NAV_HTML = `
 <div class="cart-toast" id="cartToast">
@@ -20,45 +48,25 @@
       <a href="index.html" class="nav__logo" aria-label="How We Speak — Home">
         <img src="${LOGO}" alt="How We Speak" class="nav__logo-img" fetchpriority="high" decoding="async"/>
       </a>
-      
+
       <!-- Desktop Links -->
-      <ul class="nav__links" role="list">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="refund-policy.html">Refund Policy</a></li>
-        <li><a href="privacy-policy.html">Privacy Policy</a></li>
-        <li><a href="terms.html">Terms</a></li>
+      <ul class="nav__links" id="navLinks" role="list">${isQuizPage ? NAV_LINKS_QUIZ : NAV_LINKS_FULL}
       </ul>
-      <div class="nav__cta">
+      <div class="nav__right">
+        <div class="nav__cta">
+          <a href="/index.html#bundle" class="btn btn-primary">Start Understanding</a>
+        </div>
         <button class="nav__cart" id="navCartToggle" aria-label="Open cart">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
           <span class="cart-badge" id="cartBadge">0</span>
         </button>
-        <a href="index.html#bundle" class="btn btn-primary">Start Understanding</a>
-      </div>
-
-        <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false">
+        <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
   </div>
 </nav>
-
-<!-- Mobile Drawer Escaped Stacking Context -->
-<div class="nav__mobile-drawer" id="mobileDrawer">
-  <button class="nav__mobile-close" id="navCloseBtn" aria-label="Close menu">✕</button>
-  <ul class="drawer-links" role="list">
-    <li><a href="index.html" class="mobile-nav-link">Home</a></li>
-    <li><a href="contact.html" class="mobile-nav-link">Contact</a></li>
-    <li><a href="refund-policy.html" class="mobile-nav-link">Refund Policy</a></li>
-    <li><a href="privacy-policy.html" class="mobile-nav-link">Privacy Policy</a></li>
-    <li><a href="terms.html" class="mobile-nav-link">Terms</a></li>
-  </ul>
-  <div class="drawer-cta">
-    <a href="index.html#bundle" class="btn btn-primary" id="mobileCta">Start Understanding</a>
-  </div>
-</div>
 `;
 
   /* ── FOOTER HTML ─────────────────────────────────────── */
@@ -102,27 +110,34 @@
     if (navSlot) navSlot.outerHTML = NAV_HTML;
     if (footerSlot) footerSlot.outerHTML = FOOTER_HTML;
 
-    // Mobile Drawer Logic
+    // Mobile Nav Logic
     const toggle = document.querySelector('.nav__mobile-toggle');
-    const closeBtn = document.getElementById('navCloseBtn');
-    const drawer = document.getElementById('mobileDrawer');
-    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+    const links = document.getElementById('navLinks');
+    if (toggle && links) {
+      function setOpen(open) {
+        toggle.setAttribute('aria-expanded', String(open));
+        links.classList.toggle('is-open', open);
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
 
-    if (toggle && closeBtn && drawer) {
       toggle.addEventListener('click', () => {
-        drawer.classList.add('nav__drawer--active');
-        document.body.style.overflow = 'hidden'; // Stop scrolling
+        const open = toggle.getAttribute('aria-expanded') === 'true';
+        setOpen(!open);
       });
-      closeBtn.addEventListener('click', () => {
-        drawer.classList.remove('nav__drawer--active');
-        document.body.style.overflow = '';
+
+      // close when any link is tapped
+      links.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => setOpen(false));
       });
-      // Close when clicking a link
-      mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          drawer.classList.remove('nav__drawer--active');
-          document.body.style.overflow = '';
-        });
+
+      // close on Escape
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') setOpen(false);
+      });
+
+      // close if resized back to desktop
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 860) setOpen(false);
       });
     }
   });

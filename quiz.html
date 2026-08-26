@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>How We Speak — Communication Quiz</title>
+
+    <meta name="description" content="Discover your communication pattern in 2 minutes." />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+
+    <!-- Global styles -->
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/quiz.css" />
+</head>
+
+<body style="background:var(--cream);">
+
+    <div id="hws-nav"></div>
+
+    <main id="quiz-app" class="quiz-page">
+        <div class="quiz-shell">
+            <!-- Intro Screen -->
+            <div id="screen-intro" class="quiz-screen active">
+                <div class="screen-content intro-content reveal-stagger">
+                    <p class="eyebrow intro-eyebrow">FREE &bull; 2 MINUTES</p>
+                    <h1 class="intro-heading">What's actually going wrong in your conversations?</h1>
+                    <p class="intro-body">Twelve questions. No judgment, no scoring you against anyone else. At the end
+                        you'll get a breakdown of your communication pattern &mdash; and a plan built around the
+                        specific
+                        thing that keeps going wrong.</p>
+
+                    <div class="trust-row">
+                        <div class="trust-item"><span class="trust-icon" aria-hidden="true">&bull;</span> 12 questions
+                        </div>
+                        <div class="trust-item"><span class="trust-icon" aria-hidden="true">&bull;</span> About 2
+                            minutes
+                        </div>
+                        <div class="trust-item"><span class="trust-icon" aria-hidden="true">&bull;</span> Personalized
+                            result</div>
+                    </div>
+
+                    <button id="btn-start" class="btn btn-primary btn-start">Start the Quiz &rarr;</button>
+                    <p class="intro-legal">We'll only ask for your email at the very end, and only if you want the plan.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Question Flow Screen -->
+            <div id="screen-question" class="quiz-screen">
+                <div class="quiz-progress-track">
+                    <div id="progress-bar" class="quiz-progress-fill" role="progressbar" aria-valuenow="1"
+                        aria-valuemin="0" aria-valuemax="12"></div>
+                </div>
+                <div class="quiz-progress-label">
+                    <span id="progress-text">Question 1 of 12</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+
+                <div class="screen-content q-content">
+                    <p id="q-category" class="question-eyebrow"></p>
+                    <h2 id="q-text" class="question-text" aria-live="polite"></h2>
+
+                    <div id="options-container" class="options-container">
+                        <!-- Options rendered via JS -->
+                    </div>
+
+                    <button id="btn-back" class="btn-text btn-back">Back</button>
+                </div>
+            </div>
+
+            <!-- Email Capture Screen -->
+            <div id="screen-email" class="quiz-screen">
+                <div class="screen-content email-content">
+                    <p class="eyebrow">ALMOST THERE</p>
+                    <h2 class="email-heading">Your result is ready.</h2>
+                    <p class="email-body">Where should we send your personalized plan? We'll put together a short
+                        breakdown of your pattern and three things to work on, built specifically around your result.
+                    </p>
+
+                    <form id="email-form" class="email-form">
+                        <div class="input-group">
+                            <label for="first-name" class="sr-only">First Name (Optional)</label>
+                            <input type="text" id="first-name" class="input-field"
+                                placeholder="First Name (Optional)" />
+                        </div>
+                        <div class="input-group">
+                            <label for="email" class="sr-only">Email Address</label>
+                            <input type="email" id="email" class="input-field" placeholder="Email Address" required />
+                            <span id="email-error" class="error-msg">That doesn't look like a valid email</span>
+                        </div>
+                        <button type="submit" id="btn-submit" class="btn btn-primary btn-lg">See My Result
+                            &rarr;</button>
+                    </form>
+
+                    <p class="email-legal">We'll send the plan and occasional useful things. <a
+                            href="privacy-policy.html" target="_blank"
+                            style="text-decoration:underline;color:inherit;">Privacy Policy</a>. Unsubscribe
+                        anytime, and we never share your email.</p>
+                    <button id="btn-skip" class="btn-text btn-skip">Show me the result without the plan</button>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="screen-result" class="quiz-screen">
+                <div class="screen-content result-content">
+                    <div id="archetype-badge" class="result-badge">Icon</div>
+                    <p class="eyebrow">YOUR COMMUNICATION PATTERN</p>
+                    <h1 id="res-title" class="result-title"></h1>
+                    <p id="res-subtitle" class="result-subtitle italic-text"></p>
+
+                    <hr class="result-divider" />
+
+                    <h3 class="res-h3">What this looks like</h3>
+                    <div id="res-looks-like" class="res-paragraphs"></div>
+
+                    <h3 class="res-h3">What's actually happening</h3>
+                    <div id="res-happening" class="res-paragraphs"></div>
+
+                    <h3 class="res-h3">Three things to try this week</h3>
+                    <div id="res-try" class="res-cards-container"></div>
+
+                    <div id="res-product" class="res-product-card"></div>
+
+                    <div class="result-confirm" id="result-confirm-block" style="display:none;">
+                        <div class="result-confirm__icon">✉</div>
+                        <p class="result-confirm__title">
+                            Your personalized plan is on the way
+                        </p>
+                        <p class="result-confirm__body">
+                            We're putting together a plan built around your
+                            result and sending it to <strong id="result-confirm-email">[USER_EMAIL]</strong>
+                            shortly. Keep an eye on your inbox — and check spam
+                            if it doesn't arrive within a few minutes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="hws-footer"></div>
+
+    <script src="assets/js/components.js"></script>
+    <script src="assets/js/quiz.js"></script>
+</body>
+
+</html>
