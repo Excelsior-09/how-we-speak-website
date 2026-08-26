@@ -111,7 +111,7 @@
         </a>
 
         <!-- CENTER LINKS -->
-        <ul class="nav__links" role="list">
+        <ul class="nav__links" id="navLinks" role="list">
           <li><a href="#home">Home</a></li>
           <li><a href="#guides">Our Guides</a></li>
           <li>
@@ -133,7 +133,7 @@
         </div>
 
         <!-- MOBILE TOGGLE -->
-        <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false">
+        <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
           <span></span>
           <span></span>
           <span></span>
@@ -1582,50 +1582,6 @@
     }, { threshold: 0.5 });
 
     document.querySelectorAll('.proof-strip__inner').forEach(el => counterObserver.observe(el));
-
-    // ── MOBILE NAV ──
-    const mobileToggle = document.querySelector('.nav__mobile-toggle');
-
-    if (mobileToggle && navbar) {
-      const closeMenu = () => {
-        navbar.classList.remove('nav--menu-open');
-        mobileToggle.setAttribute('aria-expanded', 'false');
-        mobileToggle.setAttribute('aria-label', 'Open menu');
-      };
-
-      const openMenu = () => {
-        navbar.classList.add('nav--menu-open');
-        mobileToggle.setAttribute('aria-expanded', 'true');
-        mobileToggle.setAttribute('aria-label', 'Close menu');
-      };
-
-      mobileToggle.addEventListener('click', () => {
-        navbar.classList.contains('nav--menu-open') ? closeMenu() : openMenu();
-      });
-
-      document.querySelectorAll('.nav__links a, .nav__cta a').forEach(link => {
-        link.addEventListener('click', closeMenu);
-      });
-
-      document.addEventListener('click', (e) => {
-        if (navbar.classList.contains('nav--menu-open') && !navbar.contains(e.target)) {
-          closeMenu();
-        }
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && navbar.classList.contains('nav--menu-open')) {
-          closeMenu();
-          mobileToggle.focus();
-        }
-      });
-
-      window.addEventListener('resize', () => {
-        if (window.innerWidth > 768 && navbar.classList.contains('nav--menu-open')) {
-          closeMenu();
-        }
-      });
-    }
 
     // ── SMOOTH SCROLL ──
     document.querySelectorAll('a[href^="#"]').forEach(a => {
