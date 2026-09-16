@@ -40,6 +40,33 @@
   }
   </script>
 
+  <!-- Structured Data: FAQPage JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does emotional flooding affect communication during arguments?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "When heart rates exceed 100 BPM during conflict, the nervous system enters fight-or-flight, shutting down prefrontal cortex access and making productive conversation physiologically impossible without a structured 20-minute cool-down."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the difference between stonewalling and needing a break?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Stonewalling is an uncommunicated emotional withdrawal designed to shut down connection, whereas taking a regulated break includes explicit reassurance and a set return time to resume dialogue."
+        }
+      }
+    ]
+  }
+  </script>
+  <link rel="canonical" href="https://tryhowwespeak.com/" />
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -502,7 +529,8 @@
           <div class="product-card__image-area">
             <!-- [FRONT COVER — MEN EDITION] alt="How We Speak Men Edition front cover" -->
             <img src="https://i.ibb.co/rffWKyGB/Chat-GPT-Image-Aug-5-2026-07-50-17-PM.png"
-              alt="How We Speak Men Edition front cover" class="img-cover" width="400" height="300" loading="lazy" />
+              alt="How We Speak Men Edition guide cover displaying clinical conflict scripts" class="img-cover"
+              width="400" height="300" loading="lazy" />
             <!-- HOVER: BACK COVER -->
             <div class="product-card__image-back">
               <!-- [BACK COVER — MEN EDITION] alt="How We Speak Men Edition back cover" -->
@@ -1011,29 +1039,26 @@
         <h2 class="display-md">Field Notes on Connection.</h2>
       </div>
 
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; max-width: 720px; margin: 0 auto;">
+      <div style="width: 100%; padding: 0 20px;">
         <!-- Featured Article -->
-        <a href="article-template.html"
-          style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; display: flex; flex-direction: column; text-decoration: none;"
-          onmouseover="this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)';this.style.transform='translateY(-4px)'"
-          onmouseout="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)';this.style.transform='translateY(0)'">
-          <img
-            src="https://www.gottman.com/wp-content/uploads/2024/03/mixed-couples-conflicts-young-interracial-lovers-arguing-at-home-1.webp"
-            alt="Conflict Resolution" loading="lazy"
-            style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-bottom: 1px solid rgba(0, 0, 0, 0.05);" />
-          <div style="padding: 24px; display: flex; flex-direction: column; flex: 1;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-              <span
-                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #C9A84C; background: rgba(201, 168, 76, 0.1); padding: 4px 10px; border-radius: 4px;">Conflict
-                Resolution</span>
-              <span style="font-size: 13px; color: #666; font-weight: 500;">6 min read</span>
+        <a href="article-template.html" class="featured-article-home reveal">
+          <div class="featured-article-home__img-wrapper">
+            <img
+              src="https://www.gottman.com/wp-content/uploads/2024/03/mixed-couples-conflicts-young-interracial-lovers-arguing-at-home-1.webp"
+              alt="Comparison chart demonstrating emotional flooding vs regulated dialogue" loading="lazy"
+              class="featured-article-home__img" />
+          </div>
+          <div class="featured-article-home__content">
+            <div class="featured-article-home__meta">
+              <span class="featured-article-home__tag">Conflict Resolution</span>
+              <span class="featured-article-home__read-time">6 min read</span>
             </div>
-            <h3
-              style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: #1A1A1A; margin-bottom: 12px; line-height: 1.25;">
-              The 20-Minute Rule: Why He Goes Silent During Fights</h3>
-            <p style="font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 0; flex: 1;">Most men aren't
-              ignoring you when they go quiet. Their nervous system is flooded. Here's how to navigate the withdrawal.
+            <h3 class="featured-article-home__title">
+              The 20-Minute Rule: Why He Goes Silent During Fights
+            </h3>
+            <p class="featured-article-home__desc">
+              Most men aren't ignoring you when they go quiet. Their nervous system is flooded. Here's how to navigate
+              the withdrawal and de-escalate effectively.
             </p>
           </div>
         </a>
