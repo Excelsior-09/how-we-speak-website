@@ -2,16 +2,16 @@ const fs = require('fs');
 let html = fs.readFileSync('index.html', 'utf8');
 
 html = html.replace(
-    /<div class="product-card__footer">\s*<span class="product-card__price">([^<]+)<\/span>\s*<a href="bundle\.html"[^>]*>View Guide<\/a>\s*<\/div>/g,
-    (match, price) => {
-        return `<div class="product-card__footer" style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+  /<div class="product-card__footer">\s*<span class="product-card__price">([^<]+)<\/span>\s*<a href="bundle\.html"[^>]*>View Guide<\/a>\s*<\/div>/g,
+  (match, price) => {
+    return `<div class="product-card__footer" style="flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
               <span class="product-card__price">${price}</span>
               <div style="display:flex; gap:8px;">
                 <button class="btn btn-secondary" style="padding:10px 14px; font-size:13px;" onclick="Products.openModal(this.dataset.id)">Read Now</button>
                 <button class="btn btn-primary" style="padding:10px 14px; font-size:13px;" onclick="Cart.add(this.dataset.id)">Add to Cart</button>
               </div>
             </div>`;
-    }
+  }
 );
 let _pCount = 0;
 const _ids = ['men-edition', 'women-edition', 'script-collection', 'sex-talk'];
@@ -21,23 +21,23 @@ html = html.replace(/onclick="Cart\.add\(this\.dataset\.id\)"/g, () => `onclick=
 
 let _tCount = 0;
 html = html.replace(/<td><a href="bundle\.html" class="btn btn-secondary"[^>]*>Buy<\/a><\/td>/g, () => {
-    return `<td><button class="btn btn-secondary" style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;" onclick="Cart.add('${_ids[_tCount++]}')">Add to Cart</button></td>`;
+  return `<td><button class="btn btn-secondary" style="width:100%;justify-content:center;padding:10px 16px;font-size:13px;" onclick="Cart.add('${_ids[_tCount++]}')">Add to Cart</button></td>`;
 });
 html = html.replace(
-    /<a href="#bundle" class="btn btn-primary"[^>]*>Get Bundle<\/a>/g,
-    '<a href="https://stripe.com" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px 16px;font-size:14px;"><!-- STRIPE LINK -->Get Bundle</a>'
+  /<a href="#bundle" class="btn btn-primary"[^>]*>Get Bundle<\/a>/g,
+  '<a href="https://stripe.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px 16px;font-size:14px;"><!-- STRIPE LINK -->Get Bundle</a>'
 );
 html = html.replace(
-    /<a href="bundle\.html" class="btn btn-white btn-lg">\s*Get The Complete Bundle[^<]*<svg[^>]*>.*?<\/svg>\s*<\/a>/gs,
-    `<a href="https://stripe.com" target="_blank" class="btn btn-white btn-lg"><!-- STRIPE LINK -->Get The Complete Bundle <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`
+  /<a href="bundle\.html" class="btn btn-white btn-lg">\s*Get The Complete Bundle[^<]*<svg[^>]*>.*?<\/svg>\s*<\/a>/gs,
+  `<a href="https://stripe.com" target="_blank" rel="noopener noreferrer" class="btn btn-white btn-lg"><!-- STRIPE LINK -->Get The Complete Bundle <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`
 );
 html = html.replace(
-    /<a href="#bundle" class="btn btn-primary">Get The Complete Bundle<\/a>/g,
-    `<a href="https://stripe.com" target="_blank" class="btn btn-primary"><!-- STRIPE LINK -->Get The Complete Bundle</a>`
+  /<a href="#bundle" class="btn btn-primary">Get The Complete Bundle<\/a>/g,
+  `<a href="https://stripe.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><!-- STRIPE LINK -->Get The Complete Bundle</a>`
 );
 html = html.replace(
-    /<a href="mailto:admin@tryhowwespeak\.com\?subject=Couple Session Booking"[^>]*>[\s]*Book a Session[\s]*<\/a>/s,
-    `<a href="https://stripe.com" target="_blank" class="btn btn-primary btn-lg" style="width:100%;max-width:300px;"><!-- STRIPE LINK -->Book a Session</a>`
+  /<a href="mailto:admin@tryhowwespeak\.com\?subject=Couple Session Booking"[^>]*>[\s]*Book a Session[\s]*<\/a>/s,
+  `<a href="https://stripe.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" style="width:100%;max-width:300px;"><!-- STRIPE LINK -->Book a Session</a>`
 );
 
 const megaBundleSection = `
@@ -77,7 +77,7 @@ const megaBundleSection = `
             <span class="bundle__price-save" style="background:rgba(255,255,255,0.1);color:var(--gold-light);">Save $48</span>
           </div>
           <div class="bundle__ctas">
-            <a href="https://stripe.com" target="_blank" class="btn btn-white btn-lg" style="color:var(--crimson);padding:20px 40px;font-size:17px;"><!-- STRIPE LINK -->
+            <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" class="btn btn-white btn-lg" style="color:var(--crimson);padding:20px 40px;font-size:17px;"><!-- STRIPE LINK -->
               Get The Mega Bundle
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="margin-left:8px;"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
@@ -101,11 +101,11 @@ const megaBundleSection = `
 `;
 
 if (!html.includes('id="mega-bundle"')) {
-    html = html.replace('<!-- ============================================================\r\n       BUNDLE', megaBundleSection + '<!-- ============================================================\r\n       BUNDLE');
-    // fallback for \n
-    if (!html.includes('id="mega-bundle"')) {
-        html = html.replace('<!-- ============================================================\n       BUNDLE', megaBundleSection + '<!-- ============================================================\n       BUNDLE');
-    }
+  html = html.replace('<!-- ============================================================\r\n       BUNDLE', megaBundleSection + '<!-- ============================================================\r\n       BUNDLE');
+  // fallback for \n
+  if (!html.includes('id="mega-bundle"')) {
+    html = html.replace('<!-- ============================================================\n       BUNDLE', megaBundleSection + '<!-- ============================================================\n       BUNDLE');
+  }
 }
 
 fs.writeFileSync('index.html', html);

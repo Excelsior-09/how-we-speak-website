@@ -72,7 +72,7 @@ const cartHTML = `
         </div>
       </div>
       <!-- STRIPE PAYMENT LINK HERE -->
-      <a href="#" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Continue to Checkout</a>
+      <button type="button" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Continue to Checkout</button>
     </div>
   </div>
 

@@ -206,7 +206,7 @@ const mainHtml = `
               <span class="bundle__price-was" style="color:rgba(255,255,255,0.4);">$128</span>
             </div>
             <!-- STRIPE PAYMENT LINK HERE -->
-            <a href="#" class="btn btn-primary btn-lg" style="background:#fff; color:var(--charcoal);">Get Complete Bundle</a>
+            <button type="button" class="btn btn-primary btn-lg" style="background:#fff; color:var(--charcoal);">Get Complete Bundle</button>
           </div>
           <div class="reveal reveal-delay-2">
             <div class="img-placeholder" style="aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.05);">
@@ -232,7 +232,7 @@ const mainHtml = `
               <span class="bundle__price-current" style="color:#fff;">$580</span>
             </div>
             <!-- STRIPE PAYMENT LINK HERE -->
-            <a href="#" class="btn btn-primary btn-lg" style="background:#fff; color:var(--crimson);">Book Mega Bundle</a>
+            <button type="button" class="btn btn-primary btn-lg" style="background:#fff; color:var(--crimson);">Book Mega Bundle</button>
           </div>
           <div class="reveal reveal-delay-2">
             <div class="img-placeholder" style="aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.05);">
@@ -252,7 +252,7 @@ const mainHtml = `
         <div style="display:inline-block; padding:32px 48px; background:var(--warm-white); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-lg);">
           <div style="font-family:var(--font-display); font-size:40px; margin-bottom:24px; color:var(--charcoal);">$500</div>
           <!-- STRIPE PAYMENT LINK HERE -->
-          <a href="#" class="btn btn-primary btn-lg">Book Session</a>
+          <button type="button" class="btn btn-primary btn-lg">Book Session</button>
         </div>
       </div>
     </section>
@@ -346,9 +346,9 @@ const mainHtml = `
         <h2 class="display-md" style="color:#fff; margin-bottom:32px;">Ready to understand your partner?</h2>
         <div style="display:flex; justify-content:center; gap:24px;">
           <!-- STRIPE PAYMENT LINK HERE -->
-          <a href="#" class="btn btn-primary btn-lg" style="background:var(--crimson); color:#fff; border:none;">Get Bundle</a>
+          <button type="button" class="btn btn-primary btn-lg" style="background:var(--crimson); color:#fff; border:none;">Get Bundle</button>
           <!-- STRIPE PAYMENT LINK HERE -->
-          <a href="#" class="btn btn-secondary btn-lg" style="background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.4);">Book Session</a>
+          <button type="button" class="btn btn-secondary btn-lg" style="background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.4);">Book Session</button>
         </div>
       </div>
     </section>

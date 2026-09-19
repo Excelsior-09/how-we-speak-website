@@ -26,7 +26,7 @@ const modalAndCartHTML = `
         </div>
       </div>
       <!-- STRIPE LINK -->
-      <a href="https://stripe.com" target="_blank" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Checkout with Stripe</a>
+      <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Checkout with Stripe</a>
     </div>
   </div>
 
@@ -65,9 +65,9 @@ const modalAndCartHTML = `
 `;
 
 if (!html.includes('cart-drawer')) {
-    html = html.replace('<div id="hws-footer"></div>', modalAndCartHTML + '\n  <div id="hws-footer"></div>');
-    fs.writeFileSync('index.html', html);
-    console.log('Modals and Cart injected into index.html');
+  html = html.replace('<div id="hws-footer"></div>', modalAndCartHTML + '\n  <div id="hws-footer"></div>');
+  fs.writeFileSync('index.html', html);
+  console.log('Modals and Cart injected into index.html');
 }
 
 // APPEND CSS TO COMPONENTS.CSS
@@ -330,6 +330,6 @@ const modalAndCartCSS = `
 `;
 
 if (!css.includes('SLIDE-OUT CART')) {
-    fs.writeFileSync('assets/css/components.css', css + '\n' + modalAndCartCSS);
-    console.log('Cart & Modal CSS injected.');
+  fs.writeFileSync('assets/css/components.css', css + '\n' + modalAndCartCSS);
+  console.log('Cart & Modal CSS injected.');
 }
