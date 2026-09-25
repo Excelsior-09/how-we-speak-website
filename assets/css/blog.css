@@ -378,9 +378,13 @@ body.blog-page {
 }
 
 .rule-card__content p {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 16.5px;
   line-height: 1.6;
+}
+
+.rule-card__content p:last-child {
+  margin-bottom: 0;
 }
 
 .rule-card__content strong {
@@ -721,4 +725,77 @@ body.blog-page {
   color: #444;
   line-height: 1.6;
   font-style: italic;
+}
+
+/* ── SCRIPT COMPONENT ────────────────────────── */
+.script-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 32px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.script-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.script-card-badge {
+  background: rgba(192, 38, 67, 0.08);
+  border: 1px solid rgba(192, 38, 67, 0.2);
+  color: #c02643;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.script-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.script-card-intro {
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.script-card-quote {
+  background: #f9fafb;
+  border-left: 3px solid #c02643;
+  padding: 14px 18px;
+  margin: 0 0 18px 0;
+  font-style: italic;
+  color: #1f2937;
+  font-size: 15px;
+  line-height: 1.6;
+  border-radius: 0 8px 8px 0;
+}
+
+.script-card-notes p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4b5563;
+  margin: 0 0 10px 0;
+}
+
+.script-card-notes p:last-child {
+  margin-bottom: 0;
+}
+
+.script-card-notes strong {
+  color: #111827;
 }
