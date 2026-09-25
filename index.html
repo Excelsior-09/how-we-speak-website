@@ -7,15 +7,16 @@
 
   <!-- SEO META -->
   <title>Relationship Communication Scripts & Nervous System Guide | How We Speak</title>
-  <meta name="description" content="Stop argument spirals and silent treatment. Master 20+ de-escalation scripts and nervous system communication tools for lasting connection." />
+  <meta name="description"
+    content="Stop argument spirals and silent treatment. Master 20+ de-escalation scripts and nervous system communication tools for lasting connection." />
 
   <!-- Open Graph -->
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
 
   <!-- Schema.org -->
   <script type="application/ld+json">
@@ -63,7 +64,7 @@
     ]
   }
   </script>
-  
+
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -85,7 +86,8 @@
   <meta property="og:site_name" content="How We Speak" />
   <meta property="og:url" content="https://tryhowwespeak.com/" />
   <meta property="og:title" content="Relationship Communication Scripts & Nervous System Guide | How We Speak" />
-  <meta property="og:description" content="Stop argument spirals and silent treatment. Master 20+ de-escalation scripts and nervous system communication tools for lasting connection." />
+  <meta property="og:description"
+    content="Stop argument spirals and silent treatment. Master 20+ de-escalation scripts and nervous system communication tools for lasting connection." />
   <meta name="twitter:card" content="summary_large_image" />
   <script type="application/ld+json">
   {
@@ -160,51 +162,218 @@
   </div>
 
   <!-- ============================================================
-       NAVIGATION
+       TOP STICKY BANNER & HEADER WRAPPER
   ============================================================ -->
-  <nav class="nav" id="navbar" role="navigation" aria-label="Main navigation">
-    <div class="container">
-      <div class="nav__inner">
+  <style>
+    /* Container Wrapper */
+    .site-header-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+    }
 
-        <!-- LOGO -->
-        <a href="index.html" class="nav__logo" aria-label="How We Speak — Home">
-          <img src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
-            alt="How We Speak" class="nav__logo-img" width="156" height="62" fetchpriority="high" decoding="async" />
-        </a>
+    /* Force the child nav to stop being fixed so it flows inside the wrapper */
+    .site-header-wrapper .nav {
+      position: relative !important;
+      top: auto !important;
+    }
 
-        <!-- CENTER LINKS -->
-        <ul class="nav__links" id="navLinks" role="list">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#guides">Our Guides</a></li>
-          <li>
-            <a href="quiz.html" class="nav-quiz">
-              Take the Quiz
-              <span class="nav-quiz-badge">New</span>
-            </a>
-          </li>
-          <li><a href="articles.html">Articles</a></li>
-          <li><a href="#bundle">Bundle</a></li>
-          <li><a href="#story">Our Story</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li><a href="mailto:admin@tryhowwespeak.com">Contact</a></li>
-        </ul>
+    .site-header-wrapper .nav.scrolled {
+      /* override fixed styling on scroll if any */
+      position: relative !important;
+      transform: none !important;
+    }
 
-        <!-- CTA -->
-        <div class="nav__cta">
-          <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
-            class="btn btn-primary">Start Understanding</a>
+    /* Announcement Bar Styling */
+    .hws-announcement-bar {
+      /* Creative, beautiful vibrant red gradient */
+      background: linear-gradient(135deg, #C02643 0%, #8b1328 100%);
+      color: #ffffff;
+      font-size: 13px;
+      font-family: inherit;
+      line-height: 1;
+      padding: 10px 20px;
+      border-bottom: none;
+      box-shadow: 0 4px 15px rgba(192, 38, 67, 0.35);
+      /* Subtle crimson glow */
+    }
+
+    .hws-bar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hws-bar-message {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .hws-pill-tag {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.1);
+    }
+
+    .hws-bar-copy {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .hws-bar-copy strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .hws-bar-price del {
+      color: rgba(255, 255, 255, 0.6);
+      margin-left: 6px;
+      font-size: 12px;
+      text-decoration: line-through;
+    }
+
+    .hws-bar-price strong {
+      color: #ffffff;
+      font-size: 14px;
+      margin-left: 4px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      /* Slight pop */
+    }
+
+    .hws-bar-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #C02643;
+      /* Text matches the background for contrast */
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+
+    .hws-bar-action:hover {
+      background: #fdfdfd;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .hws-bar-action:active {
+      transform: scale(0.96) translateY(0);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Mobile Responsiveness (< 768px) */
+    @media (max-width: 768px) {
+      .hws-announcement-bar {
+        padding: 7px 12px;
+      }
+
+      .hws-pill-tag {
+        display: none;
+      }
+
+      .hws-bar-copy {
+        font-size: 12px;
+      }
+
+      .hws-bar-copy strong {
+        font-size: 12px;
+      }
+
+      .hws-bar-action {
+        font-size: 11px;
+        padding: 3px 8px;
+      }
+    }
+  </style>
+
+  <header class="site-header-wrapper">
+    <aside id="top-sticky-vault-bar" class="hws-announcement-bar" aria-label="Exclusive Bundle Offer">
+      <div class="hws-bar-inner">
+        <div class="hws-bar-message">
+          <span class="hws-pill-tag">Limited Vault</span>
+          <span class="hws-bar-copy">
+            Get the <strong>Complete 4-Guide Relationship Vault</strong>
+            <span class="hws-bar-price">
+              <del>$197</del> <strong>$97</strong>
+            </span>
+          </span>
         </div>
-
-        <!-- MOBILE TOGGLE -->
-        <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
+        <a href="https://themindly.gumroad.com/l/howwespeak-bundle?wanted=true" target="_blank"
+          rel="noopener noreferrer" class="hws-bar-action">
+          <span>Claim Offer</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path>
+            <path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </a>
       </div>
-    </div>
-  </nav>
+    </aside>
+
+    <nav class="nav" id="navbar" role="navigation" aria-label="Main navigation">
+      <div class="container">
+        <div class="nav__inner">
+
+          <!-- LOGO -->
+          <a href="index.html" class="nav__logo" aria-label="How We Speak — Home">
+            <img src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
+              alt="How We Speak" class="nav__logo-img" width="156" height="62" fetchpriority="high" decoding="async" />
+          </a>
+
+          <!-- CENTER LINKS -->
+          <ul class="nav__links" id="navLinks" role="list">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#guides">Our Guides</a></li>
+            <li>
+              <a href="quiz.html" class="nav-quiz">
+                Take the Quiz
+                <span class="nav-quiz-badge">New</span>
+              </a>
+            </li>
+            <li><a href="articles.html">Articles</a></li>
+            <li><a href="#bundle">Bundle</a></li>
+            <li><a href="#story">Our Story</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="mailto:admin@tryhowwespeak.com">Contact</a></li>
+          </ul>
+
+          <!-- CTA -->
+          <div class="nav__cta">
+            <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
+              class="btn btn-primary">Break the Silence</a>
+          </div>
+
+          <!-- MOBILE TOGGLE -->
+          <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+        </div>
+      </div>
+    </nav>
+  </header>
 
 
   <!-- ============================================================

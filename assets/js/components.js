@@ -25,7 +25,7 @@
         <li><a href="index.html#story">Our Story</a></li>
         <li><a href="index.html#faq">FAQ</a></li>
         <li class="mobile-cta" style="display:none;">
-          <a href="/index.html#bundle" class="btn btn-primary">Start Understanding</a>
+          <a href="/index.html#bundle" class="btn btn-primary">Break the Silence</a>
         </li>`;
 
   const NAV_LINKS_QUIZ = `
@@ -55,7 +55,7 @@
       </ul>
       <div class="nav__right">
         <div class="nav__cta">
-          <a href="/index.html#bundle" class="btn btn-primary">Start Understanding</a>
+          <a href="/index.html#bundle" class="btn btn-primary">Break the Silence</a>
         </div>
         <button class="nav__cart" id="navCartToggle" aria-label="Open cart">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
