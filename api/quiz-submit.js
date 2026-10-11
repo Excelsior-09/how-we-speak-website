@@ -180,9 +180,9 @@ export default async function handler(req, res) {
     }
 
     const { email } = body;
-    // If email is provided, validate its format
-    if (email && (!email.includes('@') || !email.includes('.'))) {
-        return res.status(400).json({ ok: false, error: 'Invalid email format' });
+    // Require valid email for Telegram notification per user configuration
+    if (!email || !email.includes('@') || !email.includes('.')) {
+        return res.status(400).json({ ok: false, error: 'Valid email is required for submission' });
     }
 
     const submissionId = body.submissionId || `HWS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;

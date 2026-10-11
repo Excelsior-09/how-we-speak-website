@@ -145,20 +145,9 @@ async function runTests() {
     }
 
     // ─────────────────────────────────────────────────────────
-    // Test 6: Skipped Email (Anonymous Quiz Completion)
+    // Test 6: Missing Email Rejected (Per User Requirement)
     // ─────────────────────────────────────────────────────────
     try {
-        let sentText = '';
-        global.fetch = async (url, opts) => {
-            const body = JSON.parse(opts.body);
-            sentText = body.text;
-            return {
-                ok: true,
-                status: 200,
-                json: async () => ({ ok: true, result: { message_id: 102 } })
-            };
-        };
-
         const { req, res } = createMockReqRes({
             body: {
                 name: null,
@@ -168,12 +157,12 @@ async function runTests() {
             }
         });
         await handler(req, res);
-        assert.equal(res.getStatusCode(), 200);
-        assert.equal(res.getBody().ok, true);
-        assert.ok(sentText.includes('(skipped / not provided)'));
-        report('Skipped email completion is successfully accepted and preserved', true);
+        assert.equal(res.getStatusCode(), 400);
+        assert.equal(res.getBody().ok, false);
+        assert.ok(res.getBody().error.includes('email is required'));
+        report('Missing email is rejected with 400 (notifications only sent when email provided)', true);
     } catch (e) {
-        report('Skipped email completion is successfully accepted and preserved', false, e.message);
+        report('Missing email is rejected with 400 (notifications only sent when email provided)', false, e.message);
     }
 
     // ─────────────────────────────────────────────────────────

@@ -433,17 +433,20 @@ function calculateResult() {
 
     answers.forEach((ansId, i) => {
         const q = QUESTIONS[i];
+        if (!q || !Array.isArray(q.options)) return;
         const opt = q.options.find(o => o.id === ansId);
         if (opt && opt.weights) {
             Object.keys(opt.weights).forEach(archy => {
-                scores[archy] += opt.weights[archy];
+                if (scores[archy] !== undefined) {
+                    scores[archy] += opt.weights[archy];
+                }
             });
         }
     });
 
     // Find max with tiebreaker
     let maxScore = -1;
-    let topArchetype = null;
+    let topArchetype = "AVOIDER";
 
     Object.keys(scores).forEach(archy => {
         const s = scores[archy];
@@ -460,12 +463,13 @@ function calculateResult() {
         }
     });
 
-    resultArchetype = topArchetype;
+    resultArchetype = topArchetype || "AVOIDER";
     calculatedScores = scores;
+    return resultArchetype;
 }
 
 async function sendQuizSubmission({ name = null, email = null } = {}) {
-    const resData = RESULTS[resultArchetype] || {};
+    const resData = RESULTS[resultArchetype] || RESULTS.AVOIDER || {};
     const payload = {
         name: name || null,
         email: email || null,
@@ -519,12 +523,19 @@ async function handleEmailSubmit(e) {
     const name = firstNameInput ? firstNameInput.value.trim() : '';
 
     if (!email || !email.includes('@') || !email.includes('.')) {
-        if (emailInput) emailInput.classList.add('invalid');
+        if (emailInput) {
+            emailInput.classList.add('invalid');
+            emailInput.focus();
+        }
+        if (emailError) emailError.style.display = 'block';
         return false;
     }
     if (emailInput) emailInput.classList.remove('invalid');
+    if (emailError) emailError.style.display = 'none';
 
     trackEvent("quiz_email_submitted");
+
+    calculateResult();
 
     const btn = document.getElementById('btn-submit');
     const origText = btn ? btn.textContent : "See My Result \u2192";
@@ -549,51 +560,70 @@ async function handleEmailSubmit(e) {
     return false;
 }
 
-async function handleSkipSubmit(e) {
+function handleSkipSubmit(e) {
     if (e && e.preventDefault) {
         e.preventDefault();
         e.stopPropagation();
     }
-    const btn = document.getElementById('btn-skip');
-    if (btn) btn.disabled = true;
-
-    try {
-        await sendQuizSubmission({ name: null, email: null });
-    } catch (err) {
-        console.error('[quiz] Skip submission error:', err);
-    } finally {
-        showResult(false);
-    }
+    // Only send Telegram notification when user provides name and email. Skip does not send.
+    showResult(false);
 }
 
 function showResult(withPlan = false, email = "") {
+    if (!resultArchetype || !RESULTS[resultArchetype]) {
+        calculateResult();
+    }
+    if (!resultArchetype || !RESULTS[resultArchetype]) {
+        resultArchetype = "AVOIDER";
+    }
+
     trackEvent("quiz_completed", { archetype: resultArchetype });
     if (!withPlan) trackEvent("quiz_email_skipped");
 
-    const resData = RESULTS[resultArchetype];
+    const resData = RESULTS[resultArchetype] || RESULTS.AVOIDER;
 
-    document.getElementById('archetype-badge').textContent = resData.icon;
-    document.getElementById('res-title').textContent = resData.title;
-    document.getElementById('res-subtitle').textContent = resData.subtitle;
+    const badge = document.getElementById('archetype-badge');
+    if (badge) badge.textContent = resData.icon || "🤐";
 
-    document.getElementById('res-looks-like').innerHTML = resData.looksLike.map(p => `<p>${p}</p>`).join('');
-    document.getElementById('res-happening').innerHTML = resData.happening.map(p => `<p>${p}</p>`).join('');
+    const titleEl = document.getElementById('res-title');
+    if (titleEl) titleEl.textContent = resData.title || "The Avoider";
 
-    document.getElementById('res-try').innerHTML = resData.tryItems.map(item =>
-        `<div class="res-card"><div class="res-card-title">${item.title}</div><div class="res-card-body">${item.body}</div></div>`
-    ).join('');
+    const subEl = document.getElementById('res-subtitle');
+    if (subEl) subEl.textContent = resData.subtitle || "";
+
+    const looksLikeEl = document.getElementById('res-looks-like');
+    if (looksLikeEl && Array.isArray(resData.looksLike)) {
+        looksLikeEl.innerHTML = resData.looksLike.map(p => `<p>${p}</p>`).join('');
+    }
+
+    const hapEl = document.getElementById('res-happening');
+    if (hapEl && Array.isArray(resData.happening)) {
+        hapEl.innerHTML = resData.happening.map(p => `<p>${p}</p>`).join('');
+    }
+
+    const tryEl = document.getElementById('res-try');
+    if (tryEl && Array.isArray(resData.tryItems)) {
+        tryEl.innerHTML = resData.tryItems.map(item =>
+            `<div class="res-card"><div class="res-card-title">${item.title}</div><div class="res-card-body">${item.body}</div></div>`
+        ).join('');
+    }
 
     const productCard = document.getElementById('res-product');
-    productCard.href = resData.product.url;
-    productCard.innerHTML = `<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10px;text-transform:uppercase;color:var(--gold);letter-spacing:0.12em;">Recommended Reading</div><div class="res-product-title">${resData.product.title}</div><div class="res-product-desc">${resData.product.desc}</div><div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--crimson);font-weight:500;margin-top:auto;">Learn More &rarr;</div>`;
-    productCard.onclick = () => trackEvent("quiz_product_clicked", { product: resData.product.title });
+    if (productCard && resData.product) {
+        productCard.href = resData.product.url;
+        productCard.innerHTML = `<div style="font-family:'Inter',sans-serif;font-weight:600;font-size:10px;text-transform:uppercase;color:var(--gold);letter-spacing:0.12em;">Recommended Reading</div><div class="res-product-title">${resData.product.title}</div><div class="res-product-desc">${resData.product.desc}</div><div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--crimson);font-weight:500;margin-top:auto;">Learn More &rarr;</div>`;
+        productCard.onclick = () => trackEvent("quiz_product_clicked", { product: resData.product.title });
+    }
 
     const conf = document.getElementById('result-confirm-block');
-    if (withPlan && email) {
-        document.getElementById('result-confirm-email').textContent = email;
-        conf.style.display = "block";
-    } else {
-        conf.style.display = "none";
+    if (conf) {
+        if (withPlan && email) {
+            const confEmail = document.getElementById('result-confirm-email');
+            if (confEmail) confEmail.textContent = email;
+            conf.style.display = "block";
+        } else {
+            conf.style.display = "none";
+        }
     }
 
     showScreen('result');
