@@ -248,6 +248,7 @@ const TIE_BREAKER_PRIORITY = ["DRIFTER", "PURSUER", "AVOIDER", "FIXER", "TRANSLA
 let currentQuestionIndex = 0;
 let answers = []; // stores selected option IDs
 let resultArchetype = null;
+let calculatedScores = null;
 
 // DOM Elements
 let screens, btnStart, btnBack, btnSkip, btnShare;
@@ -281,7 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Events
     btnStart.addEventListener('click', startQuiz);
     btnBack.addEventListener('click', goBack);
-    btnSkip.addEventListener('click', () => showResult(false));
+    btnSkip.addEventListener('click', handleSkipSubmit);
     btnShare.addEventListener('click', shareResult);
     emailForm.addEventListener('submit', handleEmailSubmit);
 
@@ -458,6 +459,52 @@ function calculateResult() {
     });
 
     resultArchetype = topArchetype;
+    calculatedScores = scores;
+}
+
+async function sendQuizSubmission({ name = null, email = null } = {}) {
+    const resData = RESULTS[resultArchetype] || {};
+    const payload = {
+        name: name || null,
+        email: email || null,
+        archetype: resultArchetype,
+        archetypeTitle: resData.title || null,
+        archetypeIcon: resData.icon || null,
+        scores: calculatedScores,
+        responses: QUESTIONS.map((q, i) => {
+            const opt = q.options.find(o => o.id === answers[i]);
+            return {
+                questionNumber: i + 1,
+                category: q.category,
+                question: q.text,
+                answer: opt ? opt.text : (answers[i] || 'Not answered')
+            };
+        }),
+        meta: {
+            url: window.location.href,
+            referrer: document.referrer,
+            device: window.innerWidth < 640 ? "mobile" : "desktop"
+        }
+    };
+
+    try {
+        const res = await fetch('/api/quiz-submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data || data.ok === false) {
+            console.error('[quiz] Telegram notification failed:', data?.error || data?.reason || `HTTP ${res.status}`);
+            return { ok: false, error: data?.error || data?.reason };
+        } else {
+            console.log('[quiz] Telegram notification sent. ID:', data.submissionId);
+            return { ok: true, submissionId: data.submissionId };
+        }
+    } catch (err) {
+        console.error('[quiz] Telegram notification request failed:', err);
+        return { ok: false, error: err.message };
+    }
 }
 
 async function handleEmailSubmit(e) {
@@ -471,46 +518,30 @@ async function handleEmailSubmit(e) {
         return;
     }
     emailInput.classList.remove('invalid');
-    emailInput.classList.remove('invalid');
 
     trackEvent("quiz_email_submitted");
 
-    const payload = {
-        email,
-        name,
-        archetype: resultArchetype,
-        answers: answers.map((id, i) => {
-            return QUESTIONS[i].options.find(o => o.id === id)?.text || id;
-        }),
-        meta: {
-            url: window.location.href,
-            referrer: document.referrer,
-            device: window.innerWidth < 640 ? "mobile" : "desktop"
-        }
-    };
-
     const btn = document.getElementById('btn-submit');
+    const origText = btn.textContent;
     btn.textContent = "Processing...";
     btn.style.opacity = "0.7";
     btn.disabled = true;
 
     try {
-        const res = await fetch('/api/quiz-submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data || data.ok === false) {
-            console.error('[quiz] Telegram notification failed:', data?.reason || `HTTP ${res.status}`);
-        } else {
-            console.log('[quiz] Telegram notification sent.');
-        }
-    } catch (err) {
-        console.error('[quiz] Telegram notification request failed:', err);
+        await sendQuizSubmission({ name, email });
+    } finally {
+        btn.textContent = origText;
+        btn.style.opacity = "1";
+        btn.disabled = false;
     }
 
     showResult(true, email);
+}
+
+function handleSkipSubmit() {
+    // Send anonymous submission in background so quiz responses are preserved in Telegram
+    sendQuizSubmission({ name: null, email: null });
+    showResult(false);
 }
 
 function showResult(withPlan = false, email = "") {

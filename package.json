@@ -4,7 +4,7 @@
   "description": "A premium digital education platform focused on helping couples improve communication and build healthier relationships.",
   "main": "extract.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-quiz-submit.test.mjs"
   },
   "repository": {
     "type": "git",
