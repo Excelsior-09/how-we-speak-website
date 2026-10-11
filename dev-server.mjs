@@ -12,9 +12,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 if (fs.existsSync(path.join(__dirname, '.env'))) {
     const env = fs.readFileSync(path.join(__dirname, '.env'), 'utf-8');
     env.split(/\r?\n/).forEach(line => {
-        if (line.includes('=')) {
-            const [k, v] = line.split('=');
-            process.env[k] = v;
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+            const [k, ...v] = trimmed.split('=');
+            process.env[k.trim()] = v.join('=').trim();
         }
     });
 }

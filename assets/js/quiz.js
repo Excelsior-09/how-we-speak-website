@@ -284,7 +284,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btnBack.addEventListener('click', goBack);
     btnSkip.addEventListener('click', handleSkipSubmit);
     btnShare.addEventListener('click', shareResult);
-    emailForm.addEventListener('submit', handleEmailSubmit);
+    if (emailForm) emailForm.addEventListener('submit', handleEmailSubmit);
+    const btnSubmit = document.getElementById('btn-submit');
+    if (btnSubmit) btnSubmit.addEventListener('click', handleEmailSubmit);
 
     // Keyboard navigation
     document.addEventListener('keydown', handleGlobalKeydown);
@@ -508,40 +510,60 @@ async function sendQuizSubmission({ name = null, email = null } = {}) {
 }
 
 async function handleEmailSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
 
-    const email = emailInput.value.trim();
-    const name = firstNameInput.value.trim();
+    const email = emailInput ? emailInput.value.trim() : '';
+    const name = firstNameInput ? firstNameInput.value.trim() : '';
 
     if (!email || !email.includes('@') || !email.includes('.')) {
-        emailInput.classList.add('invalid');
-        return;
+        if (emailInput) emailInput.classList.add('invalid');
+        return false;
     }
-    emailInput.classList.remove('invalid');
+    if (emailInput) emailInput.classList.remove('invalid');
 
     trackEvent("quiz_email_submitted");
 
     const btn = document.getElementById('btn-submit');
-    const origText = btn.textContent;
-    btn.textContent = "Processing...";
-    btn.style.opacity = "0.7";
-    btn.disabled = true;
+    const origText = btn ? btn.textContent : "See My Result \u2192";
+    if (btn) {
+        btn.textContent = "Processing...";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+    }
 
     try {
         await sendQuizSubmission({ name, email });
+    } catch (err) {
+        console.error('[quiz] Email submission error:', err);
     } finally {
-        btn.textContent = origText;
-        btn.style.opacity = "1";
-        btn.disabled = false;
+        if (btn) {
+            btn.textContent = origText;
+            btn.style.opacity = "1";
+            btn.disabled = false;
+        }
+        showResult(true, email);
     }
-
-    showResult(true, email);
+    return false;
 }
 
-function handleSkipSubmit() {
-    // Send anonymous submission in background so quiz responses are preserved in Telegram
-    sendQuizSubmission({ name: null, email: null });
-    showResult(false);
+async function handleSkipSubmit(e) {
+    if (e && e.preventDefault) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const btn = document.getElementById('btn-skip');
+    if (btn) btn.disabled = true;
+
+    try {
+        await sendQuizSubmission({ name: null, email: null });
+    } catch (err) {
+        console.error('[quiz] Skip submission error:', err);
+    } finally {
+        showResult(false);
+    }
 }
 
 function showResult(withPlan = false, email = "") {
