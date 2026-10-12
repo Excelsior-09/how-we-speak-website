@@ -284,9 +284,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnBack.addEventListener('click', goBack);
     btnSkip.addEventListener('click', handleSkipSubmit);
     btnShare.addEventListener('click', shareResult);
-    if (emailForm) emailForm.addEventListener('submit', handleEmailSubmit);
+    if (emailForm) {
+        emailForm.addEventListener('submit', handleEmailSubmit);
+    }
     const btnSubmit = document.getElementById('btn-submit');
-    if (btnSubmit) btnSubmit.addEventListener('click', handleEmailSubmit);
+    if (btnSubmit) {
+        btnSubmit.addEventListener('click', handleEmailSubmit);
+    }
 
     // Keyboard navigation
     document.addEventListener('keydown', handleGlobalKeydown);
@@ -468,59 +472,13 @@ function calculateResult() {
     return resultArchetype;
 }
 
-async function sendQuizSubmission({ name = null, email = null } = {}) {
-    const resData = RESULTS[resultArchetype] || RESULTS.AVOIDER || {};
-    const payload = {
-        name: name || null,
-        email: email || null,
-        archetype: resultArchetype,
-        archetypeTitle: resData.title || null,
-        archetypeIcon: resData.icon || null,
-        scores: calculatedScores,
-        responses: QUESTIONS.map((q, i) => {
-            const opt = q.options.find(o => o.id === answers[i]);
-            return {
-                questionNumber: i + 1,
-                category: q.category,
-                question: q.text,
-                answer: opt ? opt.text : (answers[i] || 'Not answered')
-            };
-        }),
-        meta: {
-            url: window.location.href,
-            referrer: document.referrer,
-            device: window.innerWidth < 640 ? "mobile" : "desktop"
-        }
-    };
-
-    try {
-        const res = await fetch('/api/quiz-submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data || data.ok === false) {
-            console.error('[quiz] Telegram notification failed:', data?.error || data?.reason || `HTTP ${res.status}`);
-            return { ok: false, error: data?.error || data?.reason };
-        } else {
-            console.log('[quiz] Telegram notification sent. ID:', data.submissionId);
-            return { ok: true, submissionId: data.submissionId };
-        }
-    } catch (err) {
-        console.error('[quiz] Telegram notification request failed:', err);
-        return { ok: false, error: err.message };
-    }
-}
-
-async function handleEmailSubmit(e) {
+function handleEmailSubmit(e) {
     if (e && e.preventDefault) {
         e.preventDefault();
         e.stopPropagation();
     }
 
     const email = emailInput ? emailInput.value.trim() : '';
-    const name = firstNameInput ? firstNameInput.value.trim() : '';
 
     if (!email || !email.includes('@') || !email.includes('.')) {
         if (emailInput) {
@@ -536,27 +494,7 @@ async function handleEmailSubmit(e) {
     trackEvent("quiz_email_submitted");
 
     calculateResult();
-
-    const btn = document.getElementById('btn-submit');
-    const origText = btn ? btn.textContent : "See My Result \u2192";
-    if (btn) {
-        btn.textContent = "Processing...";
-        btn.style.opacity = "0.7";
-        btn.disabled = true;
-    }
-
-    try {
-        await sendQuizSubmission({ name, email });
-    } catch (err) {
-        console.error('[quiz] Email submission error:', err);
-    } finally {
-        if (btn) {
-            btn.textContent = origText;
-            btn.style.opacity = "1";
-            btn.disabled = false;
-        }
-        showResult(true, email);
-    }
+    showResult(true, email);
     return false;
 }
 
@@ -565,7 +503,7 @@ function handleSkipSubmit(e) {
         e.preventDefault();
         e.stopPropagation();
     }
-    // Only send Telegram notification when user provides name and email. Skip does not send.
+    calculateResult();
     showResult(false);
 }
 
@@ -604,7 +542,7 @@ function showResult(withPlan = false, email = "") {
     const tryEl = document.getElementById('res-try');
     if (tryEl && Array.isArray(resData.tryItems)) {
         tryEl.innerHTML = resData.tryItems.map(item =>
-            `<div class="res-card"><div class="res-card-title">${item.title}</div><div class="res-card-body">${item.body}</div></div>`
+            `<div class="res-card"><div class="res-card-title">${item.title}</div><div class="res-card-body">${item.buildQuizMessage()}</div></div>`
         ).join('');
     }
 

@@ -5,8 +5,15 @@
     background: var(--cream);
     padding: 120px 24px 100px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+}
+
+.jotform-quiz-wrapper {
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    min-height: 650px;
 }
 
 /* Make navbar absolute on quiz page so it doesn't float down */
