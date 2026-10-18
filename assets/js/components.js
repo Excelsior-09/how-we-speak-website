@@ -24,6 +24,7 @@
         <li><a href="/index.html#bundle">Bundle</a></li>
         <li><a href="index.html#story">Our Story</a></li>
         <li><a href="index.html#faq">FAQ</a></li>
+        <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact</a></li>
         <li class="mobile-cta" style="display:none;">
           <a href="/index.html#bundle" class="btn btn-primary">Break the Silence</a>
         </li>`;
@@ -131,7 +132,7 @@
           <ul class="footer__links" role="list">
             <li><a href="/index.html#story">Our Story</a></li>
             <li><a href="/index.html#faq">FAQ</a></li>
-            <li><a href="mailto:admin@tryhowwespeak.com">Contact</a></li>
+            <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact</a></li>
           </ul>
         </div>
 
