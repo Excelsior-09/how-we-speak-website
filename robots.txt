@@ -3,6 +3,7 @@ Allow: /
 Disallow: /api/
 Disallow: /checkout/
 Disallow: /cart/
+Disallow: /quiz-stats
 
 # Explicit AI Engine & LLM Crawler Access
 User-agent: GPTBot
@@ -23,4 +24,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://tryhowwespeak.com/sitemap.xml
+Sitemap: https://www.tryhowwespeak.com/sitemap.xml

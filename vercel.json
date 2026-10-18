@@ -1,0 +1,52 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/men-edition",
+      "destination": "https://themindly.gumroad.com/l/How-We-Speak-Men-Edition",
+      "permanent": true
+    },
+    {
+      "source": "/men-edition/",
+      "destination": "https://themindly.gumroad.com/l/How-We-Speak-Men-Edition",
+      "permanent": true
+    },
+    {
+      "source": "/men-edition.html",
+      "destination": "https://themindly.gumroad.com/l/How-We-Speak-Men-Edition",
+      "permanent": true
+    },
+    {
+      "source": "/women-edition",
+      "destination": "https://themindly.gumroad.com/l/howwespeak-women",
+      "permanent": true
+    },
+    {
+      "source": "/women-edition/",
+      "destination": "https://themindly.gumroad.com/l/howwespeak-women",
+      "permanent": true
+    },
+    {
+      "source": "/women-edition.html",
+      "destination": "https://themindly.gumroad.com/l/howwespeak-women",
+      "permanent": true
+    },
+    {
+      "source": "/bundle",
+      "destination": "https://themindly.gumroad.com/l/howwespeak-bundle",
+      "permanent": true
+    },
+    {
+      "source": "/bundle/",
+      "destination": "https://themindly.gumroad.com/l/howwespeak-bundle",
+      "permanent": true
+    },
+    {
+      "source": "/bundle.html",
+      "destination": "https://themindly.gumroad.com/l/howwespeak-bundle",
+      "permanent": true
+    }
+  ]
+}
