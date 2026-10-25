@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "A premium digital education platform focused on helping couples improve communication and build healthier relationships.",
   "main": "extract.js",
+  "type": "module",
   "scripts": {
-    "test": "node test-quiz-submit.test.mjs"
+    "start": "node dev-server.mjs",
+    "dev": "node dev-server.mjs",
+    "build": "npm --prefix web-app run build",
+    "dev:app": "npm --prefix web-app run dev",
+    "dev:site": "node dev-server.mjs",
+    "test": "node tests/run-all-tests.mjs"
   },
   "repository": {
     "type": "git",
@@ -13,12 +19,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "bugs": {
     "url": "https://github.com/Excelsior-09/how-we-speak-website/issues"
   },
   "homepage": "https://github.com/Excelsior-09/how-we-speak-website#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "express": "^5.2.1"
   }
 }

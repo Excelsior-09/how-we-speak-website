@@ -48,5 +48,15 @@
       "destination": "https://themindly.gumroad.com/l/howwespeak-bundle",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/app",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/app/index.html"
+    }
   ]
 }

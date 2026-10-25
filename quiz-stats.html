@@ -175,13 +175,23 @@
     </div>
 
     <script>
-        function login() {
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function login() {
             const pwd = document.getElementById('pwd').value;
-            if (pwd === "admin123") { // Very basic protection as requested
+            // SHA-256 hash comparison (no plaintext credential exposed in client source)
+            const targetHash = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
+            const inputHash = await sha256(pwd);
+            if (inputHash === targetHash) {
                 document.getElementById('auth').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
             } else {
-                alert("Incorrect password");
+                alert("Access Denied: Incorrect authentication key.");
             }
         }
     </script>
