@@ -60,8 +60,8 @@ app.post('/api/ai/joint-summary', createVercelAdapter(jointSummaryHandler));
 app.post('/api/webhooks/gumroad', createVercelAdapter(gumroadWebhookHandler));
 app.get('/api/auth/me', createVercelAdapter(authMeHandler));
 
-// SPA Fallback for /app routes (matching vercel.json rewrites)
-app.get('/app*', (req, res) => {
+// SPA Fallback for /app routes (matching vercel.json rewrites, Express 5 compatible)
+app.get(/^\/app/, (req, res) => {
     res.sendFile(path.join(__dirname, 'app', 'index.html'));
 });
 
