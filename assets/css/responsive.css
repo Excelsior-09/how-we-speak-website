@@ -148,14 +148,21 @@
     display: none !important;
   }
 
+  .hero {
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+
   .hero__inner {
     grid-template-columns: 1fr;
-    gap: 48px;
-    padding-top: 40px;
+    gap: 36px;
+    padding-top: 0;
   }
 
   .hero__image {
     order: -1;
+    max-width: 380px;
+    margin: 0 auto;
   }
 
   .hero__float-card {
@@ -168,6 +175,10 @@
 
   .hero__ctas .btn {
     width: 100%;
+  }
+
+  .proof-strip {
+    padding: 32px 0;
   }
 
   .proof-strip__inner {

@@ -10,6 +10,7 @@ export type AppRoute =
   | 'settings'
   | 'workspace'
   | 'scripts'
+  | 'mira'
 
 export function parseRoute(pathname: string): { route: AppRoute; params: Record<string, string> } {
   let clean = (pathname || '').replace(/^\/app\/?/, '')
@@ -17,6 +18,10 @@ export function parseRoute(pathname: string): { route: AppRoute; params: Record<
 
   if (!clean || clean === '') {
     return { route: 'dashboard', params: {} }
+  }
+
+  if (clean === 'mira') {
+    return { route: 'mira', params: {} }
   }
 
   if (clean === 'rehearse') {

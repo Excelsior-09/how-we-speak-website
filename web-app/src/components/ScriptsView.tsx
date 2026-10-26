@@ -1,258 +1,946 @@
 // ==============================================================================
-// HOW WE SPEAK — CURATED SCRIPT BANK
+// HOW WE SPEAK — GUIDES & COMMUNICATION SCRIPTS LIBRARY
 // Palette: Burgundy #C41E3A | Cream #F5F3F0 | Gold #D4AF37 | Blush #E8CCC8
-// Features: Gottman & NVC communication scripts, Gumroad product locks, instant copy
+// Features: 130+ structured scripts across 13 clinical categories,
+//           search, category/tone filters, favorites persistence,
+//           script detail view, inline personalization, and Ask Mira integration
 // ==============================================================================
 
-import React, { useState } from 'react'
-import { Copy, Check, Search, Lock, ExternalLink } from 'lucide-react'
+import React, { useState, useEffect, useMemo } from 'react'
+import {
+  Search,
+  Copy,
+  Check,
+  Heart,
+  Sparkles,
+  SlidersHorizontal,
+  ArrowRight,
+  BookOpen,
+  X,
+  Wand2,
+  ChevronRight,
+  Tag
+} from 'lucide-react'
+import {
+  SCRIPTS_LIBRARY,
+  SCRIPT_CATEGORIES,
+  searchScripts,
+  type ScriptItem
+} from '../data/scriptsLibrary'
 import { useAuth } from '../lib/useAuth'
-
-interface ScriptItem {
-  id: string
-  category: string
-  title: string
-  context: string
-  script: string
-  whyItWorks: string
-  requiredProduct?: string
-  productTitle?: string
-  productUrl?: string
-}
+import { useRouter } from '../lib/useRouter'
+import { supabase } from '../lib/supabase'
 
 export const ScriptsView: React.FC = () => {
-  const { entitlements } = useAuth()
-  const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('ALL')
+  const { user, isConfigured } = useAuth()
+  const { navigate } = useRouter()
+
+  // Filters & Search
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL')
+  const [selectedTone, setSelectedTone] = useState<string>('ALL')
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+
+  // Pagination / Display limit
+  const [displayCount, setDisplayCount] = useState(12)
+
+  // Copy feedback & active detail modal
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [activeScript, setActiveScript] = useState<ScriptItem | null>(null)
 
-  const hasBundle = entitlements.some((e) => e.product_key === 'bundle')
-  const ownedKeys = entitlements.map((e) => e.product_key)
+  // Personalization drawer/editor state inside modal
+  const [isPersonalizing, setIsPersonalizing] = useState(false)
+  const [customDetail, setCustomDetail] = useState('')
+  const [tailoredVersion, setTailoredVersion] = useState<string | null>(null)
 
-  const scripts: ScriptItem[] = [
-    {
-      id: 's1',
-      category: 'DE_ESCALATION',
-      title: 'When He Withdraws (Men Edition)',
-      context: 'When your partner goes silent during an argument and you feel panic rising.',
-      script: "I can see your nervous system is flooded right now, and I don't want to make things worse. I'm going to take a walk, and let's sit down in 20 minutes once our adrenaline is down.",
-      whyItWorks: "Validates physiological flooding without accusing him of malicious stonewalling. Gives an exact return time so anxious pursuit isn't triggered.",
-      requiredProduct: 'men-edition',
-      productTitle: 'Men Edition Guide ($37)',
-      productUrl: 'https://themindly.gumroad.com/l/How-We-Speak-Men-Edition',
-    },
-    {
-      id: 's2',
-      category: 'EMOTIONAL_SUPPORT',
-      title: 'Listening Without Fixing (Women Edition)',
-      context: 'When she shares an emotional struggle and you instinctively jump to problem-solving.',
-      script: "That sounds genuinely overwhelming. Before I jump in with ideas, do you want me to just listen and hold space, or would you like help troubleshooting?",
-      whyItWorks: "Distinguishes between empathy bids and practical advice bids. Prevents the common 'You don't listen' conflict loop.",
-      requiredProduct: 'women-edition',
-      productTitle: 'Women Edition Guide ($37)',
-      productUrl: 'https://themindly.gumroad.com/l/howwespeak-women',
-    },
-    {
-      id: 's3',
-      category: 'APOLOGY',
-      title: 'The Repair That Actually Lands',
-      context: 'After an argument where you raised your voice or reacted defensively.',
-      script: "I reacted out of fear earlier, and the way I spoke to you wasn't okay. You didn't deserve that tone. I'm sorry for closing down, and I want to hear how that felt for you.",
-      whyItWorks: "Takes 100% ownership without the word 'but'. Invites their emotional experience rather than defending your intentions.",
-      requiredProduct: 'script-collection',
-      productTitle: 'Complete Script Collection ($27)',
-      productUrl: 'https://themindly.gumroad.com/l/howwespeak-scripts',
-    },
-    {
-      id: 's4',
-      category: 'INTIMACY',
-      title: 'Talking About Desire (Sex Talk Framework)',
-      context: 'Initiating conversation about sexual mismatch without triggering rejection or inadequacy.',
-      script: "I love our closeness, and I really miss feeling physically connected with you. There is zero pressure tonight—I just want us to talk about how we can make intimacy feel safe and exciting for both of us.",
-      whyItWorks: "Removes immediate performance pressure and reaffirms love while directly addressing unmet intimacy needs.",
-      requiredProduct: 'sex-talk',
-      productTitle: 'Sex Talk Framework ($27)',
-      productUrl: 'https://themindly.gumroad.com/l/howwespeak-bundle',
-    },
-    {
-      id: 's5',
-      category: 'BOUNDARIES',
-      title: 'The Softened Space Request',
-      context: 'When you need to be alone to process emotions without making your partner spiral.',
-      script: "I love you and I am not leaving this conversation. My brain is just overloaded right now and I need 30 minutes of quiet so I can show up for you with kindness. Can we resume at 7:00?",
-      whyItWorks: "Contains the three critical reassurances: Love affirmed, no abandonment, and exact resumption timestamp.",
-      requiredProduct: 'trial', // Included in free trial
-    },
-  ]
-
-  const categories = [
-    { id: 'ALL', label: 'All Scripts' },
-    { id: 'DE_ESCALATION', label: 'De-escalation' },
-    { id: 'EMOTIONAL_SUPPORT', label: 'Emotional Support' },
-    { id: 'APOLOGY', label: 'Apologies & Repair' },
-    { id: 'INTIMACY', label: 'Intimacy & Sex Talk' },
-    { id: 'BOUNDARIES', label: 'Boundaries' },
-  ]
-
-  const filtered = scripts.filter((s) => {
-    const matchesCat = activeCategory === 'ALL' || s.category === activeCategory
-    const matchesSearch =
-      s.title.toLowerCase().includes(search.toLowerCase()) ||
-      s.script.toLowerCase().includes(search.toLowerCase()) ||
-      s.context.toLowerCase().includes(search.toLowerCase())
-    return matchesCat && matchesSearch
+  // Favorites state (persisted locally and synced with Supabase if authenticated)
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('hws_script_favorites')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
   })
 
-  const handleCopy = (id: string, text: string) => {
+  // Load favorites from Supabase on mount
+  useEffect(() => {
+    async function loadFavorites() {
+      if (user && isConfigured) {
+        try {
+          const { data } = await supabase
+            .from('script_favorites')
+            .select('script_id')
+            .eq('user_id', user.id)
+
+          if (data && data.length > 0) {
+            const dbFavorites = data.map((d: any) => d.script_id)
+            setFavoriteIds((prev) => Array.from(new Set([...prev, ...dbFavorites])))
+          }
+        } catch {
+          // Keep local fallback
+        }
+      }
+    }
+    loadFavorites()
+  }, [user, isConfigured])
+
+  // Sync favorites to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('hws_script_favorites', JSON.stringify(favoriteIds))
+    } catch {}
+  }, [favoriteIds])
+
+  // Toggle favorite
+  const toggleFavorite = async (scriptId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    const isFav = favoriteIds.includes(scriptId)
+    const nextFavorites = isFav
+      ? favoriteIds.filter((id) => id !== scriptId)
+      : [...favoriteIds, scriptId]
+
+    setFavoriteIds(nextFavorites)
+
+    if (user && isConfigured) {
+      try {
+        if (isFav) {
+          await supabase
+            .from('script_favorites')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('script_id', scriptId)
+        } else {
+          await supabase
+            .from('script_favorites')
+            .insert({ user_id: user.id, script_id: scriptId })
+        }
+      } catch {
+        // Silently preserve local state
+      }
+    }
+  }
+
+  // Filtered scripts calculation
+  const filteredScripts = useMemo(() => {
+    let result = searchQuery.trim()
+      ? searchScripts(searchQuery)
+      : [...SCRIPTS_LIBRARY]
+
+    if (selectedCategory !== 'ALL') {
+      result = result.filter((s) => s.category === selectedCategory)
+    }
+
+    if (selectedTone !== 'ALL') {
+      result = result.filter((s) => s.tone.toLowerCase() === selectedTone.toLowerCase())
+    }
+
+    if (onlyFavorites) {
+      result = result.filter((s) => favoriteIds.includes(s.id))
+    }
+
+    return result
+  }, [searchQuery, selectedCategory, selectedTone, onlyFavorites, favoriteIds])
+
+  const visibleScripts = filteredScripts.slice(0, displayCount)
+
+  const handleCopy = (id: string, text: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     navigator.clipboard.writeText(text)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const handleOpenDetail = (script: ScriptItem) => {
+    setActiveScript(script)
+    setIsPersonalizing(false)
+    setCustomDetail('')
+    setTailoredVersion(null)
+  }
+
+  const handleCloseDetail = () => {
+    setActiveScript(null)
+    setIsPersonalizing(false)
+    setCustomDetail('')
+    setTailoredVersion(null)
+  }
+
+  // Ask Mira to adapt script
+  const handleAskMiraToAdapt = (script: ScriptItem) => {
+    const prompt = `I want to adapt this communication script for my situation:\n\n"${script.script}"\n\nSituation: ${script.situation}\nMy goal: ${script.goal}${customDetail ? `\nMy context: ${customDetail}` : ''}\n\nCould you help me personalize this so it feels natural for my relationship?`
+    sessionStorage.setItem('hws_mira_prefill', prompt)
+    navigate('/app/mira')
+  }
+
+  // Generate quick inline tailored draft
+  const handleGenerateTailored = () => {
+    if (!activeScript) return
+    const custom = customDetail.trim()
+    let adapted = activeScript.script
+    if (custom) {
+      adapted = adapted.replace(/\[specific[^\]]*\]/gi, custom)
+      if (!adapted.includes(custom)) {
+        adapted = `${adapted} Specifically regarding ${custom}, I want us to feel good talking through this.`
+      }
+    }
+    setTailoredVersion(adapted)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <span className="badge badge-burgundy">Curated Clinical Bank</span>
-          <span className="badge badge-gold">Gottman Tested</span>
+      {/* ── HEADER ──────────────────────────────────────────────────────── */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(196, 30, 58, 0.04) 0%, rgba(212, 175, 55, 0.04) 100%)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-card)',
+          padding: '36px 36px 32px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span className="badge badge-burgundy" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <BookOpen size={12} />
+            Communication Library
+          </span>
+          <span className="badge badge-gold">
+            {SCRIPTS_LIBRARY.length} Verified Scripts
+          </span>
+          <span className="badge badge-neutral">
+            {SCRIPT_CATEGORIES.length} Categories
+          </span>
         </div>
-        <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', marginBottom: 8 }}>
-          Communication Script Bank
-        </h1>
-        <p style={{ color: 'var(--gray)', fontSize: 16, maxWidth: 720 }}>
-          Clinical, ready-to-use conversation starters for difficult moments. Derived from the How We Speak guides and Gottman Institute research.
-        </p>
-      </div>
 
-      {/* Controls: Search and Filter Tabs */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={{ position: 'relative', maxWidth: 480 }}>
-          <Search size={18} color="var(--gray)" style={{ position: 'absolute', left: 16, top: 15 }} />
+        <h1
+          style={{
+            fontSize: 'clamp(28px, 3.4vw, 42px)',
+            fontWeight: 700,
+            color: 'var(--charcoal)',
+            letterSpacing: '-0.02em',
+            marginBottom: 10,
+            lineHeight: 1.2,
+          }}
+        >
+          Find the words for what you're going through.
+        </h1>
+
+        <p
+          style={{
+            color: 'var(--gray)',
+            fontSize: 16.5,
+            maxWidth: 760,
+            lineHeight: 1.6,
+            marginBottom: 24,
+          }}
+        >
+          Explore practical examples, learn why certain words work better, and adapt each script to sound like you.
+        </p>
+
+        {/* Search Bar */}
+        <div style={{ position: 'relative', maxWidth: 640 }}>
+          <Search
+            size={18}
+            color="var(--gray)"
+            style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)' }}
+          />
           <input
             type="text"
-            placeholder="Search scripts by keyword, emotion, or situation..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by situation, keyword, emotion, or goal (e.g. defensiveness, late notice, emotional distance)..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setDisplayCount(12)
+            }}
             className="input-field"
-            style={{ paddingLeft: 46 }}
+            style={{
+              paddingLeft: 48,
+              paddingRight: 40,
+              height: 48,
+              fontSize: 14.5,
+              background: '#FFFFFF',
+              boxShadow: 'var(--shadow-sm)',
+            }}
           />
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {categories.map((c) => (
+          {searchQuery && (
             <button
-              key={c.id}
-              onClick={() => setActiveCategory(c.id)}
-              className={`btn ${activeCategory === c.id ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ padding: '8px 16px', fontSize: 13 }}
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute',
+                right: 14,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--gray)',
+                cursor: 'pointer',
+              }}
             >
-              {c.label}
+              <X size={16} />
             </button>
-          ))}
+          )}
         </div>
       </div>
 
-      {/* Script Cards Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        gap: 24,
-      }}>
-        {filtered.map((s) => {
-          const isUnlocked =
-            !s.requiredProduct ||
-            s.requiredProduct === 'trial' ||
-            hasBundle ||
-            ownedKeys.includes(s.requiredProduct as any)
+      {/* ── FILTER CONTROLS ──────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Category Pills */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            overflowX: 'auto',
+            paddingBottom: 4,
+            scrollbarWidth: 'thin',
+          }}
+        >
+          <button
+            onClick={() => {
+              setSelectedCategory('ALL')
+              setDisplayCount(12)
+            }}
+            className={`btn ${selectedCategory === 'ALL' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '7px 15px', fontSize: 13, flexShrink: 0 }}
+          >
+            All Categories ({SCRIPTS_LIBRARY.length})
+          </button>
+          {SCRIPT_CATEGORIES.map((cat) => {
+            const count = SCRIPTS_LIBRARY.filter((s) => s.category === cat.id).length
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setSelectedCategory(cat.id)
+                  setDisplayCount(12)
+                }}
+                className={`btn ${selectedCategory === cat.id ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: '7px 14px', fontSize: 13, flexShrink: 0 }}
+              >
+                {cat.name} ({count})
+              </button>
+            )
+          })}
+        </div>
 
-          return (
-            <div
-              key={s.id}
-              className="card-glass"
+        {/* Tone and Favorites Bar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+            padding: '12px 16px',
+            background: 'var(--surface-tint)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--gray)', marginRight: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <SlidersHorizontal size={13} />
+              Tone:
+            </span>
+            {['ALL', 'Gentle', 'Balanced', 'Direct'].map((tone) => (
+              <button
+                key={tone}
+                onClick={() => {
+                  setSelectedTone(tone)
+                  setDisplayCount(12)
+                }}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-pill)',
+                  fontSize: 12,
+                  fontWeight: selectedTone === tone ? 600 : 500,
+                  border: selectedTone === tone ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
+                  background: selectedTone === tone ? 'var(--blush-soft)' : '#FFFFFF',
+                  color: selectedTone === tone ? 'var(--burgundy-dark)' : 'var(--charcoal)',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                {tone === 'ALL' ? 'All Tones' : tone}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button
+              onClick={() => setOnlyFavorites(!onlyFavorites)}
               style={{
-                padding: 28,
-                display: 'flex',
-                flexDirection: 'column',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 12px',
+                borderRadius: 'var(--radius-pill)',
+                fontSize: 12.5,
+                fontWeight: 600,
+                border: onlyFavorites ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
+                background: onlyFavorites ? 'var(--blush-soft)' : '#FFFFFF',
+                color: onlyFavorites ? 'var(--burgundy)' : 'var(--charcoal)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+              }}
+            >
+              <Heart size={13} fill={onlyFavorites ? 'var(--burgundy)' : 'none'} color={onlyFavorites ? 'var(--burgundy)' : 'var(--gray)'} />
+              <span>Saved Favorites ({favoriteIds.length})</span>
+            </button>
+
+            <span style={{ fontSize: 12.5, color: 'var(--gray)' }}>
+              Showing {Math.min(visibleScripts.length, filteredScripts.length)} of {filteredScripts.length} results
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── SCRIPT CARDS GRID ─────────────────────────────────────────────── */}
+      {filteredScripts.length === 0 ? (
+        <div
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-card)',
+            padding: 48,
+            textAlign: 'center',
+          }}
+        >
+          <BookOpen size={32} color="var(--gray)" style={{ margin: '0 auto 12px' }} />
+          <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 6 }}>
+            No scripts found
+          </h3>
+          <p style={{ fontSize: 14, color: 'var(--gray)', maxWidth: 440, margin: '0 auto 16px' }}>
+            Try broadening your search term, clearing your tone filters, or checking all categories.
+          </p>
+          <button
+            onClick={() => {
+              setSearchQuery('')
+              setSelectedCategory('ALL')
+              setSelectedTone('ALL')
+              setOnlyFavorites(false)
+            }}
+            className="btn btn-secondary"
+            style={{ fontSize: 13 }}
+          >
+            Reset Filters
+          </button>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gap: 22,
+          }}
+        >
+          {visibleScripts.map((item) => {
+            const isFav = favoriteIds.includes(item.id)
+            const catName = SCRIPT_CATEGORIES.find((c) => c.id === item.category)?.name || item.category
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleOpenDetail(item)}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-card)',
+                  padding: 24,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14,
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                  boxShadow: 'var(--shadow-sm)',
+                  position: 'relative',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(196, 30, 58, 0.35)'
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
+                }}
+              >
+                {/* Card Top: Badges and Favorite Toggle */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span className="badge badge-blush" style={{ fontSize: 11 }}>{catName}</span>
+                    <span className="badge badge-neutral" style={{ fontSize: 11 }}>{item.tone}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button
+                      type="button"
+                      onClick={(e) => toggleFavorite(item.id, e)}
+                      aria-label="Save to favorites"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 6,
+                        borderRadius: '50%',
+                        color: isFav ? 'var(--burgundy)' : 'var(--gray)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = 'var(--cream)')}
+                      onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <Heart size={16} fill={isFav ? 'var(--burgundy)' : 'none'} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleCopy(item.id, item.script, e)}
+                      title="Copy script"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 6,
+                        borderRadius: '50%',
+                        color: copiedId === item.id ? '#2ecc71' : 'var(--gray)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = 'var(--cream)')}
+                      onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {copiedId === item.id ? <Check size={16} /> : <Copy size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Script Title */}
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--charcoal)', lineHeight: 1.35, marginBottom: 6 }}>
+                    {item.title}
+                  </h3>
+                  <p style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <strong>Situation:</strong> {item.situation}
+                  </p>
+                </div>
+
+                {/* Script Quote */}
+                <div
+                  style={{
+                    background: 'var(--surface-tint)',
+                    borderLeft: '3.5px solid var(--burgundy)',
+                    padding: '12px 14px',
+                    borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
+                    fontSize: 14,
+                    color: 'var(--charcoal)',
+                    lineHeight: 1.55,
+                    fontStyle: 'normal',
+                  }}
+                >
+                  "{item.script}"
+                </div>
+
+                {/* Why It Works Mechanism */}
+                <div
+                  style={{
+                    fontSize: 12.5,
+                    color: 'var(--charcoal-muted)',
+                    lineHeight: 1.5,
+                    background: 'var(--cream)',
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    marginTop: 'auto',
+                  }}
+                >
+                  <strong style={{ color: 'var(--burgundy)' }}>Why this works:</strong> {item.whyItWorks}
+                </div>
+
+                {/* Card Action Link */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: 10,
+                    borderTop: '1px solid var(--border)',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: 'var(--burgundy)',
+                  }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Sparkles size={13} />
+                    Personalize or Adapt
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                    Open Guide
+                    <ChevronRight size={14} />
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── PAGINATION / LOAD MORE ───────────────────────────────────────── */}
+      {displayCount < filteredScripts.length && (
+        <div style={{ textAlign: 'center', marginTop: 12 }}>
+          <button
+            onClick={() => setDisplayCount((prev) => prev + 12)}
+            className="btn btn-secondary"
+            style={{ padding: '10px 28px', fontSize: 14 }}
+          >
+            Load More Scripts ({filteredScripts.length - displayCount} remaining)
+          </button>
+        </div>
+      )}
+
+      {/* ── SCRIPT DETAIL & PERSONALIZATION MODAL ─────────────────────────── */}
+      {activeScript && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 150,
+            background: 'rgba(26, 26, 26, 0.65)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={handleCloseDetail}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: 'var(--radius-card)',
+              maxWidth: 720,
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '32px 36px',
+              boxShadow: 'var(--shadow-xl)',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 22,
+            }}
+          >
+            {/* Modal Top Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                  <span className="badge badge-blush">
+                    {SCRIPT_CATEGORIES.find((c) => c.id === activeScript.category)?.name || activeScript.category}
+                  </span>
+                  <span className="badge badge-neutral">Tone: {activeScript.tone}</span>
+                  <span className="badge badge-gold">ID: {activeScript.id}</span>
+                </div>
+                <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--charcoal)', lineHeight: 1.3 }}>
+                  {activeScript.title}
+                </h2>
+              </div>
+
+              <button
+                onClick={handleCloseDetail}
+                aria-label="Close modal"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 8,
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--gray)',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Situation & Goal */}
+            <div
+              style={{
+                background: 'var(--surface-tint)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px 20px',
+                border: '1px solid var(--border)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: 16,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--gray)', marginBottom: 4 }}>
+                  Situation
+                </div>
+                <div style={{ fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.5 }}>
+                  {activeScript.situation}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--gray)', marginBottom: 4 }}>
+                  Intended Goal
+                </div>
+                <div style={{ fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.5 }}>
+                  {activeScript.goal}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Script Box */}
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1.5px solid var(--burgundy)',
+                borderRadius: 'var(--radius-md)',
+                padding: '20px 22px',
                 position: 'relative',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <span className="badge badge-blush" style={{ marginBottom: 8 }}>{s.category.replace('_', ' ')}</span>
-                  <h3 style={{ fontSize: 20 }}>{s.title}</h3>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Example Wording
+                </span>
+                <button
+                  onClick={() => handleCopy(activeScript.id, activeScript.script)}
+                  className="btn btn-secondary"
+                  style={{ padding: '5px 12px', fontSize: 12 }}
+                >
+                  {copiedId === activeScript.id ? <Check size={14} color="#2ecc71" /> : <Copy size={14} />}
+                  <span>{copiedId === activeScript.id ? 'Copied to Clipboard' : 'Copy Words'}</span>
+                </button>
+              </div>
 
-                {isUnlocked ? (
-                  <button
-                    onClick={() => handleCopy(s.id, s.script)}
-                    className="btn btn-ghost"
-                    style={{ padding: '6px 12px', fontSize: 12 }}
+              <div style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--charcoal)', fontWeight: 500 }}>
+                "{activeScript.script}"
+              </div>
+            </div>
+
+            {/* Why It Works Mechanism */}
+            <div>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 6 }}>
+                Why this wording may help
+              </h4>
+              <p style={{ fontSize: 13.5, color: 'var(--gray)', lineHeight: 1.6 }}>
+                {activeScript.whyItWorks}
+              </p>
+            </div>
+
+            {/* Alternative Variations: Softer & Direct */}
+            {(activeScript.softerVersion || activeScript.directVersion) && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+                {activeScript.softerVersion && (
+                  <div
+                    style={{
+                      background: 'var(--cream)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: 14,
+                    }}
                   >
-                    {copiedId === s.id ? <Check size={14} color="#2ecc71" /> : <Copy size={14} />}
-                    {copiedId === s.id ? 'Copied' : 'Copy Script'}
-                  </button>
-                ) : (
-                  <span className="badge badge-gold" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Lock size={12} />
-                    Locked
-                  </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--charcoal)' }}>Softer Version</span>
+                      <button
+                        onClick={() => handleCopy(`${activeScript.id}-softer`, activeScript.softerVersion!)}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, color: copiedId === `${activeScript.id}-softer` ? '#2ecc71' : 'var(--gray)' }}
+                      >
+                        {copiedId === `${activeScript.id}-softer` ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.5 }}>
+                      "{activeScript.softerVersion}"
+                    </p>
+                  </div>
+                )}
+
+                {activeScript.directVersion && (
+                  <div
+                    style={{
+                      background: 'var(--cream)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: 14,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--charcoal)' }}>More Direct Version</span>
+                      <button
+                        onClick={() => handleCopy(`${activeScript.id}-direct`, activeScript.directVersion!)}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 2, color: copiedId === `${activeScript.id}-direct` ? '#2ecc71' : 'var(--gray)' }}
+                      >
+                        {copiedId === `${activeScript.id}-direct` ? <Check size={13} /> : <Copy size={13} />}
+                      </button>
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.5 }}>
+                      "{activeScript.directVersion}"
+                    </p>
+                  </div>
                 )}
               </div>
+            )}
 
-              <p style={{ fontSize: 13, color: 'var(--gray)', fontStyle: 'italic' }}>
-                When to use: {s.context}
-              </p>
-
-              <div style={{
-                background: 'var(--pure-white)',
-                border: '1.5px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px 18px',
-                borderLeft: '4px solid var(--burgundy)',
-                fontSize: 14.5,
-                color: 'var(--charcoal)',
-                lineHeight: 1.6,
-              }}>
-                "{s.script}"
+            {/* Personalization Tip */}
+            {activeScript.personalizationTip && (
+              <div
+                style={{
+                  background: 'var(--surface-tint)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '12px 16px',
+                  border: '1px solid var(--border)',
+                  fontSize: 13,
+                  color: 'var(--charcoal-muted)',
+                  lineHeight: 1.55,
+                }}
+              >
+                <strong style={{ color: 'var(--burgundy)' }}>Personalization Tip: </strong>
+                {activeScript.personalizationTip}
               </div>
+            )}
 
-              <div style={{
-                background: 'var(--cream)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '10px 14px',
-                fontSize: 12,
-                color: 'var(--charcoal-muted)',
-                marginTop: 'auto',
-              }}>
-                <strong>Psychological Mechanism:</strong> {s.whyItWorks}
-              </div>
-
-              {!isUnlocked && s.productUrl && (
-                <div style={{
-                  paddingTop: 12,
-                  borderTop: '1px solid var(--border)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                  <span style={{ fontSize: 12, color: 'var(--gray)' }}>Included in {s.productTitle}</span>
-                  <a
-                    href={s.productUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-primary"
-                    style={{ padding: '6px 12px', fontSize: 12 }}
+            {/* Tags */}
+            {activeScript.tags && activeScript.tags.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <Tag size={13} color="var(--gray)" />
+                {activeScript.tags.map((t) => (
+                  <span
+                    key={t}
+                    style={{
+                      fontSize: 11.5,
+                      color: 'var(--gray)',
+                      background: 'var(--cream)',
+                      padding: '3px 8px',
+                      borderRadius: 'var(--radius-pill)',
+                    }}
                   >
-                    <span>Unlock Guide</span>
-                    <ExternalLink size={12} />
-                  </a>
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Interactive Inline Personalizer */}
+            {isPersonalizing && (
+              <div
+                style={{
+                  background: 'var(--cream)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 20,
+                  border: '1px solid rgba(196, 30, 58, 0.25)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Wand2 size={16} color="var(--burgundy)" />
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--burgundy-dark)' }}>
+                    Personalize for your relationship
+                  </span>
                 </div>
-              )}
+                <p style={{ fontSize: 12.5, color: 'var(--charcoal-muted)' }}>
+                  Add specific details (e.g. what happened, what time you need, your partner's name) to tailor the phrasing:
+                </p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={customDetail}
+                    onChange={(e) => setCustomDetail(e.target.value)}
+                    placeholder="e.g. late dinner notifications, 30 minutes of quiet, weekend plans..."
+                    className="input-field"
+                    style={{ fontSize: 13, background: '#FFFFFF', flex: 1 }}
+                  />
+                  <button
+                    onClick={handleGenerateTailored}
+                    className="btn btn-secondary"
+                    style={{ padding: '0 16px', fontSize: 13 }}
+                  >
+                    Tailor
+                  </button>
+                </div>
+
+                {tailoredVersion && (
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '12px 14px',
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      color: 'var(--charcoal)',
+                      marginTop: 4,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--burgundy)' }}>Your Tailored Draft</span>
+                      <button
+                        onClick={() => handleCopy('tailored', tailoredVersion)}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--burgundy)', fontWeight: 600 }}
+                      >
+                        {copiedId === 'tailored' ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
+                    "{tailoredVersion}"
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Bottom Modal Actions */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: 16,
+                borderTop: '1px solid var(--border)',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => toggleFavorite(activeScript.id)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: 13 }}
+                >
+                  <Heart
+                    size={14}
+                    fill={favoriteIds.includes(activeScript.id) ? 'var(--burgundy)' : 'none'}
+                    color={favoriteIds.includes(activeScript.id) ? 'var(--burgundy)' : 'var(--gray)'}
+                  />
+                  <span>{favoriteIds.includes(activeScript.id) ? 'Saved to Favorites' : 'Save Favorite'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsPersonalizing(!isPersonalizing)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: 13 }}
+                >
+                  <Wand2 size={14} />
+                  <span>{isPersonalizing ? 'Hide Editor' : 'Personalize This Script'}</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => handleAskMiraToAdapt(activeScript)}
+                className="btn btn-primary"
+                style={{ fontSize: 13.5 }}
+              >
+                <Sparkles size={14} />
+                <span>Ask Mira to Adapt It</span>
+                <ArrowRight size={14} />
+              </button>
             </div>
-          )
-        })}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

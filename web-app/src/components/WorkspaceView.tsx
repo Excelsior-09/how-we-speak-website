@@ -1,54 +1,68 @@
 // ==============================================================================
-// HOW WE SPEAK — COUPLES CONVERSATION WORKSPACE
+// HOW WE SPEAK — MY PARTNER & COUPLES AI SPACE
 // Palette: Burgundy #C41E3A | Cream #F5F3F0 | Gold #D4AF37 | Blush #E8CCC8
-// Features: Secure invitation pairing, isolated private reflections,
-//           selective sharing toggle, neutral joint AI synthesis
+// Features: Welcoming onboarding, strict private vs shared boundaries,
+//           turn-taking perspectives, "Ask Mira to help us" joint mediation,
+//           agreed action steps, and individual + joint couple settings.
 // ==============================================================================
 
 import React, { useState } from 'react'
 import {
-  Link2,
   Copy,
   Check,
-  ShieldCheck,
   Sparkles,
   Lock,
   Unlock,
-  AlertCircle,
   RefreshCw,
   HeartHandshake,
-  UserCheck
+  UserCheck,
+  Settings,
+  Shield,
+  AlertCircle,
+  Plus,
+  Trash2,
+  X,
+  UserMinus,
+  CheckCircle2,
+  Flame
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
-import type { PrivateReflection } from '../types/database'
 
 interface WorkspaceViewProps {
-  partnerLinked: boolean
-  onTogglePartnerLink: () => void
+  partnerLinked?: boolean
+  onTogglePartnerLink?: () => void
 }
 
-interface JointSummaryData {
-  cycleOverview: string
-  partnerAUnderlyingLonging: string
-  partnerBUnderlyingLonging: string
-  sharedNegativeLoop: string
-  threeRepairSteps: {
-    step: number
-    title: string
-    action: string
-  }[]
+interface JointMediationResult {
+  overview: string
+  partnerAView: string
+  partnerBView: string
+  overlappingNeeds: string
+  compromiseExperiment: string
+  phrasesToUse: string[]
+  pauseRecommendation?: string
+  suggestedActionSteps: string[]
 }
 
-const EMOTION_CHIPS = [
+const SUGGESTED_TOPICS = [
+  'Evening stress & transition windows',
+  'Division of household responsibilities & mental load',
+  'Feeling disconnected after a busy week',
+  'Handling recurring disagreements without defensiveness',
+  'Rebuilding affection and emotional closeness',
+  'Budget, spending, and future plans',
+]
+
+const EMOTIONS = [
   'Overwhelmed',
-  'Abandoned',
-  'Attacked',
+  'Unheard',
+  'Frustrated',
   'Unappreciated',
   'Anxious',
-  'Defensive',
-  'Exhausted',
-  'Lonely',
+  'Guarded',
+  'Tired',
+  'Disconnected',
 ]
 
 export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
@@ -59,34 +73,69 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
   const [inviteInput, setInviteInput] = useState('')
   const [pairingError, setPairingError] = useState<string | null>(null)
   const [isPairing, setIsPairing] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false)
 
-  // Reflection Exercise State
-  const [triggerNotes, setTriggerNotes] = useState(
-    "When you said you had to work late again without giving me a heads up, I felt like our plans didn't matter to you."
-  )
-  const [selectedEmotions, setSelectedEmotions] = useState<string[]>(['Unappreciated', 'Lonely'])
-  const [underlyingNeed, setUnderlyingNeed] = useState(
-    "I needed to know I was still a priority and that you value the time we set aside together."
-  )
-  const [hopes, setHopes] = useState(
-    "I want us to communicate schedule shifts before they happen so I don't feel forgotten."
-  )
-  const [isShared, setIsShared] = useState(false)
+  // Active Discussion Session State
+  const [topic, setTopic] = useState('Evening stress & transition windows')
+  const [customTopic, setCustomTopic] = useState('')
+  const [isCustomTopic, setIsCustomTopic] = useState(false)
 
-  // Partner Reflection Simulation / Status
+  // Current User's Perspective (Private until explicitly toggled)
+  const [myExperience, setMyExperience] = useState(
+    "When you arrive home and immediately check your phone or retreat, I feel disconnected and worried that our time together isn't a priority."
+  )
+  const [myEmotions, setMyEmotions] = useState<string[]>(['Disconnected', 'Unappreciated'])
+  const [myUnderlyingNeed, setMyUnderlyingNeed] = useState(
+    "I need 10 minutes of intentional greeting so I know we're in this together."
+  )
+  const [myShared, setMyShared] = useState(false)
+
+  // Partner Perspective (simulated or real from database)
   const [partnerHasShared, setPartnerHasShared] = useState(false)
-  const [partnerReflection, setPartnerReflection] = useState<Partial<PrivateReflection> | null>(null)
+  const [partnerExperience, setPartnerExperience] = useState<string | null>(null)
+  const [partnerEmotions, setPartnerEmotions] = useState<string[]>([])
+  const [partnerNeed, setPartnerNeed] = useState<string | null>(null)
 
-  // Joint Summary State
-  const [jointSummary, setJointSummary] = useState<JointSummaryData | null>(null)
-  const [isSynthesizing, setIsSynthesizing] = useState(false)
+  // Mira Mediation State
+  const [aiConsentBoth, setAiConsentBoth] = useState(true)
+  const [isMediating, setIsMediating] = useState(false)
+  const [mediationResult, setMediationResult] = useState<JointMediationResult | null>(null)
+  const [agreedSteps, setAgreedSteps] = useState<{ id: string; text: string; done: boolean }[]>([
+    { id: 'step-1', text: 'Agree to take a 20-minute quiet decompression window after arriving home.', done: false },
+    { id: 'step-2', text: 'Follow up with 10 minutes of device-free catch-up over tea or dinner.', done: false },
+  ])
+  const [newStepText, setNewStepText] = useState('')
+
+  // Couple Settings: Individual & Joint
+  const [individualTone, setIndividualTone] = useState<'gentle' | 'balanced' | 'direct'>('balanced')
+  const [individualStyle, setIndividualStyle] = useState<'listen' | 'practical' | 'words'>('practical')
+  const [jointRules, setJointRules] = useState({
+    no_blaming: true,
+    no_taking_sides: true,
+    reflect_both: true,
+    realistic_actions: true,
+    avoid_clinical_jargon: true,
+    suggest_pause_when_heated: true,
+  })
+
+  const isPartnerConnected = !!(activeSpace?.partner_2_id) || !!partnerProfile
+  const partnerDisplayName = partnerProfile?.display_name || 'Your Partner'
+  const myDisplayName = profile?.display_name || 'You'
 
   const inviteCode = activeSpace ? `hws-${activeSpace.id.substring(0, 8)}` : 'hws-pair-8f3a92e1'
   const inviteLink = typeof window !== 'undefined'
     ? `${window.location.origin}/app?invite=${inviteCode}`
     : `https://tryhowwespeak.com/app?invite=${inviteCode}`
 
-  const isPartnerConnected = !!(activeSpace?.partner_2_id) || !!partnerProfile
+  // Toggle emotion chip
+  const toggleEmotion = (eName: string) => {
+    if (myEmotions.includes(eName)) {
+      setMyEmotions(myEmotions.filter((e) => e !== eName))
+    } else {
+      setMyEmotions([...myEmotions, eName])
+    }
+  }
 
   const handleCopyInvite = () => {
     navigator.clipboard.writeText(inviteLink)
@@ -112,7 +161,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
         setIsPairing(false)
       }
     } else {
-      // Sandbox mode pairing
+      // Local fallback
       setTimeout(() => {
         setIsPairing(false)
         const mockSpace = {
@@ -120,15 +169,15 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
           partner_1_id: user?.id || 'usr_1',
           partner_2_id: 'usr_partner_jordan',
           status: 'active' as const,
-          room_name: 'Alex & Jordan’s Sanctuary',
+          room_name: 'Our Shared Space',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }
         const mockPartner = {
           id: 'usr_partner_jordan',
-          email: 'jordan@tryhowwespeak.com',
+          email: 'partner@example.com',
           display_name: 'Jordan',
-          archetype: 'Pursuer' as const,
+          archetype: 'Listener' as const,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }
@@ -146,56 +195,53 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
     }
   }
 
-  const toggleEmotion = (emotion: string) => {
-    if (selectedEmotions.includes(emotion)) {
-      setSelectedEmotions(selectedEmotions.filter((e) => e !== emotion))
-    } else {
-      setSelectedEmotions([...selectedEmotions, emotion])
-    }
-  }
+  // Handle toggling your share status
+  const handleToggleMyShare = () => {
+    const nextShare = !myShared
+    setMyShared(nextShare)
 
-  const handleToggleShare = () => {
-    const nextShared = !isShared
-    setIsShared(nextShared)
-    if (nextShared) {
-      if (isPartnerConnected) {
-        setPartnerHasShared(true)
-        setPartnerReflection({
-          trigger_notes: "When you confronted me as soon as I walked in the door, my chest tightened. I was already drained and felt like nothing I do is enough.",
-          felt_emotions: ['Exhausted', 'Attacked', 'Overwhelmed'],
-          underlying_need: "I longed for a soft landing and 10 minutes to decompress before discussing what went wrong.",
-          hopes_for_conversation: "To explain my workday without feeling like the bad guy.",
-          is_shared: true,
-        })
-      }
-    } else {
-      setJointSummary(null)
+    if (nextShare && isPartnerConnected) {
+      // Partner shares their simulated or real response
+      setPartnerHasShared(true)
+      setPartnerExperience(
+        "I walk through the door carrying all the stress and tension of the workday. When an urgent conversation starts immediately, I feel flooded and inadequate, so I shut down to protect myself."
+      )
+      setPartnerEmotions(['Tired', 'Overwhelmed', 'Guarded'])
+      setPartnerNeed(
+        "I need 20 minutes to transition mentally from work before engaging in important relationship discussions."
+      )
+    } else if (!nextShare) {
+      setMediationResult(null)
       setPartnerHasShared(false)
-      setPartnerReflection(null)
     }
   }
 
-  const handleGenerateJointSummary = async () => {
-    setIsSynthesizing(true)
+  // Ask Mira to help us (Joint AI mediation)
+  const handleAskMiraJoint = async () => {
+    if (!myShared || !partnerHasShared) return
+    setIsMediating(true)
+
+    const activeTopic = isCustomTopic ? customTopic : topic
 
     try {
+      // Call joint summary or Mira endpoint with explicitly authorized content
       const res = await fetch('/api/ai/joint-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          exerciseId: 'ex_default_conflict',
-          mockExercise: { topic: 'Evening Stress & Late Notice' },
+          exerciseId: 'ex_couples_joint_session',
+          mockExercise: { topic: activeTopic },
           mockReflections: [
             {
-              trigger_notes: triggerNotes,
-              felt_emotions: selectedEmotions,
-              underlying_need: underlyingNeed,
+              trigger_notes: myExperience,
+              felt_emotions: myEmotions,
+              underlying_need: myUnderlyingNeed,
               is_shared: true,
             },
             {
-              trigger_notes: partnerReflection?.trigger_notes || "I felt attacked coming home late.",
-              felt_emotions: partnerReflection?.felt_emotions || ['Exhausted', 'Attacked'],
-              underlying_need: partnerReflection?.underlying_need || "I needed a safe decompress window.",
+              trigger_notes: partnerExperience || "I felt overwhelmed by work stress.",
+              felt_emotions: partnerEmotions,
+              underlying_need: partnerNeed || "I need a transition window.",
               is_shared: true,
             },
           ],
@@ -204,489 +250,993 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
 
       const json = await res.json()
       if (res.ok && json.data) {
-        setJointSummary(json.data)
+        const d = json.data
+        setMediationResult({
+          overview: d.cycleOverview || "Both of you are reacting to legitimate nervous system needs. One partner seeks connection to feel secure, while the other seeks decompression to avoid overwhelm.",
+          partnerAView: d.partnerAUnderlyingLonging || `You are longing for presence, connection, and emotional assurance that your time together matters.`,
+          partnerBView: d.partnerBUnderlyingLonging || `${partnerDisplayName} is longing for physiological decompression and relief from feeling pressured or inadequate.`,
+          overlappingNeeds: "Both of you want to end your day feeling close, peaceful, and valued in your home together.",
+          compromiseExperiment: "The 20/10 Transition Experiment: Allow 20 minutes of quiet decompression upon arrival (no questions, no pressure), followed by 10 minutes of uninterrupted, phone-free connection.",
+          phrasesToUse: [
+            `"${partnerDisplayName}, I'm so glad you're home. Take 20 minutes to reset, and let's check in at 6:30."`,
+            `"I love you and want to hear about your day. I just need 15 minutes to quiet my mind first."`,
+          ],
+          pauseRecommendation: "If either person notices rising heart rate or defensive tone, agree to call a 10-minute pause with a clear return time.",
+          suggestedActionSteps: [
+            'Test the 20/10 transition window for the next 3 evenings.',
+            'Keep greeting brief and loving without launching into logistics.',
+            'Review how the experiment felt on Thursday evening.',
+          ],
+        })
+
+        // Merge suggested actions
+        if (d.threeRepairSteps && Array.isArray(d.threeRepairSteps)) {
+          const newSteps = d.threeRepairSteps.map((step: any, idx: number) => ({
+            id: `ai-step-${idx}`,
+            text: `${step.title}: ${step.action}`,
+            done: false,
+          }))
+          setAgreedSteps(newSteps)
+        }
       }
     } catch (err) {
-      console.warn('Joint summary generation failed:', err)
+      console.warn('Mira Joint Mediation fallback triggered:', err)
+      // Provide robust fallback
+      setMediationResult({
+        overview: "Both of you are experiencing understandable reactions to end-of-day stress. Neither partner is trying to push the other away.",
+        partnerAView: `You are longing for warmth, emotional reassurance, and proof that your relationship comes first.`,
+        partnerBView: `${partnerDisplayName} is longing for emotional relief from workday demands so they can show up with genuine energy.`,
+        overlappingNeeds: "You both want peace, connection, and emotional safety at the end of the day.",
+        compromiseExperiment: "Agree on an explicit 20-minute buffer window upon arriving home. Once 20 minutes elapse, spend 10 minutes together over tea or coffee with phones put away.",
+        phrasesToUse: [
+          `"Welcome home. Take 20 minutes to breathe, and let's catch up right after."`,
+          `"I want to hear everything, just giving my nervous system 15 minutes to reset."`,
+        ],
+        pauseRecommendation: "If either partner feels flooded, touch your hand to your chest and say: 'Let's take 10 minutes so we stay kind.'",
+        suggestedActionSteps: [
+          'Set a 20-minute transition timer upon arrival.',
+          'Designate the first 10 minutes together as device-free.',
+          'Check in after 3 days to adjust if needed.',
+        ],
+      })
     } finally {
-      setIsSynthesizing(false)
+      setIsMediating(false)
     }
+  }
+
+  // Toggle step checklist
+  const toggleStep = (id: string) => {
+    setAgreedSteps((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, done: !s.done } : s))
+    )
+  }
+
+  const addCustomStep = () => {
+    if (!newStepText.trim()) return
+    setAgreedSteps((prev) => [
+      ...prev,
+      { id: `custom-${Date.now()}`, text: newStepText.trim(), done: false },
+    ])
+    setNewStepText('')
+  }
+
+  const removeStep = (id: string) => {
+    setAgreedSteps((prev) => prev.filter((s) => s.id !== id))
+  }
+
+  const handleDisconnect = () => {
+    setShowDisconnectModal(false)
+    localStorage.removeItem('hws_sandbox_auth')
+    window.location.reload()
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      {/* Header */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <span className="badge badge-gold">Couples Synergy Room</span>
-          <span className="badge badge-blush">End-to-End Privacy</span>
+      {/* ── HEADER ──────────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span className="badge badge-neutral">Couples AI Space</span>
+            {isPartnerConnected ? (
+              <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <HeartHandshake size={12} />
+                Connected with {partnerDisplayName}
+              </span>
+            ) : (
+              <span className="badge badge-burgundy">Unpaired Workspace</span>
+            )}
+          </div>
+          <h1 style={{ fontSize: 'clamp(28px, 3.4vw, 40px)', marginBottom: 8, lineHeight: 1.25, fontWeight: 700 }}>
+            My Partner & Couples Space
+          </h1>
+          <p style={{ color: 'var(--gray)', fontSize: 16, maxWidth: 740, lineHeight: 1.6 }}>
+            A shared communication space for two. What you practice on your own remains strictly private. Only reflections and topics you explicitly choose to share appear here.
+          </p>
         </div>
-        <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', marginBottom: 8 }}>
-          Couples Conversation Workspace
-        </h1>
-        <p style={{ color: 'var(--gray)', fontSize: 16, maxWidth: 740 }}>
-          A secure space for you and your partner. Complete individual reflections in private, choose when to share, and receive neutral AI cycle summaries that heal recurring arguments without taking sides.
-        </p>
+
+        {isPartnerConnected && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setShowSettingsModal(true)}
+              className="btn btn-secondary"
+              style={{ fontSize: 13 }}
+            >
+              <Settings size={14} />
+              <span>How Mira Helps Us</span>
+            </button>
+
+            <button
+              onClick={() => setShowDisconnectModal(true)}
+              className="btn btn-ghost"
+              style={{ fontSize: 13, color: 'var(--gray)' }}
+            >
+              <UserMinus size={14} />
+              <span>Disconnect</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Grid: Workspace Status & Pairing */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: 28,
-      }}>
-        {/* Workspace Profile Cards */}
-        <div className="card-glass" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--gray)', letterSpacing: '0.08em' }}>
-                Relationship Sanctuary
-              </span>
-              <h2 style={{ fontSize: 22, marginTop: 4 }}>
-                {isPartnerConnected ? `${profile?.display_name || 'You'} & ${partnerProfile?.display_name || 'Jordan'}` : 'Solo Mode (Awaiting Partner)'}
-              </h2>
+      {/* ── ONBOARDING STATE: UNPAIRED ────────────────────────────────────── */}
+      {!isPartnerConnected ? (
+        <div
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-card)',
+            padding: '36px 40px',
+            boxShadow: 'var(--shadow-sm)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 28,
+          }}
+        >
+          <div style={{ maxWidth: 660 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+              Couples Pairing
             </div>
-            <span className={`badge ${isPartnerConnected ? 'badge-gold' : 'badge-blush'}`}>
-              {isPartnerConnected ? 'Coupled' : 'Single User'}
-            </span>
+            <h2 style={{ fontSize: 28, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 12 }}>
+              Better conversations start with an invitation.
+            </h2>
+            <p style={{ fontSize: 15, color: 'var(--gray)', lineHeight: 1.65 }}>
+              Connecting your partner allows you to explore recurring disagreements calmly, reflect privately, and invite Mira to facilitate balanced, practical next steps when you are both ready.
+            </p>
           </div>
 
-          {/* 2 User Badges */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            {/* You */}
-            <div style={{
-              background: '#FFFFFF',
+          {/* Invitation Box */}
+          <div
+            style={{
+              background: 'var(--surface-tint)',
               borderRadius: 'var(--radius-md)',
-              padding: 16,
-              border: '1.5px solid var(--border)',
+              padding: 26,
+              border: '1px solid var(--border)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 6,
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase' }}>Partner 1</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--charcoal)' }}>{profile?.display_name || 'You'}</div>
-              <span className="badge badge-burgundy" style={{ width: 'fit-content' }}>{profile?.archetype || 'The Avoider'}</span>
+              gap: 18,
+              maxWidth: 700,
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 4 }}>
+                Invite your partner
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5 }}>
+                Send this private invitation link. Once your partner opens it and confirms, your shared space will be activated.
+              </p>
             </div>
 
-            {/* Partner */}
-            <div style={{
-              background: isPartnerConnected ? '#FFFFFF' : 'var(--cream)',
-              borderRadius: 'var(--radius-md)',
-              padding: 16,
-              border: isPartnerConnected ? '1.5px solid var(--gold)' : '1.5px dashed var(--gray-light)',
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                readOnly
+                value={inviteLink}
+                className="input-field"
+                style={{ fontSize: 13, background: '#FFFFFF', flex: 1, minWidth: 260 }}
+              />
+              <button
+                onClick={handleCopyInvite}
+                className="btn btn-primary"
+                style={{ padding: '0 22px', fontSize: 13.5 }}
+              >
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+                <span>{copied ? 'Link Copied' : 'Copy Invite Link'}</span>
+              </button>
+            </div>
+
+            {/* Paste Code Box */}
+            <div style={{ paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 12.5, color: 'var(--gray)', fontWeight: 600 }}>
+                Already received an invitation code from your partner?
+              </span>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  value={inviteInput}
+                  onChange={(e) => setInviteInput(e.target.value)}
+                  placeholder="Paste invite code (e.g. hws-pair-8f3a92e1)"
+                  className="input-field"
+                  style={{ fontSize: 13, background: '#FFFFFF', flex: 1, minWidth: 240 }}
+                />
+                <button
+                  onClick={handleAcceptInvite}
+                  disabled={isPairing || !inviteInput.trim()}
+                  className="btn btn-secondary"
+                  style={{ padding: '0 20px', fontSize: 13 }}
+                >
+                  {isPairing ? <RefreshCw size={14} className="animate-spin" /> : <UserCheck size={14} />}
+                  <span>Connect Partner</span>
+                </button>
+              </div>
+              {pairingError && <span style={{ fontSize: 12, color: 'var(--burgundy)' }}>{pairingError}</span>}
+            </div>
+          </div>
+
+          {/* Privacy Clarity Guarantee */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 20,
+              paddingTop: 12,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--burgundy)', flexShrink: 0 }}>
+                <Lock size={17} />
+              </div>
+              <div>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 3 }}>
+                  Strictly Private by Default
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.55 }}>
+                  Your individual conversations with Mira, practice rehearsals, and draft reflections remain 100% confidential. Your partner cannot view them.
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-muted)', flexShrink: 0 }}>
+                <Shield size={17} />
+              </div>
+              <div>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 3 }}>
+                  Explicit Sharing Control
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.55 }}>
+                  Only exercises and reflections where you explicitly click “Share with Partner” will ever be accessible to the shared space or Mira.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ── CONNECTED SHARED WORKSPACE ───────────────────────────────────── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          {/* Active Discussion Topic Card */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-card)',
+              padding: '28px 32px',
+              boxShadow: 'var(--shadow-sm)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 6,
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase' }}>Partner 2</div>
-              {isPartnerConnected ? (
+              gap: 20,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <span className="badge badge-neutral" style={{ marginBottom: 6 }}>Current Discussion Topic</span>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--charcoal)' }}>
+                  {isCustomTopic ? customTopic || 'Custom Conversation Topic' : topic}
+                </h2>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <select
+                  value={isCustomTopic ? 'custom' : topic}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setIsCustomTopic(true)
+                    } else {
+                      setIsCustomTopic(false)
+                      setTopic(e.target.value)
+                    }
+                  }}
+                  className="input-field"
+                  style={{ fontSize: 13, padding: '6px 12px', background: '#FFFFFF', width: 'auto' }}
+                >
+                  {SUGGESTED_TOPICS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                  <option value="custom">+ Custom Topic...</option>
+                </select>
+              </div>
+            </div>
+
+            {isCustomTopic && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  placeholder="Enter specific topic (e.g. Planning holiday travel with family)..."
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  className="input-field"
+                  style={{ fontSize: 13.5, background: '#FFFFFF', flex: 1 }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Turn-Taking Perspectives Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+              gap: 24,
+            }}
+          >
+            {/* ── Partner 1: Your Perspective ───────────────────────────────── */}
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: myShared ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
+                borderRadius: 'var(--radius-card)',
+                padding: 26,
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                position: 'relative',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--blush)', color: 'var(--burgundy)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>
+                    {myDisplayName.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--charcoal)' }}>Your Perspective</h3>
+                    <span style={{ fontSize: 11, color: 'var(--gray)' }}>{myDisplayName}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleMyShare}
+                  className={`btn ${myShared ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '6px 12px', fontSize: 12 }}
+                >
+                  {myShared ? <Unlock size={13} /> : <Lock size={13} />}
+                  <span>{myShared ? 'Shared with Partner' : 'Private (Draft)'}</span>
+                </button>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)', marginBottom: 6 }}>
+                  What felt difficult in this situation?
+                </label>
+                <textarea
+                  rows={4}
+                  value={myExperience}
+                  onChange={(e) => setMyExperience(e.target.value)}
+                  className="input-field"
+                  style={{ fontSize: 13.5, background: '#FFFFFF', lineHeight: 1.5 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)', marginBottom: 6 }}>
+                  Primary emotions felt:
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {EMOTIONS.map((em) => {
+                    const active = myEmotions.includes(em)
+                    return (
+                      <button
+                        key={em}
+                        type="button"
+                        onClick={() => toggleEmotion(em)}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: 'var(--radius-pill)',
+                          fontSize: 12,
+                          fontWeight: active ? 600 : 400,
+                          background: active ? 'var(--blush-soft)' : '#FFFFFF',
+                          border: active ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
+                          color: active ? 'var(--burgundy-dark)' : 'var(--charcoal)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {em}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)', marginBottom: 6 }}>
+                  What do you genuinely need from {partnerDisplayName}?
+                </label>
+                <input
+                  type="text"
+                  value={myUnderlyingNeed}
+                  onChange={(e) => setMyUnderlyingNeed(e.target.value)}
+                  className="input-field"
+                  style={{ fontSize: 13.5, background: '#FFFFFF' }}
+                />
+              </div>
+
+              <div style={{ fontSize: 12, color: 'var(--gray)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--border-subtle)' }}>
+                {myShared ? (
+                  <>
+                    <CheckCircle2 size={14} color="#2ecc71" />
+                    <span>Shared: {partnerDisplayName} and Mira can view this reflection.</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={14} color="var(--gray)" />
+                    <span>Private: {partnerDisplayName} cannot see this draft until shared.</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* ── Partner 2: Partner's Perspective ──────────────────────────── */}
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: partnerHasShared ? '1.5px solid var(--gold)' : '1px solid var(--border)',
+                borderRadius: 'var(--radius-card)',
+                padding: 26,
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold-subtle)', color: '#7D6310', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>
+                    {partnerDisplayName.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--charcoal)' }}>Partner's Perspective</h3>
+                    <span style={{ fontSize: 11, color: 'var(--gray)' }}>{partnerDisplayName}</span>
+                  </div>
+                </div>
+
+                <span className={`badge ${partnerHasShared ? 'badge-gold' : 'badge-neutral'}`} style={{ fontSize: 11.5 }}>
+                  {partnerHasShared ? 'Shared' : 'Waiting for Partner'}
+                </span>
+              </div>
+
+              {partnerHasShared && partnerExperience ? (
                 <>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--charcoal)' }}>{partnerProfile?.display_name || 'Jordan'}</div>
-                  <span className="badge badge-gold" style={{ width: 'fit-content' }}>{partnerProfile?.archetype || 'The Pursuer'}</span>
+                  <div>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)', marginBottom: 6 }}>
+                      What felt difficult from their view:
+                    </div>
+                    <div style={{ background: 'var(--surface-tint)', padding: '12px 14px', borderRadius: 'var(--radius-sm)', fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.55 }}>
+                      "{partnerExperience}"
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)', marginBottom: 6 }}>
+                      Emotions felt by {partnerDisplayName}:
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {partnerEmotions.map((em) => (
+                        <span key={em} className="badge badge-gold" style={{ fontSize: 11.5 }}>
+                          {em}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)', marginBottom: 6 }}>
+                      Core longing / need:
+                    </div>
+                    <div style={{ background: 'var(--surface-tint)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', fontSize: 13.5, color: 'var(--charcoal)' }}>
+                      {partnerNeed}
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: 12, color: 'var(--gray)', display: 'flex', alignItems: 'center', gap: 6, marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--border-subtle)' }}>
+                    <CheckCircle2 size={14} color="var(--gold)" />
+                    <span>Shared willingly by {partnerDisplayName}</span>
+                  </div>
                 </>
               ) : (
-                <div style={{ fontSize: 12, color: 'var(--gray)', fontStyle: 'italic', margin: 'auto 0' }}>
-                  Awaiting partner pairing via code
+                <div style={{ margin: 'auto 0', textAlign: 'center', padding: '36px 16px' }}>
+                  <Lock size={28} color="var(--gray)" style={{ margin: '0 auto 12px' }} />
+                  <h4 style={{ fontSize: 15, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 6 }}>
+                    Awaiting {partnerDisplayName}'s Reflection
+                  </h4>
+                  <p style={{ fontSize: 13, color: 'var(--gray)', maxWidth: 300, margin: '0 auto' }}>
+                    When {partnerDisplayName} logs into their workspace and toggles “Share with Partner”, their perspective will appear here.
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Invitation Box if not connected */}
-          {!isPartnerConnected && (
-            <div style={{
-              background: 'var(--cream)',
-              borderRadius: 'var(--radius-md)',
-              padding: 18,
+          {/* ── ASK MIRA TO HELP US: JOINT MEDIATION ───────────────────────── */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, rgba(196, 30, 58, 0.04) 0%, rgba(212, 175, 55, 0.08) 100%)',
+              border: '1.5px solid rgba(212, 175, 55, 0.35)',
+              borderRadius: 'var(--radius-card)',
+              padding: '28px 32px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Link2 size={16} color="var(--burgundy)" />
-                <span style={{ fontSize: 13, fontWeight: 700 }}>Single-Use Invite Link</span>
+              gap: 20,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Sparkles size={16} color="var(--gold)" />
+                  <span style={{ fontSize: 12.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--burgundy)' }}>
+                    Mira Joint Facilitation
+                  </span>
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--charcoal)' }}>
+                  Ask Mira to help us find common ground
+                </h3>
+                <p style={{ fontSize: 13.5, color: 'var(--gray)', marginTop: 2 }}>
+                  Mira synthesizes only explicitly shared reflections into a balanced compromise without taking sides or assigning blame.
+                </p>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  type="text"
-                  readOnly
-                  value={inviteLink}
-                  className="input-field"
-                  style={{ fontSize: 12.5, background: '#FFF' }}
-                />
-                <button onClick={handleCopyInvite} className="btn btn-primary" style={{ padding: '0 16px', fontSize: 13 }}>
-                  {copied ? <Check size={15} /> : <Copy size={15} />}
-                  {copied ? 'Copied' : 'Copy'}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--charcoal)', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={aiConsentBoth}
+                    onChange={(e) => setAiConsentBoth(e.target.checked)}
+                  />
+                  <span>Both partners consent to AI review</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleAskMiraJoint}
+                  disabled={isMediating || !myShared || !partnerHasShared || !aiConsentBoth}
+                  className="btn btn-primary"
+                  style={{ fontSize: 13.5, padding: '10px 22px' }}
+                >
+                  {isMediating ? (
+                    <>
+                      <RefreshCw size={15} className="animate-spin" />
+                      <span>Synthesizing Perspectives...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={15} />
+                      <span>Ask Mira to Help Us</span>
+                    </>
+                  )}
                 </button>
               </div>
-
-              {/* Paste Invite Code */}
-              <div style={{ paddingTop: 8, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 12, color: 'var(--gray)' }}>Have an invite code from your partner?</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    type="text"
-                    value={inviteInput}
-                    onChange={(e) => setInviteInput(e.target.value)}
-                    placeholder="e.g. hws-pair-8f3a92e1"
-                    className="input-field"
-                    style={{ fontSize: 12.5, background: '#FFF' }}
-                  />
-                  <button
-                    onClick={handleAcceptInvite}
-                    disabled={isPairing || !inviteInput.trim()}
-                    className="btn btn-secondary"
-                    style={{ padding: '0 16px', fontSize: 12.5 }}
-                  >
-                    {isPairing ? <RefreshCw size={13} className="animate-spin" /> : <UserCheck size={13} />}
-                    Join Room
-                  </button>
-                </div>
-                {pairingError && <span style={{ fontSize: 12, color: '#9b1c1c' }}>{pairingError}</span>}
-              </div>
             </div>
-          )}
-        </div>
 
-        {/* Dynamic Synergy Guide */}
-        <div className="card-glass" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Sparkles size={18} color="var(--gold)" />
-            <h3 style={{ fontSize: 20 }}>
-              {isPartnerConnected ? 'Couples Dynamic: Avoider + Pursuer' : 'Why Pair with Your Partner?'}
-            </h3>
-          </div>
+            {(!myShared || !partnerHasShared) && (
+              <div style={{ background: '#FFFFFF', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: 12.5, color: 'var(--gray)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertCircle size={15} color="var(--gold)" />
+                <span>Both partners must toggle "Share with Partner" on their reflections before Mira can mediate.</span>
+              </div>
+            )}
 
-          <div style={{
-            background: 'var(--blush-soft)',
-            borderRadius: 'var(--radius-md)',
-            padding: 16,
-            borderLeft: '3px solid var(--burgundy)',
-            fontSize: 13,
-            lineHeight: 1.6,
-          }}>
-            {isPartnerConnected ? (
-              <span>
-                <strong>The Escalation Trigger:</strong> When the Pursuer senses emotional distance, their attachment alarm sounds and they urgently seek reassurance. When the Avoider feels intense pressure, their nervous system perceives an attack and shuts down. Both are seeking safety—in opposing directions.
-              </span>
-            ) : (
-              <span>
-                When you invite your partner, How We Speak bridges this loop. Both partners reflect in total privacy. Nobody sees unshared drafts. When both agree to share, our neutral AI synthesizes what each person truly needed, removing all blame.
-              </span>
+            {/* Mediation Results Display */}
+            {mediationResult && (
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 26,
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 20,
+                  marginTop: 6,
+                }}
+              >
+                {/* 1. Cycle Overview */}
+                <div>
+                  <span className="badge badge-burgundy" style={{ marginBottom: 6 }}>1. What is really happening</span>
+                  <p style={{ fontSize: 15, color: 'var(--charcoal)', lineHeight: 1.6, fontWeight: 500 }}>
+                    {mediationResult.overview}
+                  </p>
+                </div>
+
+                {/* 2. Side-by-side underlying longings */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+                  <div style={{ background: 'var(--surface-tint)', padding: 16, borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--burgundy)' }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', marginBottom: 4 }}>
+                      {myDisplayName}'s Underlying Need
+                    </div>
+                    <div style={{ fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.5 }}>
+                      {mediationResult.partnerAView}
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--surface-tint)', padding: 16, borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--gold)' }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#7D6310', textTransform: 'uppercase', marginBottom: 4 }}>
+                      {partnerDisplayName}'s Underlying Need
+                    </div>
+                    <div style={{ fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.5 }}>
+                      {mediationResult.partnerBView}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Overlapping Common Ground */}
+                <div style={{ background: 'var(--cream)', padding: '14px 18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <strong style={{ color: 'var(--charcoal)', fontSize: 13 }}>Where your needs meet: </strong>
+                  <span style={{ fontSize: 13.5, color: 'var(--charcoal)' }}>{mediationResult.overlappingNeeds}</span>
+                </div>
+
+                {/* 4. Realistic Compromise Experiment */}
+                <div>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 6 }}>
+                    Suggested Compromise Experiment:
+                  </h4>
+                  <div style={{ fontSize: 14, color: 'var(--charcoal)', lineHeight: 1.55, background: 'var(--surface-tint)', padding: 14, borderRadius: 'var(--radius-sm)' }}>
+                    {mediationResult.compromiseExperiment}
+                  </div>
+                </div>
+
+                {/* 5. Natural Sample Phrases */}
+                {mediationResult.phrasesToUse && mediationResult.phrasesToUse.length > 0 && (
+                  <div>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 8 }}>
+                      Words either partner can say right now:
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {mediationResult.phrasesToUse.map((phrase, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: '10px 14px',
+                            background: '#FFFFFF',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-sm)',
+                            fontStyle: 'italic',
+                            fontSize: 13.5,
+                            color: 'var(--charcoal)',
+                          }}
+                        >
+                          {phrase}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. Pause recommendation */}
+                {mediationResult.pauseRecommendation && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--blush-soft)', padding: '12px 16px', borderRadius: 'var(--radius-sm)' }}>
+                    <Flame size={16} color="var(--burgundy)" />
+                    <span style={{ fontSize: 13, color: 'var(--burgundy-dark)', lineHeight: 1.5 }}>
+                      <strong>If things feel heated: </strong> {mediationResult.pauseRecommendation}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
-          <div style={{
-            marginTop: 'auto',
-            paddingTop: 14,
-            borderTop: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 12,
-            color: 'var(--gray)',
-          }}>
-            <ShieldCheck size={16} color="var(--burgundy)" />
-            <span>PostgreSQL Row Level Security guarantees unshared drafts are inaccessible to the other partner.</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Interactive Couples Reflection Section */}
-      <div className="card-glass" style={{ padding: 36, display: 'flex', flexDirection: 'column', gap: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <span className="badge badge-burgundy">Active Reflection Exercise</span>
-              <span className="badge badge-gold">Topic: Schedule & Work/Life Disconnect</span>
-            </div>
-            <h2 style={{ fontSize: 24 }}>De-escalating the Last Argument</h2>
-          </div>
-
-          {/* Privacy & Sharing Status Pill */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            background: isShared ? 'var(--gold-subtle)' : 'var(--cream)',
-            border: isShared ? '1.5px solid var(--gold)' : '1px solid var(--border)',
-            borderRadius: 'var(--radius-pill)',
-            padding: '8px 18px',
-          }}>
-            {isShared ? <Unlock size={16} color="var(--gold-muted)" /> : <Lock size={16} color="var(--gray)" />}
-            <span style={{ fontSize: 13, fontWeight: 600 }}>
-              {isShared ? 'Shared with Partner' : 'Private (Draft Mode)'}
-            </span>
-            <button
-              onClick={handleToggleShare}
-              className={`btn ${isShared ? 'btn-secondary' : 'btn-primary'}`}
-              style={{ padding: '6px 14px', fontSize: 12 }}
-            >
-              {isShared ? 'Revoke to Private' : 'Share with Partner'}
-            </button>
-          </div>
-        </div>
-
-        {/* 2-Column Reflection Panel */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: 28,
-        }}>
-          {/* Column 1: Your Private Reflection */}
-          <div style={{
-            background: '#FFFFFF',
-            border: '1.5px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            padding: 24,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 18,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: 17, color: 'var(--burgundy)' }}>Your Reflection</h3>
-              <span className={`badge ${isShared ? 'badge-gold' : 'badge-blush'}`}>
-                {isShared ? 'Shared' : 'Private'}
-              </span>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--charcoal)', marginBottom: 6 }}>
-                1. What specific moment triggered you?
-              </label>
-              <textarea
-                value={triggerNotes}
-                onChange={(e) => setTriggerNotes(e.target.value)}
-                rows={3}
-                className="input-field"
-                style={{ fontSize: 13.5, background: '#FAFAF8' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--charcoal)', marginBottom: 6 }}>
-                2. What emotions did you feel underneath?
-              </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {EMOTION_CHIPS.map((chip) => {
-                  const active = selectedEmotions.includes(chip)
-                  return (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => toggleEmotion(chip)}
-                      style={{
-                        padding: '5px 12px',
-                        borderRadius: 'var(--radius-pill)',
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        border: active ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
-                        background: active ? 'var(--blush-soft)' : '#FFFFFF',
-                        color: active ? 'var(--burgundy-dark)' : 'var(--charcoal-muted)',
-                        fontWeight: active ? 600 : 400,
-                      }}
-                    >
-                      {chip}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--charcoal)', marginBottom: 6 }}>
-                3. What did you actually long to feel?
-              </label>
-              <textarea
-                value={underlyingNeed}
-                onChange={(e) => setUnderlyingNeed(e.target.value)}
-                rows={2}
-                className="input-field"
-                style={{ fontSize: 13.5, background: '#FAFAF8' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--charcoal)', marginBottom: 6 }}>
-                4. What is your hope for our conversation?
-              </label>
-              <input
-                type="text"
-                value={hopes}
-                onChange={(e) => setHopes(e.target.value)}
-                className="input-field"
-                style={{ fontSize: 13.5, background: '#FAFAF8' }}
-              />
-            </div>
-          </div>
-
-          {/* Column 2: Partner's Reflection State */}
-          <div style={{
-            background: isShared && partnerHasShared ? '#FFFFFF' : 'var(--cream)',
-            border: isShared && partnerHasShared ? '1.5px solid var(--gold)' : '1.5px dashed var(--gray-light)',
-            borderRadius: 'var(--radius-md)',
-            padding: 24,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-            justifyContent: isShared && partnerHasShared ? 'flex-start' : 'center',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: 17, color: 'var(--charcoal)' }}>
-                {partnerProfile?.display_name || 'Jordan'}’s Reflection
-              </h3>
-              <span className={`badge ${isShared && partnerHasShared ? 'badge-gold' : 'badge-blush'}`}>
-                {isShared && partnerHasShared ? 'Unlocked' : 'Encrypted'}
-              </span>
-            </div>
-
-            {isShared && partnerHasShared && partnerReflection ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ fontSize: 12, color: 'var(--gray)', textTransform: 'uppercase', fontWeight: 700 }}>
-                  Their Trigger Notes
-                </div>
-                <p style={{ fontSize: 13.5, fontStyle: 'italic', color: 'var(--charcoal)' }}>
-                  "{partnerReflection.trigger_notes}"
-                </p>
-
-                <div style={{ fontSize: 12, color: 'var(--gray)', textTransform: 'uppercase', fontWeight: 700 }}>
-                  Their Felt Emotions
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {partnerReflection.felt_emotions?.map((e: string) => (
-                    <span key={e} className="badge badge-gold">{e}</span>
-                  ))}
-                </div>
-
-                <div style={{ fontSize: 12, color: 'var(--gray)', textTransform: 'uppercase', fontWeight: 700 }}>
-                  What They Longed to Feel
-                </div>
-                <p style={{ fontSize: 13.5, fontStyle: 'italic', color: 'var(--charcoal)' }}>
-                  "{partnerReflection.underlying_need}"
-                </p>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '36px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <Lock size={32} color="var(--gray)" />
-                <h4 style={{ fontSize: 16 }}>Partner Answers Hidden</h4>
-                <p style={{ fontSize: 13, color: 'var(--gray)', maxWidth: 320 }}>
-                  {!isShared
-                    ? 'You must click "Share with Partner" on your reflection first before mutual sharing is unlocked.'
-                    : 'Awaiting partner to finish and share their reflection.'}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Synthesis Action Bar */}
-        <div style={{
-          paddingTop: 16,
-          borderTop: '1px solid var(--border)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--gray)' }}>
-            <HeartHandshake size={18} color="var(--gold)" />
-            <span>
-              {isShared && partnerHasShared
-                ? 'Both reflections shared! Unlocked for neutral AI joint synthesis.'
-                : 'Both partners must share to unlock the neutral joint summary.'}
-            </span>
-          </div>
-
-          <button
-            onClick={handleGenerateJointSummary}
-            disabled={!isShared || isSynthesizing}
-            className="btn btn-primary"
-            style={{ padding: '12px 24px', fontSize: 14 }}
+          {/* ── AGREED ACTION STEPS ────────────────────────────────────────── */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-card)',
+              padding: '28px 32px',
+              boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 18,
+            }}
           >
-            {isSynthesizing ? (
-              <>
-                <RefreshCw size={16} className="animate-spin" />
-                Synthesizing Non-Diagnostic Summary...
-              </>
-            ) : (
-              <>
-                <Sparkles size={16} />
-                Generate Neutral Joint Summary
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Neutral Joint AI Summary Output */}
-        {jointSummary && (
-          <div style={{
-            background: 'var(--cream)',
-            border: '1.5px solid var(--gold)',
-            borderRadius: 'var(--radius-card)',
-            padding: 32,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 20,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Sparkles size={20} color="var(--gold)" />
-              <h3 style={{ fontSize: 22, color: 'var(--charcoal)' }}>Neutral Joint Cycle Summary</h3>
-            </div>
-
-            <p style={{ fontSize: 14.5, color: 'var(--charcoal)', lineHeight: 1.7 }}>
-              {jointSummary.cycleOverview}
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div style={{ background: '#FFF', padding: 16, borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--burgundy)' }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Partner 1’s Deep Longing
-                </div>
-                <p style={{ fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.6 }}>
-                  {jointSummary.partnerAUnderlyingLonging}
-                </p>
-              </div>
-
-              <div style={{ background: '#FFF', padding: 16, borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--gold)' }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gold-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Partner 2’s Deep Longing
-                </div>
-                <p style={{ fontSize: 13.5, color: 'var(--charcoal)', lineHeight: 1.6 }}>
-                  {jointSummary.partnerBUnderlyingLonging}
-                </p>
-              </div>
-            </div>
-
-            <div style={{ background: '#FFF', padding: 20, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <AlertCircle size={16} color="var(--burgundy)" />
-                The Shared Interactive Loop (Neither Partner Is The Villain)
-              </div>
-              <p style={{ fontSize: 13.5, color: 'var(--charcoal-muted)', lineHeight: 1.6 }}>
-                {jointSummary.sharedNegativeLoop}
+            <div>
+              <span className="badge badge-neutral" style={{ marginBottom: 6 }}>Joint Accountability</span>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--charcoal)' }}>
+                Our Agreed Next Steps
+              </h3>
+              <p style={{ fontSize: 13.5, color: 'var(--gray)' }}>
+                Concrete, practical actions both of you commit to testing together. Check items off as you practice them.
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <h4 style={{ fontSize: 15, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--charcoal)' }}>
-                Your 3 Agreed Repair Actions
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-                {jointSummary.threeRepairSteps.map((step) => (
-                  <div key={step.step} style={{ background: '#FFF', padding: 14, borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--burgundy)', marginBottom: 4 }}>
-                      <span>Step {step.step}:</span>
-                      <span>{step.title}</span>
-                    </div>
-                    <p style={{ fontSize: 12.5, color: 'var(--gray)' }}>{step.action}</p>
+              {agreedSteps.map((step) => (
+                <div
+                  key={step.id}
+                  onClick={() => toggleStep(step.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: step.done ? 'var(--surface-tint)' : '#FFFFFF',
+                    border: '1px solid var(--border)',
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={step.done}
+                      onChange={() => {}}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: step.done ? 'var(--gray)' : 'var(--charcoal)',
+                        textDecoration: step.done ? 'line-through' : 'none',
+                      }}
+                    >
+                      {step.text}
+                    </span>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeStep(step.id)
+                    }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--gray)', padding: 4 }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add new action */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <input
+                type="text"
+                placeholder="Add our own agreed commitment..."
+                value={newStepText}
+                onChange={(e) => setNewStepText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addCustomStep()
+                }}
+                className="input-field"
+                style={{ fontSize: 13.5, background: '#FFFFFF', flex: 1 }}
+              />
+              <button
+                type="button"
+                onClick={addCustomStep}
+                className="btn btn-secondary"
+                style={{ fontSize: 13 }}
+              >
+                <Plus size={14} />
+                <span>Add Step</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SETTINGS MODAL: HOW MIRA HELPS US ─────────────────────────────── */}
+      {showSettingsModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 150,
+            background: 'rgba(26, 26, 26, 0.65)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setShowSettingsModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: 'var(--radius-card)',
+              maxWidth: 640,
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '32px 36px',
+              boxShadow: 'var(--shadow-xl)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 22,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <span className="badge badge-gold" style={{ marginBottom: 6 }}>Couple Preferences</span>
+                <h3 style={{ fontSize: 22, fontWeight: 700, color: 'var(--charcoal)' }}>
+                  How Mira Helps Us
+                </h3>
+                <p style={{ fontSize: 13.5, color: 'var(--gray)', marginTop: 2 }}>
+                  Set your individual communication style and agree on joint facilitation ground rules.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--gray)' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Section 1: Individual Style */}
+            <div style={{ background: 'var(--surface-tint)', padding: 18, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--charcoal)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                Your Individual Style ({myDisplayName})
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--gray)', marginBottom: 6 }}>
+                    Tone Preference:
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {(['gentle', 'balanced', 'direct'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setIndividualTone(t)}
+                        className={`btn ${individualTone === t ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ padding: '6px 14px', fontSize: 12, textTransform: 'capitalize' }}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--gray)', marginBottom: 6 }}>
+                    Advice Style:
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'listen', label: 'Listen & Understand' },
+                      { id: 'practical', label: 'Practical Actions' },
+                      { id: 'words', label: 'Exact Phrasing' },
+                    ].map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setIndividualStyle(s.id as any)}
+                        className={`btn ${individualStyle === s.id ? 'btn-primary' : 'btn-secondary'}`}
+                        style={{ padding: '6px 14px', fontSize: 12 }}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Joint Ground Rules */}
+            <div style={{ background: 'var(--cream)', padding: 18, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                Jointly Agreed Ground Rules
+              </div>
+              <p style={{ fontSize: 12.5, color: 'var(--charcoal-muted)', marginBottom: 12 }}>
+                Rules that govern how Mira interacts with both of you during shared mediation:
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { key: 'no_blaming', label: 'No blaming or fault-finding language' },
+                  { key: 'no_taking_sides', label: 'Never take sides or declare who is right' },
+                  { key: 'reflect_both', label: 'Always reflect both perspectives fairly' },
+                  { key: 'realistic_actions', label: 'Suggest realistic, bite-sized actions' },
+                  { key: 'avoid_clinical_jargon', label: 'Avoid clinical labels (e.g. avoidant, narcissist)' },
+                  { key: 'suggest_pause_when_heated', label: 'Suggest a timeout if discussion gets heated' },
+                ].map((rule) => (
+                  <label key={rule.key} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--charcoal)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={(jointRules as any)[rule.key]}
+                      onChange={(e) =>
+                        setJointRules({ ...jointRules, [rule.key]: e.target.checked })
+                      }
+                    />
+                    <span>{rule.label}</span>
+                  </label>
                 ))}
               </div>
             </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="btn btn-primary"
+                style={{ fontSize: 13, padding: '8px 20px' }}
+              >
+                Save Preferences
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ── DISCONNECT CONFIRMATION MODAL ─────────────────────────────────── */}
+      {showDisconnectModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 150,
+            background: 'rgba(26, 26, 26, 0.65)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+          onClick={() => setShowDisconnectModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: 'var(--radius-card)',
+              maxWidth: 480,
+              width: '100%',
+              padding: '28px 32px',
+              boxShadow: 'var(--shadow-xl)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+          >
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--charcoal)' }}>
+              Disconnect Partner Pairing?
+            </h3>
+            <p style={{ fontSize: 14, color: 'var(--gray)', lineHeight: 1.6 }}>
+              Are you sure you want to unlink from {partnerDisplayName}? Your private rehearsal sessions and individual Mira chats will remain completely intact.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+              <button
+                onClick={() => setShowDisconnectModal(false)}
+                className="btn btn-secondary"
+                style={{ fontSize: 13 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDisconnect}
+                className="btn btn-primary"
+                style={{ fontSize: 13, background: 'var(--burgundy)' }}
+              >
+                Confirm Disconnect
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

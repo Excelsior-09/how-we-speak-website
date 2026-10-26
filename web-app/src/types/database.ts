@@ -172,7 +172,94 @@ export interface Entitlement {
 export interface UsageRecord {
   id: string
   user_id: string
-  action_type: 'ai_rehearsal' | 'ai_followup' | 'ai_joint_summary'
+  action_type: 'ai_rehearsal' | 'ai_followup' | 'ai_joint_summary' | 'ai_mira'
   tokens_used: number
   created_at: string
+}
+
+export interface MiraStructuredAdvice {
+  whatWeKnow?: string
+  whatMightBeHappening?: string
+  whatYouCanDo?: string
+  whatYouCouldSay?: string
+  whatToWatchFor?: string
+  followUpQuestion?: string
+}
+
+export interface MiraConversation {
+  id: string
+  user_id: string
+  title: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MiraMessage {
+  id: string
+  conversation_id: string
+  user_id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  structured_data?: MiraStructuredAdvice | null
+  created_at: string
+}
+
+export interface MiraPreferences {
+  id: string
+  user_id: string
+  communication_preference: 'gentle' | 'balanced' | 'direct'
+  advice_style: 'listen' | 'practical' | 'words' | 'challenge' | 'both-perspectives'
+  response_length: 'short' | 'moderate' | 'detailed'
+  personal_priorities: string[]
+  custom_priority?: string | null
+  persistent_memory_enabled: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface MiraMemory {
+  id: string
+  user_id: string
+  category: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ScriptFavorite {
+  id: string
+  user_id: string
+  script_id: string
+  created_at: string
+}
+
+export interface SharedCoupleSession {
+  id: string
+  space_id: string
+  topic: string
+  status: 'active' | 'paused' | 'completed'
+  partner_1_perspective: string | null
+  partner_1_shared: boolean
+  partner_2_perspective: string | null
+  partner_2_shared: boolean
+  mira_assistance_requested: boolean
+  mira_suggestion: string | null
+  agreed_next_steps: string[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CoupleMiraSettings {
+  id: string
+  space_id: string
+  individual_prefs: Record<string, any>
+  joint_rules: {
+    no_blaming: boolean
+    no_taking_sides: boolean
+    reflect_both: boolean
+    realistic_actions: boolean
+    avoid_clinical_jargon: boolean
+  }
+  created_at: string
+  updated_at: string
 }

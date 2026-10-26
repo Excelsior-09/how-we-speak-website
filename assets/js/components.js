@@ -12,56 +12,56 @@
   const isQuizPage = /(^|\/)quiz\.html$/.test(window.location.pathname);
 
   const NAV_LINKS_FULL = `
-        <li><a href="index.html">Home</a></li>
-        <li><a href="index.html#guides">Our Guides</a></li>
-        <li>
-          <a href="quiz.html" class="nav-quiz">
-            Take the Quiz
-            <span class="nav-quiz-badge">New</span>
-          </a>
-        </li>
+        <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
+        <li><a href="index.html#guides">Guides</a></li>
         <li><a href="articles.html">Articles</a></li>
-        <li><a href="/index.html#bundle">Bundle</a></li>
-        <li><a href="index.html#story">Our Story</a></li>
-        <li><a href="index.html#faq">FAQ</a></li>
-        <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact</a></li>
-        <li class="mobile-cta" style="display:none;">
-          <a href="/index.html#bundle" class="btn btn-primary">Break the Silence</a>
+        <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
+        <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        <li class="mobile-nav-item"><a href="index.html#bundle">Bundle</a></li>
+        <li class="mobile-nav-item"><a href="index.html#story">Our Story</a></li>
+        <li class="mobile-nav-item"><a href="index.html#faq">FAQ</a></li>
+        <li class="mobile-login">
+          <a href="/app?auth=login" class="mobile-login-link">Log in</a>
+        </li>
+        <li class="mobile-cta">
+          <a href="/app/rehearse" class="btn btn-primary" id="mobilePrimaryCta">Try It Free</a>
         </li>`;
 
   const NAV_LINKS_QUIZ = `
-        <li><a href="index.html">Home</a></li>
-        <li>
-          <a href="quiz.html" class="nav-quiz" aria-current="page">
-            Take the Quiz
-            <span class="nav-quiz-badge">New</span>
-          </a>
+        <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
+        <li><a href="index.html#guides">Guides</a></li>
+        <li><a href="articles.html">Articles</a></li>
+        <li><a href="quiz.html" class="nav-quiz" aria-current="page">Take the Quiz</a></li>
+        <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        <li class="mobile-nav-item"><a href="index.html#bundle">Bundle</a></li>
+        <li class="mobile-nav-item"><a href="index.html#story">Our Story</a></li>
+        <li class="mobile-nav-item"><a href="index.html#faq">FAQ</a></li>
+        <li class="mobile-login">
+          <a href="/app?auth=login" class="mobile-login-link">Log in</a>
+        </li>
+        <li class="mobile-cta">
+          <a href="/app/rehearse" class="btn btn-primary">Try It Free</a>
         </li>`;
 
   /* ── NAV HTML ─────────────────────────────────────────── */
   const NAV_HTML = `
-<div class="cart-toast" id="cartToast">
-  <span class="cart-toast-check">✓</span>
-  <span class="toast-msg">Added to cart</span>
-</div>
 <nav class="nav" id="navbar" role="navigation" aria-label="Main navigation">
   <div class="container nav-container">
     <div class="nav__inner">
       <a href="index.html" class="nav__logo" aria-label="How We Speak — Home">
-        <img src="${LOGO}" alt="How We Speak" class="nav__logo-img" fetchpriority="high" decoding="async"/>
+        <img src="${LOGO}" alt="How We Speak" class="nav__logo-img" width="156" height="62" fetchpriority="high" decoding="async"/>
       </a>
 
-      <!-- Desktop Links -->
+      <!-- Desktop Links (Single line, 5 essential destinations) -->
       <ul class="nav__links" id="navLinks" role="list">${isQuizPage ? NAV_LINKS_QUIZ : NAV_LINKS_FULL}
       </ul>
+
+      <!-- Right Actions: CTA group + Mobile Toggle -->
       <div class="nav__right">
         <div class="nav__cta">
-          <a href="/index.html#bundle" class="btn btn-primary">Break the Silence</a>
+          <a href="/app?auth=login" class="nav__login-btn" id="navLoginBtn">Log in</a>
+          <a href="/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
         </div>
-        <button class="nav__cart" id="navCartToggle" aria-label="Open cart">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-          <span class="cart-badge" id="cartBadge">0</span>
-        </button>
         <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
           <span></span><span></span><span></span>
         </button>

@@ -1,7 +1,7 @@
 // ==============================================================================
 // HOW WE SPEAK — TRYHOWWESPEAK CONVERSATION REHEARSAL WORKFLOW
 // Palette: Burgundy #C41E3A | Cream #F5F3F0 | Gold #D4AF37 | Blush #E8CCC8
-// Features: 5-step guided preparation flow, live AI generation, 3 alternative openings,
+// Features: Guided preparation flow, live AI generation, 3 alternative openings,
 //           neutral summary, follow-up language, in-place editing, Supabase persistence
 // ==============================================================================
 
@@ -39,28 +39,28 @@ interface RehearsalViewProps {
 const SITUATION_CATEGORIES: { id: SituationCategory; label: string; placeholder: string }[] = [
   {
     id: 'partner-distant',
-    label: 'My partner seems distant or quiet',
-    placeholder: 'Explain what you noticed (e.g., they stopped texting during the day, look past me when I ask questions, or seem distracted)...'
+    label: 'My partner seems distant.',
+    placeholder: 'What have you noticed? (e.g. They have been quieter than usual, or seem pulled back when we talk)...'
   },
   {
     id: 'recurring-argument',
-    label: 'We keep arguing about the same issue',
-    placeholder: 'Explain the repetitive conflict loop (e.g., spending, household tasks, family visits, tone of voice)...'
+    label: 'We keep arguing about the same thing.',
+    placeholder: 'What is the recurring topic? (e.g. Daily routines, chores, family obligations, or how we speak to each other)...'
   },
   {
     id: 'need-boundary',
-    label: 'I need to express a need or boundary',
-    placeholder: 'Explain the specific boundary or unmet need (e.g., I need 20 minutes to decompress after work without being questioned)...'
+    label: 'I need to express a need or boundary.',
+    placeholder: 'What need or personal boundary would you like to set? (e.g. A few quiet minutes after work, or talking things through gently)...'
   },
   {
     id: 'future-talk',
-    label: 'I want to discuss our future or direction',
-    placeholder: 'Explain what future topic you want to discuss (e.g., moving in, finances, commitments, lifestyle goals)...'
+    label: 'We need to talk about our future.',
+    placeholder: 'What future topic is on your mind? (e.g. Moving forward together, living arrangements, commitments, or long-term goals)...'
   },
   {
     id: 'other',
-    label: 'Other relationship communication situation',
-    placeholder: 'Describe your honest situation and what has been happening...'
+    label: 'Something else.',
+    placeholder: 'Describe what you are experiencing and what you would like to say...'
   }
 ]
 
@@ -69,19 +69,19 @@ const COMMUNICATION_GOALS: { id: CommunicationGoal; label: string }[] = [
   { id: 'explain-feelings', label: 'Explain how I feel without attacking' },
   { id: 'ask-change', label: 'Ask for a specific, realistic change' },
   { id: 'establish-boundary', label: 'Establish a respectful personal boundary' },
-  { id: 'resolve-disagreement', label: 'Prepare to resolve an active disagreement' },
+  { id: 'resolve-disagreement', label: 'Work through an active disagreement calmly' },
 ]
 
 const PREFERRED_TONES: { id: PreferredTone; label: string; desc: string }[] = [
-  { id: 'gentle', label: 'Gentle & Reassuring', desc: 'Prioritizes emotional warmth, vulnerability, and soothing' },
-  { id: 'calm-clear', label: 'Calm, Clear & Confident', desc: 'Direct and balanced; invites collaborative problem-solving' },
-  { id: 'firm-respectful', label: 'Firm but Respectful', desc: 'Sets explicit boundaries while preserving relationship commitment' },
+  { id: 'gentle', label: 'Gentle & Reassuring', desc: 'Focuses on warmth, care, and emotional safety' },
+  { id: 'calm-clear', label: 'Calm, Clear & Confident', desc: 'Direct and balanced; invites an honest two-way conversation' },
+  { id: 'firm-respectful', label: 'Firm but Respectful', desc: 'Sets explicit boundaries while maintaining care and respect' },
 ]
 
 const COMMUNICATION_METHODS: { id: CommunicationMethod; label: string }[] = [
-  { id: 'text', label: '💬 Text Message' },
-  { id: 'face-to-face', label: '🗣️ Face-to-Face' },
-  { id: 'call', label: '📞 Phone or Video Call' },
+  { id: 'face-to-face', label: 'In person' },
+  { id: 'text', label: 'Text message' },
+  { id: 'call', label: 'Phone or video call' },
 ]
 
 export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) => {
@@ -91,7 +91,7 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
   // Form Inputs
   const [situationCategory, setSituationCategory] = useState<SituationCategory>('partner-distant')
   const [situation, setSituation] = useState(
-    "My partner has been quiet for two days and only gives one-word answers. It makes me anxious and I want to know if they're pulling away."
+    "My partner has been quiet for two days and only gives one-word answers. It makes me anxious and I want to know if everything is okay between us."
   )
   const [goal, setGoal] = useState<CommunicationGoal>('understand')
   const [preferredTone, setPreferredTone] = useState<PreferredTone>('gentle')
@@ -121,11 +121,11 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
     setTimeout(() => setCopiedKey(null), 2000)
   }
 
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleGenerate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
 
     if (!situation.trim() || situation.trim().length < 5) {
-      setErrorMessage('Please provide a description of the situation (at least 5 characters).')
+      setErrorMessage('Please share a few words about what is happening (at least 5 characters).')
       return
     }
 
@@ -159,14 +159,14 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
       const json = await res.json()
 
       if (!res.ok) {
-        throw new Error(json.error || 'Failed to generate conversation rehearsal.')
+        throw new Error(json.error || 'Failed to prepare conversation suggestions. Please try again.')
       }
 
       setAiResult(json.data)
       const primaryOpening = json.data.openings[selectedOpeningKey] || json.data.openings.gentle
       setEditedScript(primaryOpening)
     } catch (err: any) {
-      setErrorMessage(err.message || 'Error connecting to the rehearsal engine.')
+      setErrorMessage(err.message || 'Error connecting to the conversation assistant.')
     } finally {
       setIsGenerating(false)
     }
@@ -182,7 +182,7 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
   const handleSavePlan = async () => {
     if (!aiResult) return
 
-    // Route Protection Gate: if user not logged in, prompt sign in
+    // Require authentication to persist
     if (!user) {
       onRequireAuth('/app/rehearse')
       return
@@ -192,7 +192,8 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
     setErrorMessage(null)
 
     const finalChosenScript = editedScript || aiResult.openings[selectedOpeningKey]
-    const planTitle = `${situationCategory.replace(/-/g, ' ').toUpperCase()} Rehearsal`
+    const activeCategoryLabel = SITUATION_CATEGORIES.find((c) => c.id === situationCategory)?.label || 'Conversation'
+    const planTitle = `${activeCategoryLabel.replace(/\.$/, '')} Plan`
 
     const planPayload = {
       user_id: user.id,
@@ -232,19 +233,23 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
         setSaveSuccess(true)
         if (data?.id) setSavedPlanId(data.id)
       } catch (err: any) {
-        setErrorMessage(err.message || 'Failed to save conversation plan to database.')
+        setErrorMessage(err.message || 'Failed to save conversation plan.')
       } finally {
         setIsSaving(false)
       }
     } else {
-      // Local development fallback
-      const localId = 'plan_' + Math.random().toString(36).substring(2, 9)
-      const existing = JSON.parse(localStorage.getItem('hws_saved_plans') || '[]')
-      const updated = [{ ...planPayload, id: localId }, ...existing]
-      localStorage.setItem('hws_saved_plans', JSON.stringify(updated))
-      setIsSaving(false)
-      setSaveSuccess(true)
-      setSavedPlanId(localId)
+      // Local fallback
+      try {
+        const localPlans = JSON.parse(localStorage.getItem('hws_saved_plans') || '[]')
+        const newPlan = { id: `local_${Date.now()}`, ...planPayload }
+        localStorage.setItem('hws_saved_plans', JSON.stringify([newPlan, ...localPlans]))
+        setSaveSuccess(true)
+        setSavedPlanId(newPlan.id)
+      } catch (err: any) {
+        setErrorMessage(err.message || 'Could not save locally.')
+      } finally {
+        setIsSaving(false)
+      }
     }
   }
 
@@ -252,64 +257,96 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      {/* Page Title */}
+      {/* Header */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <span className="badge badge-burgundy">Guided Conversation Preparation</span>
-          <span className="badge badge-gold">Non-Diagnostic & Grounded</span>
-        </div>
-        <h1 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', marginBottom: 8 }}>
-          Conversation Rehearsal Studio
+        <h1 style={{ fontSize: 'clamp(28px, 3.4vw, 40px)', marginBottom: 10, lineHeight: 1.25 }}>
+          What would you like help talking about?
         </h1>
-        <p style={{ color: 'var(--gray)', fontSize: 16, maxWidth: 760 }}>
-          Work through difficult relationship moments step-by-step. Formulate what you want to say, explore gentle vs direct openings, rehearse follow-ups for tough reactions, and save your private plan.
+        <p style={{ color: 'var(--gray)', fontSize: 16, maxWidth: 720, lineHeight: 1.6 }}>
+          Choose a situation, clarify your tone and goal, and explore natural ways to begin your conversation.
         </p>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        gap: 32,
-      }}>
-        {/* Left Column: Structured Input Form */}
-        <form onSubmit={handleGenerate} className="card-glass" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* 1. Situation Category */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: 32,
+          alignItems: 'start',
+        }}
+      >
+        {/* Left Column: Structured Input Form with Progressive Steps */}
+        <form
+          onSubmit={handleGenerate}
+          style={{
+            background: '#FFFFFF',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-card)',
+            padding: 32,
+            boxShadow: 'var(--shadow-sm)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 24,
+          }}
+        >
+          {/* Step 1: Situation Category */}
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)', marginBottom: 8 }}>
-              1. What best describes your situation?
+            <label
+              style={{
+                display: 'block',
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'var(--charcoal)',
+                marginBottom: 10,
+              }}
+            >
+              1. What situation best describes what you are experiencing?
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {SITUATION_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSituationCategory(cat.id)}
-                  style={{
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    textAlign: 'left',
-                    border: situationCategory === cat.id ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
-                    background: situationCategory === cat.id ? 'var(--blush-soft)' : '#FFFFFF',
-                    color: situationCategory === cat.id ? 'var(--burgundy-dark)' : 'var(--charcoal)',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-fast)',
-                  }}
-                >
-                  {cat.label}
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {SITUATION_CATEGORIES.map((cat) => {
+                const isSelected = situationCategory === cat.id
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSituationCategory(cat.id)}
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: 13.5,
+                      fontWeight: isSelected ? 600 : 500,
+                      textAlign: 'left',
+                      border: isSelected ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
+                      background: isSelected ? 'var(--blush-soft)' : '#FFFFFF',
+                      color: isSelected ? 'var(--burgundy-dark)' : 'var(--charcoal)',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* 2. Situation Description */}
+          {/* Step 2: What do you want to understand or communicate? */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)' }}>
-                2. Explain the details or your raw thoughts
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--charcoal)',
+                }}
+              >
+                2. What do you want to understand or communicate?
               </label>
-              <span style={{ fontSize: 11, color: 'var(--gray)' }}>{situation.length}/2000</span>
+              <span style={{ fontSize: 11.5, color: 'var(--gray)' }}>{situation.length}/2000</span>
             </div>
             <textarea
               required
@@ -322,40 +359,64 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
             />
           </div>
 
-          {/* 3. Communication Goal */}
+          {/* Step 3: Communication Goal */}
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)', marginBottom: 8 }}>
-              3. What is your primary goal for this conversation?
+            <label
+              style={{
+                display: 'block',
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'var(--charcoal)',
+                marginBottom: 10,
+              }}
+            >
+              3. What outcome are you hoping for?
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {COMMUNICATION_GOALS.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => setGoal(g.id)}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: 12.5,
-                    fontWeight: 500,
-                    textAlign: 'left',
-                    border: goal === g.id ? '1.5px solid var(--gold)' : '1px solid var(--border)',
-                    background: goal === g.id ? 'var(--gold-subtle)' : '#FFFFFF',
-                    color: 'var(--charcoal)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {g.label}
-                </button>
-              ))}
+              {COMMUNICATION_GOALS.map((g) => {
+                const isSelected = goal === g.id
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setGoal(g.id)}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: 13,
+                      fontWeight: isSelected ? 600 : 400,
+                      textAlign: 'left',
+                      border: isSelected ? '1.5px solid rgba(212, 175, 55, 0.6)' : '1px solid var(--border)',
+                      background: isSelected ? 'var(--gold-subtle)' : '#FFFFFF',
+                      color: 'var(--charcoal)',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    {g.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* 4. Preferred Tone & Method Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          {/* Step 4 & 5: Tone & Method */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)', marginBottom: 6 }}>
-                4. Preferred Tone
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--charcoal)',
+                  marginBottom: 6,
+                }}
+              >
+                4. What tone feels right?
               </label>
               <select
                 value={preferredTone}
@@ -372,8 +433,18 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)', marginBottom: 6 }}>
-                5. Method
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--charcoal)',
+                  marginBottom: 6,
+                }}
+              >
+                5. Conversation format
               </label>
               <select
                 value={communicationMethod}
@@ -390,43 +461,57 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
             </div>
           </div>
 
-          {/* 5. Additional Context with Privacy Guidance */}
+          {/* Step 6: Optional Context */}
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)', marginBottom: 6 }}>
-              6. Additional context (optional)
+            <label
+              style={{
+                display: 'block',
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'var(--charcoal)',
+                marginBottom: 6,
+              }}
+            >
+              Any helpful background? (Optional)
             </label>
             <input
               type="text"
               value={additionalContext}
               onChange={(e) => setAdditionalContext(e.target.value)}
-              placeholder="e.g. We have had a busy work week, or we usually avoid this topic"
+              placeholder="e.g. We have had a busy week, or we usually avoid this topic"
               className="input-field"
               style={{ fontSize: 13, background: '#FFFFFF', marginBottom: 6 }}
             />
-            <div style={{
-              fontSize: 11.5,
-              color: 'var(--gray)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}>
-              <Shield size={13} color="var(--gold)" />
-              <span>Privacy notice: Avoid including identifying names, addresses, or sensitive health data.</span>
+            <div
+              style={{
+                fontSize: 12,
+                color: 'var(--gray)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Shield size={13} color="var(--gold-muted)" />
+              <span>For your privacy, please avoid including sensitive personal names or addresses.</span>
             </div>
           </div>
 
           {errorMessage && (
-            <div style={{
-              background: '#fde8e8',
-              border: '1px solid #f8b4b4',
-              color: '#9b1c1c',
-              padding: '10px 14px',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: 13,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}>
+            <div
+              style={{
+                background: '#FDF2F2',
+                border: '1px solid #F8B4B4',
+                color: '#9B1C1C',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               <AlertCircle size={16} />
               <span>{errorMessage}</span>
             </div>
@@ -441,67 +526,92 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
             {isGenerating ? (
               <>
                 <RefreshCw size={16} className="animate-spin" />
-                Analyzing Situation & Drafting Scripts...
+                Preparing your conversation suggestions...
               </>
             ) : (
               <>
                 <Sparkles size={16} />
-                Generate Rehearsal Plan
+                Prepare My Conversation
               </>
             )}
           </button>
         </form>
 
         {/* Right Column: AI Output, Customization & Saving */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {!aiResult ? (
             /* Empty State */
-            <div className="card-glass" style={{
-              padding: 48,
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 460,
-              gap: 16,
-            }}>
-              <div style={{
-                width: 56,
-                height: 56,
-                borderRadius: 20,
-                background: 'var(--cream)',
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-card)',
+                padding: 48,
+                textAlign: 'center',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--burgundy)',
-              }}>
-                <Volume2 size={28} />
+                minHeight: 460,
+                gap: 16,
+              }}
+            >
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: '50%',
+                  background: 'var(--cream)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--burgundy)',
+                }}
+              >
+                <Volume2 size={24} />
               </div>
-              <h3 style={{ fontSize: 20 }}>Rehearsal Studio Ready</h3>
-              <p style={{ fontSize: 14, color: 'var(--gray)', maxWidth: 420 }}>
-                Select your situation and goal on the left and click <strong>"Generate Rehearsal Plan"</strong>. You will receive 3 tailored openings, response follow-ups, and a private plan you can edit and save.
+              <h3 style={{ fontSize: 20, fontWeight: 600 }}>Your conversation suggestions will appear here</h3>
+              <p style={{ fontSize: 14, color: 'var(--gray)', maxWidth: 400, lineHeight: 1.5 }}>
+                Share what is happening on the left and click <strong>"Prepare My Conversation"</strong>. You will receive 3 thoughtful openings, follow-ups for common reactions, and a practical next step.
               </p>
             </div>
           ) : (
             <>
-              {/* Section A: Neutral Stated Situation Summary */}
-              <div className="card-glass" style={{ padding: 22, borderLeft: '4px solid var(--burgundy)' }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--burgundy)', marginBottom: 4 }}>
-                  Section A: Objective Situation Summary
+              {/* Situation overview */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid var(--border)',
+                  borderLeft: '4px solid var(--burgundy)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 20,
+                }}
+              >
+                <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--burgundy)', marginBottom: 4 }}>
+                  Situation overview
                 </div>
                 <p style={{ fontSize: 13.5, color: 'var(--charcoal-muted)', lineHeight: 1.6 }}>
                   {aiResult.neutralSummary}
                 </p>
               </div>
 
-              {/* Section B: Three Alternative Conversation Openings */}
-              <div className="card-glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Three Alternative Conversation Openings */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-card)',
+                  padding: 26,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
+                }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--gold)' }}>
-                    Section B: Alternative Conversation Openings
+                  <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--charcoal)' }}>
+                    Conversation Openings
                   </span>
-                  <span className="badge badge-gold">Select Your Preferred Opening</span>
+                  <span className="badge badge-neutral">Select your preferred opening</span>
                 </div>
 
                 {/* Option 1: Gentle */}
@@ -510,15 +620,15 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                   style={{
                     background: selectedOpeningKey === 'gentle' ? 'var(--blush-soft)' : '#FFFFFF',
                     border: selectedOpeningKey === 'gentle' ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     padding: 16,
                     cursor: 'pointer',
                     transition: 'all var(--transition-fast)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase' }}>
-                      Option 1: Gentle & Softened
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--burgundy)' }}>
+                      Gentle opening
                     </span>
                     <button
                       type="button"
@@ -527,14 +637,14 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                         handleCopy(aiResult.openings.gentle, 'gentle')
                       }}
                       className="btn btn-ghost"
-                      style={{ padding: '3px 8px', fontSize: 11.5 }}
+                      style={{ padding: '3px 8px', fontSize: 11.5, minHeight: 'auto' }}
                     >
-                      {copiedKey === 'gentle' ? <Check size={13} color="#2ecc71" /> : <Copy size={13} />}
+                      {copiedKey === 'gentle' ? <Check size={13} color="#27ae60" /> : <Copy size={13} />}
                       {copiedKey === 'gentle' ? 'Copied' : 'Copy'}
                     </button>
                   </div>
-                  <p style={{ fontSize: 13.5, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    {aiResult.openings.gentle}
+                  <p style={{ fontSize: 14, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.6 }}>
+                    "{aiResult.openings.gentle}"
                   </p>
                 </div>
 
@@ -544,15 +654,15 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                   style={{
                     background: selectedOpeningKey === 'direct' ? 'var(--blush-soft)' : '#FFFFFF',
                     border: selectedOpeningKey === 'direct' ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     padding: 16,
                     cursor: 'pointer',
                     transition: 'all var(--transition-fast)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--charcoal)', textTransform: 'uppercase' }}>
-                      Option 2: Direct & Collaborative
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--charcoal)' }}>
+                      Direct opening
                     </span>
                     <button
                       type="button"
@@ -561,14 +671,14 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                         handleCopy(aiResult.openings.direct, 'direct')
                       }}
                       className="btn btn-ghost"
-                      style={{ padding: '3px 8px', fontSize: 11.5 }}
+                      style={{ padding: '3px 8px', fontSize: 11.5, minHeight: 'auto' }}
                     >
-                      {copiedKey === 'direct' ? <Check size={13} color="#2ecc71" /> : <Copy size={13} />}
+                      {copiedKey === 'direct' ? <Check size={13} color="#27ae60" /> : <Copy size={13} />}
                       {copiedKey === 'direct' ? 'Copied' : 'Copy'}
                     </button>
                   </div>
-                  <p style={{ fontSize: 13.5, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    {aiResult.openings.direct}
+                  <p style={{ fontSize: 14, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.6 }}>
+                    "{aiResult.openings.direct}"
                   </p>
                 </div>
 
@@ -578,15 +688,15 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                   style={{
                     background: selectedOpeningKey === 'firm' ? 'var(--blush-soft)' : '#FFFFFF',
                     border: selectedOpeningKey === 'firm' ? '1.5px solid var(--burgundy)' : '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     padding: 16,
                     cursor: 'pointer',
                     transition: 'all var(--transition-fast)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gold-muted)', textTransform: 'uppercase' }}>
-                      Option 3: Firm but Respectful
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-muted)' }}>
+                      Firm & respectful opening
                     </span>
                     <button
                       type="button"
@@ -595,91 +705,116 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                         handleCopy(aiResult.openings.firm, 'firm')
                       }}
                       className="btn btn-ghost"
-                      style={{ padding: '3px 8px', fontSize: 11.5 }}
+                      style={{ padding: '3px 8px', fontSize: 11.5, minHeight: 'auto' }}
                     >
-                      {copiedKey === 'firm' ? <Check size={13} color="#2ecc71" /> : <Copy size={13} />}
+                      {copiedKey === 'firm' ? <Check size={13} color="#27ae60" /> : <Copy size={13} />}
                       {copiedKey === 'firm' ? 'Copied' : 'Copy'}
                     </button>
                   </div>
-                  <p style={{ fontSize: 13.5, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.6 }}>
-                    {aiResult.openings.firm}
+                  <p style={{ fontSize: 14, color: 'var(--charcoal)', fontStyle: 'italic', lineHeight: 1.6 }}>
+                    "{aiResult.openings.firm}"
                   </p>
                 </div>
 
-                {/* Section C: Comparison Explanation */}
-                <div style={{
-                  background: 'var(--cream)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '12px 14px',
-                  fontSize: 12.5,
-                  color: 'var(--charcoal-muted)',
-                }}>
-                  <strong>Difference between options:</strong> {aiResult.comparisonExplanation}
+                {/* Comparison Explanation */}
+                <div
+                  style={{
+                    background: 'var(--surface-tint)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '12px 16px',
+                    fontSize: 13,
+                    color: 'var(--charcoal-muted)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <strong>Why these differ:</strong> {aiResult.comparisonExplanation}
                 </div>
               </div>
 
-              {/* Section D: Follow-up Language for 4 Partner Reactions */}
-              <div className="card-glass" style={{ padding: 26, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Follow-up Language for 4 Partner Reactions */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-card)',
+                  padding: 26,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14,
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <MessageSquare size={17} color="var(--burgundy)" />
-                  <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--charcoal)' }}>
-                    Section D: Follow-Up Language for Partner Reactions
+                  <MessageSquare size={16} color="var(--burgundy)" />
+                  <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--charcoal)' }}>
+                    Helpful follow-ups for common reactions
                   </span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-                  <div style={{ background: '#FFF', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#27ae60', textTransform: 'uppercase', marginBottom: 4 }}>
-                      Receptive Response
+                  <div style={{ background: 'var(--surface-tint)', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#27ae60', textTransform: 'uppercase', marginBottom: 4 }}>
+                      If your partner is receptive
                     </div>
-                    <p style={{ fontSize: 13, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.receptive}"</p>
+                    <p style={{ fontSize: 13.5, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.receptive}"</p>
                   </div>
 
-                  <div style={{ background: '#FFF', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
-                      Disagreement
+                  <div style={{ background: 'var(--surface-tint)', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', marginBottom: 4 }}>
+                      If your partner feels defensive
                     </div>
-                    <p style={{ fontSize: 13, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.disagreement}"</p>
+                    <p style={{ fontSize: 13.5, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.defensiveness}"</p>
                   </div>
 
-                  <div style={{ background: '#FFF', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', marginBottom: 4 }}>
-                      Defensiveness
+                  <div style={{ background: 'var(--surface-tint)', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', marginBottom: 4 }}>
+                      If your partner asks for time or space
                     </div>
-                    <p style={{ fontSize: 13, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.defensiveness}"</p>
-                  </div>
-
-                  <div style={{ background: '#FFF', padding: 12, borderRadius: 8, border: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--charcoal-muted)', textTransform: 'uppercase', marginBottom: 4 }}>
-                      Request for Time / Space
-                    </div>
-                    <p style={{ fontSize: 13, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.requestForTime}"</p>
+                    <p style={{ fontSize: 13.5, color: 'var(--charcoal)', fontStyle: 'italic' }}>"{aiResult.followups.requestForTime}"</p>
                   </div>
                 </div>
               </div>
 
-              {/* Section E: One Practical Next Step */}
-              <div className="card-glass" style={{ padding: 20, background: 'var(--cream)', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--charcoal)', marginBottom: 4 }}>
-                  Section E: Recommended Practical Next Step
+              {/* Practical Next Step */}
+              <div
+                style={{
+                  background: 'var(--surface-tint)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 20,
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--charcoal)', marginBottom: 4 }}>
+                  A practical next step
                 </div>
-                <p style={{ fontSize: 13.5, color: 'var(--charcoal)' }}>{aiResult.nextStep}</p>
+                <p style={{ fontSize: 14, color: 'var(--charcoal)', lineHeight: 1.5 }}>
+                  {aiResult.nextStep}
+                </p>
               </div>
 
               {/* In-Place Editing & Personalization */}
-              <div className="card-glass" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-card)',
+                  padding: 24,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Edit3 size={16} color="var(--burgundy)" />
-                    <span style={{ fontSize: 13, fontWeight: 700 }}>Personalize Selected Opening Before Saving</span>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>Personalize your chosen words</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsEditing(!isEditing)}
                     className="btn btn-ghost"
-                    style={{ fontSize: 12, padding: '4px 8px' }}
+                    style={{ fontSize: 12, padding: '4px 8px', minHeight: 'auto' }}
                   >
-                    {isEditing ? 'Done Editing' : 'Customize Script'}
+                    {isEditing ? 'Done editing' : 'Edit opening'}
                   </button>
                 </div>
 
@@ -689,60 +824,64 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                     value={editedScript}
                     onChange={(e) => setEditedScript(e.target.value)}
                     className="input-field"
-                    style={{ fontSize: 13.5, background: '#FFF' }}
+                    style={{ fontSize: 14, background: '#FFF' }}
                   />
                 ) : (
-                  <div style={{
-                    background: '#FFFFFF',
-                    borderLeft: '3px solid var(--burgundy)',
-                    padding: 12,
-                    borderRadius: 6,
-                    fontSize: 13.5,
-                    fontStyle: 'italic',
-                    color: 'var(--charcoal)',
-                  }}>
+                  <div
+                    style={{
+                      background: 'var(--surface-tint)',
+                      borderLeft: '3px solid var(--burgundy)',
+                      padding: 12,
+                      borderRadius: 6,
+                      fontSize: 13.5,
+                      fontStyle: 'italic',
+                      color: 'var(--charcoal)',
+                    }}
+                  >
                     "{editedScript}"
                   </div>
                 )}
 
                 <div>
-                  <label style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--gray)', marginBottom: 4 }}>
-                    Add private notes or reminders for yourself:
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--gray)', marginBottom: 4 }}>
+                    Add private notes for yourself (optional):
                   </label>
                   <input
                     type="text"
                     value={customNotes}
                     onChange={(e) => setCustomNotes(e.target.value)}
-                    placeholder="e.g. Remember to sit next to them, not across the table"
+                    placeholder="e.g. Remember to take a gentle breath before starting"
                     className="input-field"
-                    style={{ fontSize: 12.5, background: '#FFF' }}
+                    style={{ fontSize: 13, background: '#FFF' }}
                   />
                 </div>
               </div>
 
-              {/* Ethical Disclaimer */}
-              <div style={{ fontSize: 11, color: 'var(--gray)', lineHeight: 1.5, padding: '0 4px' }}>
-                <strong>Disclaimer:</strong> {aiResult.disclaimer}
+              {/* Disclaimer */}
+              <div style={{ fontSize: 11.5, color: 'var(--gray)', lineHeight: 1.5, padding: '0 4px' }}>
+                <strong>Reminder:</strong> Every relationship is unique. Use these ideas as an adaptable starting point, and take breaks if either of you feels overwhelmed.
               </div>
 
               {/* Save Plan Actions */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 12,
-                paddingTop: 8,
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                  paddingTop: 8,
+                }}
+              >
                 <button
                   type="button"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate()}
                   disabled={isGenerating}
                   className="btn btn-secondary"
-                  style={{ fontSize: 13, padding: '10px 18px' }}
+                  style={{ fontSize: 13 }}
                 >
                   <RotateCcw size={14} />
-                  Regenerate Options
+                  Regenerate Openings
                 </button>
 
                 <div style={{ display: 'flex', gap: 10 }}>
@@ -751,9 +890,9 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                       type="button"
                       onClick={() => navigate(`/app/history/${savedPlanId}`)}
                       className="btn btn-secondary"
-                      style={{ fontSize: 13, padding: '10px 18px' }}
+                      style={{ fontSize: 13 }}
                     >
-                      View in My Plans
+                      View in My Conversations
                       <ArrowRight size={14} />
                     </button>
                   ) : null}
@@ -763,22 +902,22 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
                     onClick={handleSavePlan}
                     disabled={isSaving || saveSuccess}
                     className="btn btn-primary"
-                    style={{ fontSize: 13.5, padding: '10px 22px' }}
+                    style={{ fontSize: 13.5 }}
                   >
                     {isSaving ? (
                       <>
                         <RefreshCw size={15} className="animate-spin" />
-                        Saving to Vault...
+                        Saving to My Conversations...
                       </>
                     ) : saveSuccess ? (
                       <>
                         <BookmarkCheck size={16} />
-                        Plan Saved Successfully
+                        Saved to My Conversations
                       </>
                     ) : (
                       <>
                         <Bookmark size={15} />
-                        Save Conversation Plan
+                        Save Conversation
                       </>
                     )}
                   </button>

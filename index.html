@@ -365,41 +365,44 @@
       <div class="container">
         <div class="nav__inner">
 
-          <!-- LOGO -->
+          <!-- LOGO (links to homepage) -->
           <a href="index.html" class="nav__logo" aria-label="How We Speak — Home">
             <img src="https://i.ibb.co/hR2KXFd4/Gemini-Generated-Image-bbp6v6bbp6v6bbp6-1-removebg-preview.png"
               alt="How We Speak" class="nav__logo-img" width="156" height="62" fetchpriority="high" decoding="async" />
           </a>
 
-          <!-- CENTER LINKS -->
+          <!-- CENTER LINKS (Desktop single line; Mobile drawer full list) -->
           <ul class="nav__links" id="navLinks" role="list">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#guides">Our Guides</a></li>
-            <li>
-              <a href="quiz.html" class="nav-quiz">
-                Take the Quiz
-                <span class="nav-quiz-badge">New</span>
-              </a>
-            </li>
+            <li><a href="#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
+            <li><a href="#guides">Guides</a></li>
             <li><a href="articles.html">Articles</a></li>
-            <li><a href="#bundle">Bundle</a></li>
-            <li><a href="#story">Our Story</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact</a></li>
+            <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
+            <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+            <li class="mobile-nav-item"><a href="#bundle">Bundle</a></li>
+            <li class="mobile-nav-item"><a href="#story">Our Story</a></li>
+            <li class="mobile-nav-item"><a href="#faq">FAQ</a></li>
+            <li class="mobile-login">
+              <a href="/app?auth=login" class="mobile-login-link">Log in</a>
+            </li>
+            <li class="mobile-cta">
+              <a href="/app/rehearse" class="btn btn-primary" id="mobilePrimaryCta">Try It Free</a>
+            </li>
           </ul>
 
-          <!-- CTA -->
-          <div class="nav__cta">
-            <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
-              class="btn btn-primary">Break the Silence</a>
-          </div>
+          <!-- RIGHT ACTIONS: CTA GROUP & MOBILE TOGGLE -->
+          <div class="nav__right">
+            <div class="nav__cta">
+              <a href="/app?auth=login" class="nav__login-btn" id="navLoginBtn">Log in</a>
+              <a href="/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
+            </div>
 
-          <!-- MOBILE TOGGLE -->
-          <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+            <!-- MOBILE TOGGLE -->
+            <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+          </div>
 
         </div>
       </div>
@@ -422,41 +425,42 @@
 
           <div class="hero__eyebrow reveal">
             <div class="hero__eyebrow-dot"></div>
-            <span class="eyebrow">PSYCHOLOGY-BACKED SCRIPT PROTOCOLS</span>
+            <span class="eyebrow">BETTER CONVERSATIONS START HERE</span>
           </div>
 
           <h1 class="hero__headline reveal reveal-delay-1">
-            The Exact Words to Say When Arguments Start Spiraling.
+            The hardest words are often the ones that matter most.
           </h1>
 
           <p class="hero__sub reveal reveal-delay-2">
-            Stop guessing why your partner shuts down or gets defensive. Start by taking our <a
-              href="quiz.html">Communication Style Assessment</a>, then get 75+ verbatim scripts to defuse tension, be
-            heard, and end exhausting circular fights.
+            Prepare for difficult conversations with AI-guided practice, thoughtful message suggestions, and practical communication tools designed to help you express yourself clearly.
           </p>
 
           <div class="hero__ctas reveal reveal-delay-3">
-            <a href="#bundle" class="btn btn-primary btn-lg">
-              Get The Complete System — $27
+            <a href="/app/rehearse" class="btn btn-primary btn-lg" id="heroPrimaryCta">
+              Try the AI Tool Free
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round" />
               </svg>
+            </a>
+            <a href="#guides" class="btn btn-secondary btn-lg" id="heroSecondaryCta">
+              Explore Our Guides
             </a>
           </div>
 
           <div class="hero__trust reveal reveal-delay-4">
             <div class="hero__trust-item">
               <span class="hero__trust-check" aria-hidden="true">✓</span>
-              Instant Digital Download
+              Free Trial: 3 Full Rehearsals Included
             </div>
             <div class="hero__trust-item">
               <span class="hero__trust-check" aria-hidden="true">✓</span>
-              Used by 3,800+ Couples
+              Gottman-Informed Softened Scripts
             </div>
             <div class="hero__trust-item">
               <span class="hero__trust-check" aria-hidden="true">✓</span>
-              30-Day Money-Back Guarantee
+              100% Private &amp; Protected Vault
             </div>
           </div>
 
@@ -464,6 +468,20 @@
 
         <!-- RIGHT: HERO IMAGE -->
         <div class="hero__image reveal reveal-delay-2">
+
+          <!-- RESTAINED REAL REHEARSAL UI PREVIEW CARD -->
+          <div class="hero__rehearsal-card" aria-label="Conversation rehearsal preview">
+            <div class="hero__rehearsal-badge">
+              <span>✨</span> Conversation Rehearsal
+            </div>
+            <div class="hero__rehearsal-quote">
+              "I’ve been feeling a little distance between us the last couple days. Can we take 15 minutes tonight to talk, just us?"
+            </div>
+            <div class="hero__rehearsal-meta">
+              <span class="hero__rehearsal-tone">✓ Gentle Opening</span>
+              <span>Amygdala-Safe</span>
+            </div>
+          </div>
 
           <div class="hero__image-main">
             <!-- [HERO IMAGE HERE] — Replace with Image 4 (corrected, warm-graded) -->
@@ -561,6 +579,230 @@
         changer." — Charlotte R., France</div>
     </div>
   </div>
+
+
+  <!-- ============================================================
+       DEDICATED AI WEB APP SECTION
+       Introducing Conversation Rehearsal Studio
+  ============================================================ -->
+  <section class="ai-section section" id="ai-tool">
+    <div class="container">
+
+      <!-- HEADER -->
+      <div class="ai-section__header reveal">
+        <div class="ai-section__eyebrow">
+          <div class="hero__eyebrow-dot"></div>
+          <span class="eyebrow">INTRODUCING TRYHOWWESPEAK AI</span>
+        </div>
+        <h2 class="ai-section__headline">
+          Meet your <em>Conversation Rehearsal.</em>
+        </h2>
+        <p class="ai-section__desc">
+          Not sure how to start a difficult conversation? Organize your thoughts, explore different ways to express yourself, and prepare for what you want to say next.
+        </p>
+      </div>
+
+      <!-- REAL APPLICATION UI COMPONENT PREVIEW -->
+      <div class="ai-preview-box reveal reveal-delay-1" role="region" aria-label="Conversation rehearsal studio preview">
+        <div class="ai-preview-header">
+          <div class="ai-preview-title-group">
+            <div class="ai-preview-app-icon" aria-hidden="true">💬</div>
+            <div>
+              <div class="ai-preview-app-name">Conversation Rehearsal Studio</div>
+              <div style="font-size:12px;color:var(--gray);">Gottman-Informed Softened Startup Engine</div>
+            </div>
+          </div>
+          <div class="ai-preview-status-badge">
+            <span class="ai-preview-status-dot" aria-hidden="true"></span>
+            Private Vault • Active Studio
+          </div>
+        </div>
+
+        <div class="ai-preview-scenario">
+          <div class="ai-preview-scenario-label">Your Situation</div>
+          <p class="ai-preview-scenario-text">
+            "My partner has been quiet for two days and only gives one-word answers. It makes me anxious and I want to know if they're pulling away."
+          </p>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <span class="ai-meta-pill">🏷️ Category: Partner distant</span>
+            <span class="ai-meta-pill">🎯 Goal: Understand what is happening</span>
+            <span class="ai-meta-pill">🗣️ Method: Face-to-Face</span>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray);margin-bottom:8px;">
+            Choose Your Delivery Tone:
+          </div>
+          <div class="ai-tone-tabs" role="tablist" aria-label="Select tone">
+            <button type="button" class="ai-tone-tab active" data-tone="gentle" role="tab" aria-selected="true">
+              Gentle &amp; Reassuring
+            </button>
+            <button type="button" class="ai-tone-tab" data-tone="direct" role="tab" aria-selected="false">
+              Calm, Clear &amp; Direct
+            </button>
+            <button type="button" class="ai-tone-tab" data-tone="firm" role="tab" aria-selected="false">
+              Firm but Respectful
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-script-output">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+            <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--crimson);">
+              Tailored Opening Script
+            </span>
+            <span class="ai-meta-pill" id="aiPreviewToneBadge" style="color:#15803d;font-weight:600;">
+              ✓ Gentle &amp; Reassuring
+            </span>
+          </div>
+          <p class="ai-script-text" id="aiPreviewScriptText">
+            "I’ve felt a little distance between us the last couple of days. I love you and wanted to check in — is everything okay with you, or is there something on your mind?"
+          </p>
+          <div class="ai-script-meta-pills">
+            <span class="ai-meta-pill">🛡️ Non-accusatory startup</span>
+            <span class="ai-meta-pill">✨ Invites collaboration</span>
+            <span class="ai-meta-pill">⏱️ 15-second opening</span>
+          </div>
+        </div>
+
+        <div class="ai-preview-insights">
+          <div class="ai-insight-card">
+            <strong>Amygdala &amp; Nervous System Insight</strong>
+            <span id="aiPreviewInsightText">
+              Neutral observation without accusation prevents your partner’s nervous system from entering defensive withdrawal.
+            </span>
+          </div>
+          <div class="ai-insight-card">
+            <strong>Somatic Voice &amp; Tone Coaching</strong>
+            <span id="aiPreviewSomaticText">
+              Low vocal pitch, slow rhythm. Exhale fully before speaking the opening line.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 BENEFITS CARDS -->
+      <div class="ai-benefits-grid">
+
+        <!-- BENEFIT A -->
+        <div class="ai-benefit-card reveal reveal-delay-1">
+          <div class="ai-benefit-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <h3 class="ai-benefit-title">Find the words</h3>
+          <p class="ai-benefit-desc">
+            Turn a difficult situation into a clear, respectful message.
+          </p>
+        </div>
+
+        <!-- BENEFIT B -->
+        <div class="ai-benefit-card reveal reveal-delay-2">
+          <div class="ai-benefit-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <h3 class="ai-benefit-title">Practice your response</h3>
+          <p class="ai-benefit-desc">
+            Explore ways to continue a conversation when the other person disagrees or becomes defensive.
+          </p>
+        </div>
+
+        <!-- BENEFIT C -->
+        <div class="ai-benefit-card reveal reveal-delay-3">
+          <div class="ai-benefit-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m4.93 4.93 4.24 4.24"></path>
+              <path d="m14.83 9.17 4.24-4.24"></path>
+              <path d="m14.83 14.83 4.24 4.24"></path>
+              <path d="m9.17 14.83-4.24 4.24"></path>
+              <circle cx="12" cy="12" r="4"></circle>
+            </svg>
+          </div>
+          <h3 class="ai-benefit-title">Choose your tone</h3>
+          <p class="ai-benefit-desc">
+            Find an approach that feels gentle, calm and direct, or firm but respectful.
+          </p>
+        </div>
+
+        <!-- BENEFIT D -->
+        <div class="ai-benefit-card reveal reveal-delay-4">
+          <div class="ai-benefit-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+          </div>
+          <h3 class="ai-benefit-title">Save your plan</h3>
+          <p class="ai-benefit-desc">
+            Keep your preparation available for the next time you need it.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- PROMINENT SECTION CTA -->
+      <div class="ai-section-cta-wrap reveal">
+        <a href="/app/rehearse" class="btn btn-primary btn-lg">
+          Start Your Free Rehearsal
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       THREE-STEP EXPLANATION
+       Compact, clear process overview
+  ============================================================ -->
+  <section class="ai-process-section section">
+    <div class="container">
+
+      <div class="text-center reveal" style="max-width:640px;margin:0 auto 48px;">
+        <p class="eyebrow" style="margin-bottom:12px;">HOW IT WORKS</p>
+        <h2 class="display-md">Prepare in three quiet steps.</h2>
+      </div>
+
+      <div class="ai-steps-grid">
+
+        <div class="ai-step-card reveal reveal-delay-1">
+          <div class="ai-step-number">01</div>
+          <h3 class="ai-step-title">Describe</h3>
+          <p class="ai-step-desc">
+            Tell us what conversation you need to prepare for.
+          </p>
+        </div>
+
+        <div class="ai-step-card reveal reveal-delay-2">
+          <div class="ai-step-number">02</div>
+          <h3 class="ai-step-title">Rehearse</h3>
+          <p class="ai-step-desc">
+            Explore alternative ways to communicate your thoughts and needs.
+          </p>
+        </div>
+
+        <div class="ai-step-card reveal reveal-delay-3">
+          <div class="ai-step-number">03</div>
+          <h3 class="ai-step-title">Prepare</h3>
+          <p class="ai-step-desc">
+            Choose the wording that feels right and save your plan if the feature is available.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
 
 
   <!-- ============================================================
@@ -913,6 +1155,17 @@
           </div>
         </div>
 
+        <!-- APP INTEGRATION BRIDGE -->
+        <div class="app-complement-banner reveal">
+          <div class="app-complement-content">
+            <span class="app-complement-icon" aria-hidden="true">✨</span>
+            <div class="app-complement-text">
+              <strong>Theory Meets Practice:</strong> Use our communication guides to learn the framework, then practice applying it with Conversation Rehearsal.
+            </div>
+          </div>
+          <a href="/app/rehearse" class="btn btn-secondary">Try Rehearsal Free →</a>
+        </div>
+
       </div>
     </div>
   </section>
@@ -1139,6 +1392,7 @@
             <li>Sex Talk Framework — intimacy communication</li>
             <li>Instant digital delivery — all formats</li>
             <li>Lifetime access + future updates</li>
+            <li><strong>Full AI Web App Access:</strong> Unlimited Conversation Rehearsals</li>
           </ul>
 
           <div class="bundle__pricing">
@@ -1588,35 +1842,41 @@
     <div class="container">
 
       <h2 class="final-cta__headline reveal">
-        Your best conversation<br><em>starts today.</em>
+        You don't need the perfect words.<br><em>You need a place to start.</em>
       </h2>
       <p class="final-cta__sub reveal reveal-delay-1">
-        You don't need a perfect relationship. You need a way to understand each other better.
-        That's exactly what How We Speak gives you.
+        Prepare for a difficult conversation at your own pace, with practical guidance that helps you communicate more clearly.
       </p>
 
       <div class="final-cta__ctas reveal reveal-delay-2">
-        <a href="https://themindly.gumroad.com/l/howwespeak-bundle" target="_blank" rel="noopener noreferrer"
-          class="btn btn-primary btn-lg">Get Instant Access Now — $97</a>
-        <a href="#guides" class="btn btn-secondary btn-lg">Explore Individual Guides</a>
+        <a href="/app/rehearse" class="btn btn-primary btn-lg" id="finalPrimaryCta">
+          Try It Free
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </a>
+        <a href="#guides" class="final-cta__secondary-link" id="finalSecondaryLink">
+          Explore Our Communication Guides
+        </a>
       </div>
 
       <div class="final-cta__trust reveal reveal-delay-3">
         <div class="final-cta__trust-item">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
-          Instant download
+          3 Free AI Rehearsals Included
         </div>
         <div class="final-cta__trust-item">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
-          All devices
+          Gottman-Informed Protocols
         </div>
         <div class="final-cta__trust-item">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
-          Lifetime access
+          Encrypted Sanctuary &amp; RLS Protection
         </div>
         <div class="final-cta__trust-item">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
-          30-day guarantee
+          Works on all devices
         </div>
       </div>
 
@@ -1800,6 +2060,107 @@
         }
       });
     });
+
+    // ── DYNAMIC AUTH CTA & SESSION SYNC ──
+    (function initSessionNav() {
+      function checkAuth() {
+        let isAuth = false;
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('sb-') && key.endsWith('-auth-token'))) {
+              const data = JSON.parse(localStorage.getItem(key));
+              if (data && (data.user || data.currentSession)) { isAuth = true; break; }
+            }
+          }
+          if (!isAuth && localStorage.getItem('hws_sandbox_auth')) {
+            const s = JSON.parse(localStorage.getItem('hws_sandbox_auth'));
+            if (s && s.user) isAuth = true;
+          }
+        } catch (e) {}
+
+        if (isAuth) {
+          const loginBtn = document.getElementById('navLoginBtn');
+          const primaryCta = document.getElementById('navPrimaryCta');
+          const heroPrimary = document.getElementById('heroPrimaryCta');
+          const finalPrimary = document.getElementById('finalPrimaryCta');
+          const mobilePrimary = document.getElementById('mobilePrimaryCta');
+
+          if (loginBtn) {
+            loginBtn.textContent = 'Dashboard';
+            loginBtn.setAttribute('href', '/app');
+          }
+          if (primaryCta) {
+            primaryCta.textContent = 'Go to App';
+            primaryCta.setAttribute('href', '/app/rehearse');
+          }
+          if (heroPrimary) {
+            heroPrimary.childNodes[0].nodeValue = 'Go to Conversation Studio ';
+            heroPrimary.setAttribute('href', '/app/rehearse');
+          }
+          if (finalPrimary) {
+            finalPrimary.childNodes[0].nodeValue = 'Open Conversation Studio ';
+            finalPrimary.setAttribute('href', '/app/rehearse');
+          }
+          if (mobilePrimary) {
+            mobilePrimary.textContent = 'Go to App';
+            mobilePrimary.setAttribute('href', '/app/rehearse');
+          }
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkAuth);
+      } else {
+        checkAuth();
+      }
+    })();
+
+    // ── INTERACTIVE AI REHEARSAL PREVIEW TABS ──
+    (function initAiPreviewTabs() {
+      const scriptsByTone = {
+        gentle: {
+          text: '"I’ve felt a little distance between us the last couple of days. I love you and wanted to check in — is everything okay with you, or is there something on your mind?"',
+          badge: 'Gentle & Reassuring',
+          insight: 'Neutral observation without accusation prevents your partner’s nervous system from entering defensive withdrawal.',
+          somatic: 'Low vocal pitch, slow rhythm. Exhale fully before speaking the opening line.'
+        },
+        direct: {
+          text: '"I noticed you’ve been quiet since yesterday. When you’re ready tonight, I’d really appreciate 15 minutes together so we can connect."',
+          badge: 'Calm, Clear & Direct',
+          insight: 'Clear timeline and direct invitation allows an overwhelmed partner to prepare without feeling ambushed.',
+          somatic: 'Steady eye contact, open palms, grounded posture.'
+        },
+        firm: {
+          text: '"When you give one-word answers, it leaves me feeling disconnected and unsure of where we stand. I want us to talk through this when we can both be present."',
+          badge: 'Firm but Respectful',
+          insight: 'States personal relational boundary clearly while affirming mutual commitment to solve the issue together.',
+          somatic: 'Calm, measured cadence. Avoid rising inflection at sentence ends.'
+        }
+      };
+
+      document.querySelectorAll('.ai-tone-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.ai-tone-tab').forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          tab.classList.add('active');
+          tab.setAttribute('aria-selected', 'true');
+          const tone = tab.dataset.tone;
+          const data = scriptsByTone[tone];
+          if (data) {
+            const textEl = document.getElementById('aiPreviewScriptText');
+            const badgeEl = document.getElementById('aiPreviewToneBadge');
+            const insightEl = document.getElementById('aiPreviewInsightText');
+            const somaticEl = document.getElementById('aiPreviewSomaticText');
+            if (textEl) textEl.textContent = data.text;
+            if (badgeEl) badgeEl.textContent = '✓ ' + data.badge;
+            if (insightEl) insightEl.textContent = data.insight;
+            if (somaticEl) somaticEl.textContent = data.somatic;
+          }
+        });
+      });
+    })();
   </script>
 
 

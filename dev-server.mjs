@@ -7,6 +7,7 @@ import quizSubmitHandler from './api/quiz-submit.js';
 import rehearsalHandler from './api/ai/rehearsal.js';
 import followupHandler from './api/ai/followup.js';
 import jointSummaryHandler from './api/ai/joint-summary.js';
+import miraHandler from './api/ai/mira.js';
 import gumroadWebhookHandler from './api/webhooks/gumroad.js';
 import authMeHandler from './api/auth/me.js';
 
@@ -57,6 +58,7 @@ app.post('/api/quiz-submit', createVercelAdapter(quizSubmitHandler));
 app.post('/api/ai/rehearsal', createVercelAdapter(rehearsalHandler));
 app.post('/api/ai/followup', createVercelAdapter(followupHandler));
 app.post('/api/ai/joint-summary', createVercelAdapter(jointSummaryHandler));
+app.post('/api/ai/mira', createVercelAdapter(miraHandler));
 app.post('/api/webhooks/gumroad', createVercelAdapter(gumroadWebhookHandler));
 app.get('/api/auth/me', createVercelAdapter(authMeHandler));
 

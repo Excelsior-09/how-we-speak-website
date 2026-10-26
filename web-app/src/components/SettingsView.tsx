@@ -119,7 +119,7 @@ export const SettingsView: React.FC = () => {
 
         <div>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: 'var(--charcoal)', marginBottom: 6 }}>
-            Conflict Archetype (from Quiz)
+            Communication style (from Quiz)
           </label>
           <div style={{
             background: 'var(--blush-soft)',
@@ -132,9 +132,9 @@ export const SettingsView: React.FC = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-            <span><strong>{profile?.archetype || 'The Avoider'}</strong></span>
+            <span><strong>{profile?.archetype || 'Reflective'}</strong></span>
             <a href="/quiz.html" style={{ fontSize: 12, color: 'var(--burgundy)', textDecoration: 'none', fontWeight: 600 }}>
-              Retake Assessment ➔
+              Retake Quiz ➔
             </a>
           </div>
         </div>

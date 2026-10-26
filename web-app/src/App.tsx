@@ -4,7 +4,7 @@
 // Routes: /app, /app/rehearse, /app/history, /app/history/:id, /app/settings, /app/workspace, /app/scripts
 // ==============================================================================
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { RouterProvider } from './lib/router'
 import { useRouter } from './lib/useRouter'
 import { Navbar } from './components/Navbar'
@@ -15,6 +15,7 @@ import { PlanDetailView } from './components/PlanDetailView'
 import { SettingsView } from './components/SettingsView'
 import { WorkspaceView } from './components/WorkspaceView'
 import { ScriptsView } from './components/ScriptsView'
+import { MiraView } from './components/MiraView'
 import { AuthModal } from './components/AuthModal'
 import { useAuth } from './lib/useAuth'
 import { Lock, LogIn, ArrowRight } from 'lucide-react'
@@ -45,14 +46,14 @@ function AuthRequiredGate({ title, onSignIn }: { title: string; onSignIn: () => 
       </div>
 
       <div style={{ display: 'flex', gap: 6 }}>
-        <span className="badge badge-burgundy">Encrypted Sanctuary</span>
-        <span className="badge badge-gold">Row Level Security</span>
+        <span className="badge badge-neutral">Private to You</span>
+        <span className="badge badge-burgundy">Member Access</span>
       </div>
 
       <h2 style={{ fontSize: 24, margin: '4px 0' }}>{title}</h2>
 
       <p style={{ color: 'var(--gray)', fontSize: 14.5, lineHeight: 1.6, maxWidth: 440 }}>
-        Your conversation plans, partner exercises, and reflections are strictly private and protected by PostgreSQL Row Level Security. Sign in with your authenticated account to access this vault.
+        Your conversation plans and partner reflections are completely private to your account. Sign in to view and continue your saved conversations.
       </p>
 
       <button
@@ -72,10 +73,26 @@ function AppContent() {
   const { route, params, navigate, returnTo, setReturnTo } = useRouter()
   const { user, activeSpace } = useAuth()
   const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
 
   const isAuthenticated = !!user
   const userEmail = user?.email
   const partnerLinked = !!(activeSpace?.partner_2_id)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      const authParam = searchParams.get('auth') || searchParams.get('mode')
+      const hash = window.location.hash
+      if (!user && (authParam === 'signup' || hash === '#signup')) {
+        setAuthMode('signup')
+        setIsAuthOpen(true)
+      } else if (!user && (authParam === 'login' || authParam === 'signin' || hash === '#login')) {
+        setAuthMode('signin')
+        setIsAuthOpen(true)
+      }
+    }
+  }, [user])
 
   const handleAuthSuccess = () => {
     setIsAuthOpen(false)
@@ -111,6 +128,13 @@ function AppContent() {
           </div>
         )}
 
+        {/* /app/mira — Mira AI Relationship Companion */}
+        {route === 'mira' && (
+          <div className="animate-fade-in">
+            <MiraView />
+          </div>
+        )}
+
         {/* /app/rehearse — Conversation Rehearsal Studio */}
         {route === 'rehearse' && (
           <div className="animate-fade-in">
@@ -130,7 +154,7 @@ function AppContent() {
               <HistoryView />
             ) : (
               <AuthRequiredGate
-                title="Saved Conversation Plans"
+                title="My Conversations"
                 onSignIn={() => {
                   setReturnTo('/app/history')
                   setIsAuthOpen(true)
@@ -229,6 +253,7 @@ function AppContent() {
       {/* Supabase Authentication Modal */}
       <AuthModal
         isOpen={isAuthOpen}
+        initialMode={authMode}
         onClose={() => setIsAuthOpen(false)}
         onSuccess={handleAuthSuccess}
       />

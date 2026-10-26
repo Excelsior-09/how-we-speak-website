@@ -159,7 +159,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({ planId }) => {
           className="btn btn-secondary"
           style={{ marginTop: 16 }}
         >
-          <ArrowLeft size={14} /> Back to My Plans
+          <ArrowLeft size={14} /> Back to My Conversations
         </button>
       </div>
     )
@@ -175,7 +175,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({ planId }) => {
           style={{ padding: '6px 12px', fontSize: 13 }}
         >
           <ArrowLeft size={15} />
-          Back to Saved Plans
+          Back to My Conversations
         </button>
 
         <button
@@ -184,7 +184,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({ planId }) => {
           style={{ color: '#9b1c1c', fontSize: 13 }}
         >
           <Trash2 size={15} />
-          Delete Plan
+          Delete Conversation
         </button>
       </div>
 

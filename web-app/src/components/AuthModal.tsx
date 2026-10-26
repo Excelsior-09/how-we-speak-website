@@ -3,7 +3,7 @@
 // Palette: Burgundy #C41E3A | Cream #F5F3F0 | Gold #D4AF37 | Blush #E8CCC8
 // ==============================================================================
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { X, Mail, Lock, User as UserIcon, Sparkles, ShieldCheck, AlertCircle } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import type { Archetype } from '../types/database'
@@ -12,15 +12,23 @@ interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  initialMode?: 'signin' | 'signup'
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialMode = 'signin',
 }) => {
   const { isConfigured, signIn, signUp, signInWithMagicLink } = useAuth()
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(initialMode === 'signup')
+
+  useEffect(() => {
+    if (isOpen && initialMode) {
+      setIsSignUp(initialMode === 'signup')
+    }
+  }, [isOpen, initialMode])
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -154,12 +162,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <ShieldCheck size={28} />
           </div>
           <h2 style={{ fontSize: 26, marginBottom: 6 }}>
-            {isSignUp ? 'Create Couples Account' : 'Welcome Back'}
+            {isSignUp ? 'Create Your Account' : 'Welcome Back'}
           </h2>
           <p style={{ fontSize: 13.5, color: 'var(--gray)', lineHeight: 1.5 }}>
             {isSignUp
-              ? 'Begin private conflict rehearsals and pair with your partner.'
-              : 'Sign in to access your communication room and private plans.'}
+              ? 'Begin private conversation practice and invite your partner when you are ready.'
+              : 'Sign in to access your saved conversations and private plans.'}
           </p>
         </div>
 

@@ -47,6 +47,21 @@
       "source": "/bundle.html",
       "destination": "https://themindly.gumroad.com/l/howwespeak-bundle",
       "permanent": true
+    },
+    {
+      "source": "/contact",
+      "destination": "https://form.jotform.com/262898494732071",
+      "permanent": false
+    },
+    {
+      "source": "/contact/",
+      "destination": "https://form.jotform.com/262898494732071",
+      "permanent": false
+    },
+    {
+      "source": "/contact.html",
+      "destination": "https://form.jotform.com/262898494732071",
+      "permanent": false
     }
   ],
   "rewrites": [
