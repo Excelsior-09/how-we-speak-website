@@ -83,38 +83,79 @@ export const MiraView: React.FC = () => {
 
   // Load preferences, memory, and conversations from Supabase / localStorage
   useEffect(() => {
-    const savedPrefs = localStorage.getItem('hws_mira_preferences')
-    if (savedPrefs) {
-      try {
-        setPreferences(JSON.parse(savedPrefs))
-      } catch (e) {}
-    }
+    async function loadData() {
+      // 1. Preferences
+      if (user && isConfigured) {
+        try {
+          const { data: prefData } = await supabase
+            .from('mira_preferences')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle()
+          if (prefData) {
+            setPreferences(prefData as MiraPreferences)
+          }
+        } catch (e) {}
 
-    const savedMems = localStorage.getItem('hws_mira_memories')
-    if (savedMems) {
-      try {
-        setMemories(JSON.parse(savedMems))
-      } catch (e) {}
-    }
+        // 2. Memories
+        try {
+          const { data: memData } = await supabase
+            .from('mira_memories')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+          if (memData) {
+            setMemories(memData as MiraMemory[])
+          }
+        } catch (e) {}
 
-    const savedConvs = localStorage.getItem('hws_mira_conversations')
-    if (savedConvs) {
-      try {
-        const parsed = JSON.parse(savedConvs)
-        setConversations(parsed)
-        if (parsed.length > 0) {
-          setActiveConvId(parsed[0].id)
-        }
-      } catch (e) {}
-    } else {
-      const defaultConv: ConversationItem = {
-        id: 'default',
-        title: 'Conversation with Mira',
-        updated_at: new Date().toISOString()
+        // 3. Conversations
+        try {
+          const { data: convData } = await supabase
+            .from('mira_conversations')
+            .select('id, title, updated_at')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+          if (convData && convData.length > 0) {
+            setConversations(convData as ConversationItem[])
+            setActiveConvId(convData[0].id)
+            return
+          }
+        } catch (e) {}
       }
-      setConversations([defaultConv])
-      setActiveConvId('default')
+
+      // Local fallback if unauthenticated
+      const savedPrefs = localStorage.getItem('hws_mira_preferences')
+      if (savedPrefs) {
+        try { setPreferences(JSON.parse(savedPrefs)) } catch (e) {}
+      }
+
+      const savedMems = localStorage.getItem('hws_mira_memories')
+      if (savedMems) {
+        try { setMemories(JSON.parse(savedMems)) } catch (e) {}
+      }
+
+      const savedConvs = localStorage.getItem('hws_mira_conversations')
+      if (savedConvs) {
+        try {
+          const parsed = JSON.parse(savedConvs)
+          setConversations(parsed)
+          if (parsed.length > 0) {
+            setActiveConvId(parsed[0].id)
+          }
+        } catch (e) {}
+      } else {
+        const defaultConv: ConversationItem = {
+          id: 'default',
+          title: 'Conversation with Mira',
+          updated_at: new Date().toISOString()
+        }
+        setConversations([defaultConv])
+        setActiveConvId('default')
+      }
     }
+
+    loadData()
 
     // Check for pre-loaded prompt from state or navigation
     if (typeof window !== 'undefined') {
@@ -124,28 +165,71 @@ export const MiraView: React.FC = () => {
         sessionStorage.removeItem('hws_mira_prefill')
       }
     }
-  }, [user])
+  }, [user, isConfigured])
 
   // Load messages for active conversation
   useEffect(() => {
     if (!activeConvId) return
-    const key = `hws_mira_msgs_${activeConvId}`
-    const saved = localStorage.getItem(key)
-    if (saved) {
-      try {
-        setMessages(JSON.parse(saved))
-      } catch (e) {}
-    } else {
-      setMessages([])
+
+    async function loadConvMessages() {
+      if (user && isConfigured && activeConvId !== 'default' && !activeConvId.startsWith('conv-')) {
+        try {
+          const { data, error } = await supabase
+            .from('mira_messages')
+            .select('*')
+            .eq('conversation_id', activeConvId)
+            .order('created_at', { ascending: true })
+
+          if (!error && data) {
+            setMessages(data as MiraMessage[])
+            return
+          }
+        } catch (e) {}
+      }
+
+      const key = `hws_mira_msgs_${activeConvId}`
+      const saved = localStorage.getItem(key)
+      if (saved) {
+        try {
+          setMessages(JSON.parse(saved))
+        } catch (e) {}
+      } else {
+        setMessages([])
+      }
     }
-  }, [activeConvId])
+
+    loadConvMessages()
+  }, [activeConvId, user, isConfigured])
 
   const saveMessages = (convId: string, newMsgs: MiraMessage[]) => {
     setMessages(newMsgs)
     localStorage.setItem(`hws_mira_msgs_${convId}`, JSON.stringify(newMsgs))
   }
 
-  const handleStartNewConversation = () => {
+  const handleStartNewConversation = async () => {
+    if (user && isConfigured) {
+      try {
+        const { data: newConv } = await supabase
+          .from('mira_conversations')
+          .insert({
+            user_id: user.id,
+            title: 'New Conversation',
+            conversation_type: 'general',
+            status: 'active'
+          })
+          .select('id, title, updated_at')
+          .single()
+
+        if (newConv) {
+          const updated = [newConv as ConversationItem, ...conversations]
+          setConversations(updated)
+          setActiveConvId(newConv.id)
+          setMessages([])
+          return
+        }
+      } catch (e) {}
+    }
+
     const newId = `conv-${Date.now()}`
     const newConv: ConversationItem = {
       id: newId,
@@ -159,8 +243,14 @@ export const MiraView: React.FC = () => {
     setMessages([])
   }
 
-  const handleDeleteConversation = (id: string, e: React.MouseEvent) => {
+  const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (user && isConfigured && id !== 'default' && !id.startsWith('conv-')) {
+      try {
+        await supabase.from('mira_conversations').delete().eq('id', id).eq('user_id', user.id)
+      } catch (e) {}
+    }
+
     const updated = conversations.filter(c => c.id !== id)
     setConversations(updated)
     localStorage.setItem('hws_mira_conversations', JSON.stringify(updated))
@@ -174,9 +264,21 @@ export const MiraView: React.FC = () => {
     }
   }
 
-  const handleSaveTitle = (id: string) => {
+  const handleSaveTitle = async (id: string) => {
     if (!newTitleInput.trim()) return
-    const updated = conversations.map(c => c.id === id ? { ...c, title: newTitleInput.trim() } : c)
+    const trimmedTitle = newTitleInput.trim()
+
+    if (user && isConfigured && id !== 'default' && !id.startsWith('conv-')) {
+      try {
+        await supabase
+          .from('mira_conversations')
+          .update({ title: trimmedTitle, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('user_id', user.id)
+      } catch (e) {}
+    }
+
+    const updated = conversations.map(c => c.id === id ? { ...c, title: trimmedTitle } : c)
     setConversations(updated)
     localStorage.setItem('hws_mira_conversations', JSON.stringify(updated))
     setEditingTitleId(null)
@@ -272,29 +374,78 @@ export const MiraView: React.FC = () => {
     setTimeout(() => setCopiedIndex(null), 2000)
   }
 
-  const handleSavePreferences = (newPrefs: MiraPreferences) => {
+  const handleSavePreferences = async (newPrefs: MiraPreferences) => {
     setPreferences(newPrefs)
     localStorage.setItem('hws_mira_preferences', JSON.stringify(newPrefs))
     setIsPrefsOpen(false)
+
+    if (user && isConfigured) {
+      try {
+        await supabase.from('mira_preferences').upsert({
+          user_id: user.id,
+          communication_preference: newPrefs.communication_preference,
+          communication_tone: newPrefs.communication_preference,
+          advice_style: newPrefs.advice_style,
+          guidance_level: newPrefs.advice_style,
+          response_length: newPrefs.response_length,
+          personal_priorities: newPrefs.personal_priorities,
+          custom_priority: newPrefs.custom_priority,
+          persistent_memory_enabled: newPrefs.persistent_memory_enabled,
+          updated_at: new Date().toISOString()
+        })
+      } catch (e) {}
+    }
   }
 
-  const handleAddMemory = () => {
+  const handleAddMemory = async () => {
     if (!newMemoryInput.trim()) return
+    const memContent = newMemoryInput.trim()
+
+    let newMemId = `mem-${Date.now()}`
+    if (user && isConfigured) {
+      try {
+        const { data: dbMem } = await supabase
+          .from('mira_memories')
+          .insert({
+            user_id: user.id,
+            category: 'relationship_context',
+            content: memContent,
+            consent_granted: true
+          })
+          .select('id, user_id, category, content, created_at, updated_at')
+          .single()
+
+        if (dbMem) {
+          const updated = [dbMem as MiraMemory, ...memories]
+          setMemories(updated)
+          localStorage.setItem('hws_mira_memories', JSON.stringify(updated))
+          setNewMemoryInput('')
+          return
+        }
+      } catch (e) {}
+    }
+
     const newMem: MiraMemory = {
-      id: `mem-${Date.now()}`,
+      id: newMemId,
       user_id: user?.id || 'anon',
       category: 'relationship_context',
-      content: newMemoryInput.trim(),
+      content: memContent,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
-    const updated = [...memories, newMem]
+    const updated = [newMem, ...memories]
     setMemories(updated)
     localStorage.setItem('hws_mira_memories', JSON.stringify(updated))
     setNewMemoryInput('')
   }
 
-  const handleDeleteMemory = (id: string) => {
+  const handleDeleteMemory = async (id: string) => {
+    if (user && isConfigured && !id.startsWith('mem-')) {
+      try {
+        await supabase.from('mira_memories').delete().eq('id', id).eq('user_id', user.id)
+      } catch (e) {}
+    }
+
     const updated = memories.filter(m => m.id !== id)
     setMemories(updated)
     localStorage.setItem('hws_mira_memories', JSON.stringify(updated))

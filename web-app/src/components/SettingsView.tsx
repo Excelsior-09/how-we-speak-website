@@ -11,16 +11,20 @@ import {
   CreditCard,
   LogOut,
   ExternalLink,
-  CheckCircle
+  CheckCircle,
+  Key,
+  AlertTriangle
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
 
 export const SettingsView: React.FC = () => {
-  const { user, profile, entitlements, signOut, isConfigured, refreshUserData } = useAuth()
+  const { user, profile, entitlements, signOut, deleteAccount, resetPassword, isConfigured, refreshUserData } = useAuth()
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [isUpdating, setIsUpdating] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const hasBundle = entitlements.some((e) => e.product_key === 'bundle')
   const ownedKeys = entitlements.map((e) => e.product_key)
@@ -234,26 +238,96 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Security & Sign Out */}
-      <div className="card-glass" style={{ padding: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Shield size={20} color="var(--burgundy)" />
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>End-to-End Privacy</div>
-            <div style={{ fontSize: 12, color: 'var(--gray)' }}>
-              Your conversation rehearsals are private to you and protected by PostgreSQL RLS.
+      {/* Security, Password & Sign Out */}
+      <div className="card-glass" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Shield size={20} color="var(--burgundy)" />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>End-to-End Privacy</div>
+              <div style={{ fontSize: 12, color: 'var(--gray)' }}>
+                Your conversation rehearsals are private to you and protected by PostgreSQL RLS.
+              </div>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={async () => {
+                if (user?.email) {
+                  const res = await resetPassword(user.email)
+                  if (!res.error) setResetSent(true)
+                  else alert(res.error)
+                }
+              }}
+              className="btn btn-secondary"
+              style={{ fontSize: 13, padding: '8px 16px' }}
+            >
+              <Key size={14} />
+              {resetSent ? 'Password Link Sent!' : 'Send Password Reset'}
+            </button>
+
+            <button
+              onClick={signOut}
+              className="btn btn-secondary"
+              style={{ fontSize: 13, padding: '8px 16px' }}
+            >
+              <LogOut size={14} />
+              Sign Out
+            </button>
           </div>
         </div>
 
-        <button
-          onClick={signOut}
-          className="btn btn-secondary"
-          style={{ fontSize: 13, padding: '8px 16px' }}
-        >
-          <LogOut size={14} />
-          Sign Out of Account
-        </button>
+        {/* Danger Zone: Account Deletion */}
+        <div style={{
+          borderTop: '1px solid var(--border)',
+          paddingTop: 18,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 14
+        }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#c0392b', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <AlertTriangle size={15} />
+              Danger Zone — Account Deletion
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2 }}>
+              Permanently delete your profile, conversation history, memories, and private reflections.
+            </div>
+          </div>
+
+          <button
+            onClick={async () => {
+              const confirmMsg = "Are you sure you want to permanently delete your TryHowWeSpeak account? All your conversations, rehearsal plans, and private reflections will be permanently removed. This action cannot be undone."
+              if (window.confirm(confirmMsg)) {
+                setIsDeleting(true)
+                const res = await deleteAccount()
+                setIsDeleting(false)
+                if (res.error) {
+                  alert(res.error)
+                } else {
+                  alert("Your account and private data have been completely deleted.")
+                  window.location.href = '/'
+                }
+              }
+            }}
+            disabled={isDeleting}
+            style={{
+              background: '#fff0f0',
+              color: '#c0392b',
+              border: '1px solid #f5c6cb',
+              padding: '8px 16px',
+              borderRadius: 6,
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            {isDeleting ? 'Deleting Account...' : 'Delete My Account'}
+          </button>
+        </div>
       </div>
     </div>
   )

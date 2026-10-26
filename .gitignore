@@ -1,5 +1,10 @@
 .env
-.env.local
-.env*.local
+.env.*
+!.env.example
+*.local
 node_modules/
 web-app/node_modules/
+dist/
+web-app/dist/
+supabase/.temp/
+.DS_Store

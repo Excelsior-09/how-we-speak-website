@@ -1,6 +1,7 @@
 // ==============================================================================
-// HOW WE SPEAK — AUTH & SESSION PROVIDER
-// Manages authenticated session, profile sync, couples space state & entitlements
+// HOW WE SPEAK — PRODUCTION AUTH & SESSION PROVIDER
+// Manages real Supabase authentication, session restoration, profiles,
+// couples spaces, entitlements, and account lifecycle.
 // ==============================================================================
 
 import React, { useEffect, useState, useCallback } from 'react'
@@ -9,56 +10,16 @@ import { supabase, isSupabaseConfigured } from './supabase'
 import type { Profile, CouplesSpace, Entitlement } from '../types/database'
 import { AuthContext } from './authTypes'
 
-const SANDBOX_USER: User = {
-  id: '00000000-0000-0000-0000-000000000001',
-  app_metadata: {},
-  user_metadata: { full_name: 'Alex Rivera' },
-  aud: 'authenticated',
-  created_at: new Date().toISOString(),
-  email: 'alex@tryhowwespeak.com',
-}
-
-const SANDBOX_PROFILE: Profile = {
-  id: '00000000-0000-0000-0000-000000000001',
-  email: 'alex@tryhowwespeak.com',
-  display_name: 'Alex Rivera',
-  archetype: 'Avoider',
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-}
-
-function getInitialSandboxAuth() {
-  if (typeof window === 'undefined' || isSupabaseConfigured()) {
-    return { user: null, profile: null, activeSpace: null, partnerProfile: null }
-  }
-  const saved = localStorage.getItem('hws_sandbox_auth')
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved)
-      return {
-        user: parsed.user || null,
-        profile: parsed.profile || null,
-        activeSpace: parsed.activeSpace || null,
-        partnerProfile: parsed.partnerProfile || null,
-      }
-    } catch {
-      return { user: null, profile: null, activeSpace: null, partnerProfile: null }
-    }
-  }
-  return { user: null, profile: null, activeSpace: null, partnerProfile: null }
-}
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isConfigured = isSupabaseConfigured()
-  const initialData = getInitialSandboxAuth()
 
-  const [user, setUser] = useState<User | null>(initialData.user)
+  const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(initialData.profile)
-  const [activeSpace, setActiveSpace] = useState<CouplesSpace | null>(initialData.activeSpace)
-  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(initialData.partnerProfile)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [activeSpace, setActiveSpace] = useState<CouplesSpace | null>(null)
+  const [partnerProfile, setPartnerProfile] = useState<Profile | null>(null)
   const [entitlements, setEntitlements] = useState<Entitlement[]>([])
-  const [loading, setLoading] = useState<boolean>(isConfigured)
+  const [loading, setLoading] = useState<boolean>(true)
 
   const fetchUserData = useCallback(async (userId: string, email: string) => {
     if (!isConfigured) return
@@ -69,18 +30,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (!profileErr && profileData) {
         setProfile(profileData as Profile)
       } else {
-        setProfile({
+        // Safe fallback in case profile trigger had slight latency
+        const fallbackProfile: Profile = {
           id: userId,
           email,
           display_name: email.split('@')[0],
           archetype: 'Avoider',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+        }
+        setProfile(fallbackProfile)
+
+        // Attempt idempotent upsert
+        await supabase.from('profiles').upsert({
+          id: userId,
+          email,
+          display_name: email.split('@')[0],
+          archetype: 'Avoider',
         })
       }
 
@@ -130,10 +101,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isConfigured])
 
   useEffect(() => {
-    if (!isConfigured) return
+    if (!isConfigured) {
+      setLoading(false)
+      return
+    }
 
-    // Live Supabase Auth listener
-    supabase.auth.getSession().then(({ data: { session: initSession } }) => {
+    // Live Supabase Auth session restoration
+    supabase.auth.getSession().then(({ data: { session: initSession }, error }) => {
+      if (error) {
+        console.warn('Session restoration notice:', error.message)
+      }
       setSession(initSession)
       setUser(initSession?.user ?? null)
       if (initSession?.user) {
@@ -142,11 +119,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
       setSession(currentSession)
       setUser(currentSession?.user ?? null)
       if (currentSession?.user) {
-        fetchUserData(currentSession.user.id, currentSession.user.email ?? '')
+        await fetchUserData(currentSession.user.id, currentSession.user.email ?? '')
       } else {
         setProfile(null)
         setActiveSpace(null)
@@ -167,23 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, displayName?: string, archetype?: string) => {
     if (!isConfigured) {
-      const mockUser: User = {
-        ...SANDBOX_USER,
-        id: 'usr_' + Math.random().toString(36).substring(2, 10),
-        email,
-      }
-      const mockProfile: Profile = {
-        id: mockUser.id,
-        email,
-        display_name: displayName || email.split('@')[0],
-        archetype: (archetype as any) || 'Avoider',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-      setUser(mockUser)
-      setProfile(mockProfile)
-      localStorage.setItem('hws_sandbox_auth', JSON.stringify({ user: mockUser, profile: mockProfile }))
-      return {}
+      return { error: 'Supabase credentials are not configured. Please check your environment variables.' }
     }
 
     try {
@@ -195,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             full_name: displayName,
             archetype: archetype || 'Avoider',
           },
+          emailRedirectTo: `${window.location.origin}/app/`,
         },
       })
       if (error) return { error: error.message }
@@ -206,19 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     if (!isConfigured) {
-      const mockUser: User = {
-        ...SANDBOX_USER,
-        email,
-      }
-      const mockProfile: Profile = {
-        ...SANDBOX_PROFILE,
-        email,
-        display_name: email.split('@')[0],
-      }
-      setUser(mockUser)
-      setProfile(mockProfile)
-      localStorage.setItem('hws_sandbox_auth', JSON.stringify({ user: mockUser, profile: mockProfile }))
-      return {}
+      return { error: 'Supabase credentials are not configured. Please check your environment variables.' }
     }
 
     try {
@@ -232,12 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithMagicLink = async (email: string) => {
     if (!isConfigured) {
-      const mockUser: User = { ...SANDBOX_USER, email }
-      const mockProfile: Profile = { ...SANDBOX_PROFILE, email }
-      setUser(mockUser)
-      setProfile(mockProfile)
-      localStorage.setItem('hws_sandbox_auth', JSON.stringify({ user: mockUser, profile: mockProfile }))
-      return {}
+      return { error: 'Supabase credentials are not configured. Please check your environment variables.' }
     }
 
     try {
@@ -254,16 +199,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const signOut = async () => {
+  const signInWithOAuth = async (provider: 'google') => {
     if (!isConfigured) {
+      return { error: 'Supabase credentials are not configured. Please check your environment variables.' }
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/app/`,
+        },
+      })
+      if (error) return { error: error.message }
+      return {}
+    } catch (err: any) {
+      return { error: err.message || 'OAuth sign in failed.' }
+    }
+  }
+
+  const resetPassword = async (email: string) => {
+    if (!isConfigured) {
+      return { error: 'Supabase credentials are not configured. Please check your environment variables.' }
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/app/settings`,
+      })
+      if (error) return { error: error.message }
+      return {}
+    } catch (err: any) {
+      return { error: err.message || 'Password reset request failed.' }
+    }
+  }
+
+  const updatePassword = async (newPassword: string) => {
+    if (!isConfigured) {
+      return { error: 'Supabase credentials are not configured.' }
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) return { error: error.message }
+      return {}
+    } catch (err: any) {
+      return { error: err.message || 'Failed to update password.' }
+    }
+  }
+
+  const deleteAccount = async () => {
+    if (!isConfigured) {
+      return { error: 'Supabase credentials are not configured.' }
+    }
+
+    try {
+      // Execute security definer account deletion procedure
+      const { error: rpcError } = await supabase.rpc('delete_user_account')
+      if (rpcError) throw rpcError
+
+      // Sign out and clear local state
+      await supabase.auth.signOut()
       setUser(null)
       setProfile(null)
       setActiveSpace(null)
       setPartnerProfile(null)
-      localStorage.removeItem('hws_sandbox_auth')
-      return
+      setEntitlements([])
+      return {}
+    } catch (err: any) {
+      return { error: err.message || 'Could not complete account deletion.' }
     }
-    await supabase.auth.signOut()
+  }
+
+  const signOut = async () => {
+    if (isConfigured) {
+      await supabase.auth.signOut()
+    }
     setUser(null)
     setProfile(null)
     setActiveSpace(null)
@@ -285,6 +296,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         signIn,
         signInWithMagicLink,
+        signInWithOAuth,
+        resetPassword,
+        updatePassword,
+        deleteAccount,
         signOut,
         refreshUserData,
       }}

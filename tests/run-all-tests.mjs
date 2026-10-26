@@ -20,6 +20,7 @@ const testSuites = [
   'tests/header-and-hero-fix.test.mjs',
   'tests/dashboard-ux-redesign.test.mjs',
   'tests/phase6-mira-and-scripts.test.mjs',
+  'tests/phase7-supabase-integration.test.mjs',
 ];
 
 async function runCommand(file) {

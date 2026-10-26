@@ -12,8 +12,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const AI_API_KEY = process.env.AI_API_KEY;
-const AI_MODEL = process.env.AI_MODEL || 'gemini-1.5-pro';
+const AI_API_KEY = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+const AI_MODEL = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
 
 const supabaseAdmin = (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -385,13 +385,36 @@ Return ONLY a valid JSON object matching this schema:
         if (rawText) {
           const parsed = JSON.parse(rawText);
 
-          // Record usage record in database
+          // Record in database
           if (userId && supabaseAdmin) {
-            await supabaseAdmin.from('usage_records').insert({
-              user_id: userId,
-              action_type: 'ai_mira',
-              tokens_used: 1
-            });
+            try {
+              let validConv = conversationId;
+              if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
+                // Ensure conversation belongs to user
+                const { data: conv } = await supabaseAdmin
+                  .from('mira_conversations')
+                  .select('id, user_id')
+                  .eq('id', validConv)
+                  .maybeSingle();
+
+                if (conv && conv.user_id === userId) {
+                  await supabaseAdmin.from('mira_messages').insert([
+                    { conversation_id: validConv, user_id: userId, role: 'user', content: cleanMessage },
+                    { conversation_id: validConv, user_id: userId, role: 'assistant', content: parsed.message, structured_data: parsed.structuredAdvice || null }
+                  ]);
+                  await supabaseAdmin.from('mira_conversations').update({ updated_at: new Date().toISOString() }).eq('id', validConv);
+                }
+              }
+
+              await supabaseAdmin.from('usage_records').insert({
+                user_id: userId,
+                action_type: 'ai_mira',
+                tokens_used: 1,
+                model_used: AI_MODEL
+              });
+            } catch (persistErr) {
+              console.warn('Mira message persistence warning:', persistErr.message);
+            }
           }
 
           return res.status(200).json(parsed);
@@ -412,10 +435,28 @@ Return ONLY a valid JSON object matching this schema:
 
   if (userId && supabaseAdmin) {
     try {
+      let validConv = conversationId;
+      if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
+        const { data: conv } = await supabaseAdmin
+          .from('mira_conversations')
+          .select('id, user_id')
+          .eq('id', validConv)
+          .maybeSingle();
+
+        if (conv && conv.user_id === userId) {
+          await supabaseAdmin.from('mira_messages').insert([
+            { conversation_id: validConv, user_id: userId, role: 'user', content: cleanMessage },
+            { conversation_id: validConv, user_id: userId, role: 'assistant', content: fallback.message, structured_data: fallback.structuredAdvice || null }
+          ]);
+          await supabaseAdmin.from('mira_conversations').update({ updated_at: new Date().toISOString() }).eq('id', validConv);
+        }
+      }
+
       await supabaseAdmin.from('usage_records').insert({
         user_id: userId,
         action_type: 'ai_mira',
-        tokens_used: 1
+        tokens_used: 1,
+        model_used: AI_MODEL
       });
     } catch (e) {}
   }
