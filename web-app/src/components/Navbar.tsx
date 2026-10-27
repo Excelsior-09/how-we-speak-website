@@ -474,9 +474,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 0' }} />
 
                     <button
-                      onClick={() => {
+                      id="btn-account-signout"
+                      onClick={async () => {
                         setAccountMenuOpen(false)
-                        signOut()
+                        const res = await signOut()
+                        if (res?.error) {
+                          alert(res.error)
+                        }
                       }}
                       style={{
                         display: 'flex',
@@ -815,9 +819,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </a>
 
                   <button
-                    onClick={() => {
+                    id="btn-mobile-signout"
+                    onClick={async () => {
                       setMobileMenuOpen(false)
-                      signOut()
+                      const res = await signOut()
+                      if (res?.error) {
+                        alert(res.error)
+                      }
                     }}
                     style={{
                       display: 'flex',

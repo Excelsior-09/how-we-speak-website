@@ -11,14 +11,18 @@ export interface AuthContextType {
   entitlements: Entitlement[]
   isConfigured: boolean
   loading: boolean
+  mfaRequired: boolean
+  mfaFactors: any[]
   signUp: (email: string, password: string, displayName?: string, archetype?: string) => Promise<{ error?: string; data?: any; needsConfirmation?: boolean }>
-  signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signIn: (email: string, password: string) => Promise<{ error?: string; data?: any; mfaRequired?: boolean }>
   signInWithMagicLink: (email: string) => Promise<{ error?: string }>
   signInWithOAuth: (provider: 'google') => Promise<{ error?: string; data?: any }>
+  verifyMfaLogin: (code: string) => Promise<{ error?: string; data?: any }>
+  cancelMfaLogin: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error?: string }>
   updatePassword: (newPassword: string) => Promise<{ error?: string }>
   deleteAccount: () => Promise<{ error?: string }>
-  signOut: () => Promise<void>
+  signOut: (redirectUrl?: string) => Promise<{ error?: string }>
   refreshUserData: () => Promise<void>
 }
 

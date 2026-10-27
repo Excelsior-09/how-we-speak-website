@@ -24,6 +24,7 @@ const testSuites = [
   'tests/phase8-auth-security-and-mfa.test.mjs',
   'tests/phase9-gemini-integration.test.mjs',
   'tests/phase10-production-auth.test.mjs',
+  'tests/phase11-auth-mfa-and-logout.test.mjs',
 ];
 
 async function runCommand(file) {

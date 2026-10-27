@@ -17,6 +17,7 @@ import { WorkspaceView } from './components/WorkspaceView'
 import { ScriptsView } from './components/ScriptsView'
 import { MiraView } from './components/MiraView'
 import { ConfirmEmailView } from './components/ConfirmEmailView'
+import { MfaChallengeGate } from './components/MfaChallengeGate'
 import { AuthModal } from './components/AuthModal'
 import { useAuth } from './lib/useAuth'
 import { Lock, LogIn, ArrowRight } from 'lucide-react'
@@ -72,11 +73,11 @@ function AuthRequiredGate({ title, onSignIn }: { title: string; onSignIn: () => 
 
 function AppContent() {
   const { route, params, navigate, returnTo, setReturnTo } = useRouter()
-  const { user, activeSpace } = useAuth()
+  const { user, activeSpace, mfaRequired } = useAuth()
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
 
-  const isAuthenticated = !!user
+  const isAuthenticated = !!user && !mfaRequired
   const userEmail = user?.email
   const partnerLinked = !!(activeSpace?.partner_2_id)
 
@@ -122,24 +123,42 @@ function AppContent() {
         margin: '0 auto',
         padding: '36px 24px 80px',
       }}>
-        {/* /app — Dashboard */}
-        {route === 'dashboard' && (
+        {mfaRequired ? (
           <div className="animate-fade-in">
-            <DashboardView />
-          </div>
-        )}
-
-        {/* /app/confirm-email — Dedicated Sign-Up Confirmation Page */}
-        {route === 'confirm-email' && (
-          <div className="animate-fade-in">
-            <ConfirmEmailView
-              onOpenSignIn={() => {
-                setAuthMode('signin')
+            <MfaChallengeGate
+              onSuccess={() => {
+                if (returnTo) {
+                  const dest = returnTo
+                  setReturnTo(null)
+                  navigate(dest)
+                }
+              }}
+              onCancel={() => {
                 setIsAuthOpen(true)
+                setAuthMode('signin')
               }}
             />
           </div>
-        )}
+        ) : (
+          <>
+            {/* /app — Dashboard */}
+            {route === 'dashboard' && (
+              <div className="animate-fade-in">
+                <DashboardView />
+              </div>
+            )}
+
+            {/* /app/confirm-email — Dedicated Sign-Up Confirmation Page */}
+            {route === 'confirm-email' && (
+              <div className="animate-fade-in">
+                <ConfirmEmailView
+                  onOpenSignIn={() => {
+                    setAuthMode('signin')
+                    setIsAuthOpen(true)
+                  }}
+                />
+              </div>
+            )}
 
         {/* /app/mira — Mira AI Relationship Companion */}
         {route === 'mira' && (
@@ -226,6 +245,8 @@ function AppContent() {
           <div className="animate-fade-in">
             <ScriptsView />
           </div>
+        )}
+          </>
         )}
       </main>
 

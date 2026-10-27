@@ -388,14 +388,32 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isUpdating}
-          className="btn btn-primary"
-          style={{ width: 'fit-content', padding: '10px 22px', fontSize: 13.5 }}
-        >
-          {isUpdating ? 'Saving...' : 'Update Profile'}
-        </button>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="submit"
+            disabled={isUpdating}
+            className="btn btn-primary"
+            style={{ width: 'fit-content', padding: '10px 22px', fontSize: 13.5 }}
+          >
+            {isUpdating ? 'Saving...' : 'Update Profile'}
+          </button>
+
+          <button
+            type="button"
+            id="btn-settings-signout"
+            onClick={async () => {
+              const res = await signOut()
+              if (res?.error) {
+                alert(res.error)
+              }
+            }}
+            className="btn btn-secondary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', fontSize: 13.5, color: 'var(--burgundy)', borderColor: 'rgba(196, 30, 58, 0.3)' }}
+          >
+            <LogOut size={15} />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </form>
 
       {/* 2. Email Confirmation Security Section */}
@@ -936,7 +954,7 @@ export const SettingsView: React.FC = () => {
             </button>
 
             <button
-              onClick={signOut}
+              onClick={() => signOut()}
               className="btn btn-secondary"
               style={{ fontSize: 13, padding: '8px 16px' }}
             >
