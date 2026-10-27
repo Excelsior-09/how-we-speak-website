@@ -161,37 +161,8 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
         setIsPairing(false)
       }
     } else {
-      // Local fallback
-      setTimeout(() => {
-        setIsPairing(false)
-        const mockSpace = {
-          id: 'sandbox_space_123',
-          partner_1_id: user?.id || 'usr_1',
-          partner_2_id: 'usr_partner_jordan',
-          status: 'active' as const,
-          room_name: 'Our Shared Space',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-        const mockPartner = {
-          id: 'usr_partner_jordan',
-          email: 'partner@example.com',
-          display_name: 'Jordan',
-          archetype: 'Listener' as const,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-        localStorage.setItem(
-          'hws_sandbox_auth',
-          JSON.stringify({
-            user,
-            profile,
-            activeSpace: mockSpace,
-            partnerProfile: mockPartner,
-          })
-        )
-        window.location.reload()
-      }, 500)
+      setPairingError('Please sign in to accept your partner invitation code.')
+      setIsPairing(false)
     }
   }
 
@@ -326,7 +297,6 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
 
   const handleDisconnect = () => {
     setShowDisconnectModal(false)
-    localStorage.removeItem('hws_sandbox_auth')
     window.location.reload()
   }
 

@@ -1,16 +1,25 @@
 // ==============================================================================
 // HOW WE SPEAK — SHARED SUPABASE CLIENT INITIALIZATION
-// Reads real project URL and publishable/anon key from environment.
+// Production Supabase project: yzodegkrcbjevxurhanc
+// Client-safe configuration: Uses public project URL and publishable/anon key.
 // Never exposes service_role key to client bundles.
 // ==============================================================================
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim()
+// Official TryHowWeSpeak production Supabase credentials (public/anon)
+const PRODUCTION_SUPABASE_URL = 'https://yzodegkrcbjevxurhanc.supabase.co'
+const PRODUCTION_SUPABASE_ANON_KEY = 'sb_publishable_us6bwKSn7m3czRxMku--uw_Gli6d9oq'
+
+const supabaseUrl = (
+  import.meta.env.VITE_SUPABASE_URL ||
+  PRODUCTION_SUPABASE_URL
+).trim()
+
 const supabaseAnonKey = (
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  ''
+  PRODUCTION_SUPABASE_ANON_KEY
 ).trim()
 
 export const isSupabaseConfigured = (): boolean => {
@@ -22,15 +31,9 @@ export const isSupabaseConfigured = (): boolean => {
   )
 }
 
-if (!isSupabaseConfigured() && typeof window !== 'undefined') {
-  console.warn(
-    '⚠️ Supabase configuration missing or incomplete. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env.'
-  )
-}
-
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-anon-key',
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       persistSession: true,

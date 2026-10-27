@@ -12,7 +12,6 @@ import {
   User as UserIcon,
   Sparkles,
   ShieldCheck,
-  AlertCircle,
   RefreshCw
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
@@ -94,7 +93,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const res = await signIn(email.trim(), password)
       if (res.error) {
         setIsError(true)
-        setMessage(res.error)
+        const lowerErr = res.error.toLowerCase()
+        if (lowerErr.includes('invalid login credentials') || lowerErr.includes('invalid_grant')) {
+          setMessage('Invalid email or password. Please verify your credentials or sign up if you do not have an account yet.')
+        } else if (lowerErr.includes('email not confirmed')) {
+          setMessage('Your email address has not been confirmed yet. Please check your inbox for the confirmation email, or sign up to resend.')
+        } else {
+          setMessage(res.error)
+        }
         setLoading(false)
       } else {
         setPassword('')
@@ -122,8 +128,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setMessage(res.error)
         }
         setGoogleLoading(false)
+      } else if (res?.data?.url) {
+        window.location.href = res.data.url
       }
-      // If successful, Supabase automatically initiates the OAuth redirect to accounts.google.com
     } catch (err: any) {
       setIsError(true)
       setMessage(err.message || 'Google sign in failed. Please try again.')
@@ -146,17 +153,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsError(true)
       setMessage(res.error)
     } else {
-      setMessage(
-        isConfigured
-          ? 'Magic link dispatched! Check your email inbox to sign in instantly.'
-          : 'Magic link simulated! Signed in as ' + email
-      )
-      if (!isConfigured) {
-        setTimeout(() => {
-          onSuccess?.()
-          onClose()
-        }, 600)
-      }
+      setMessage('Magic link dispatched! Check your email inbox to sign in instantly.')
     }
     setLoading(false)
   }
@@ -227,25 +224,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               : 'Sign in to access your saved conversations and private plans.'}
           </p>
         </div>
-
-        {/* Supabase Status Banner */}
-        {!isConfigured && (
-          <div style={{
-            background: 'var(--cream)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '10px 14px',
-            fontSize: 12,
-            color: 'var(--charcoal-muted)',
-            marginBottom: 18,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}>
-            <AlertCircle size={15} color="var(--gold)" />
-            <span><strong>Sandbox Mode:</strong> Enter any email/password to explore workspace features.</span>
-          </div>
-        )}
 
         {message && (
           <div style={{

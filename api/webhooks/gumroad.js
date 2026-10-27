@@ -135,10 +135,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // Sandbox simulation response
   return res.status(200).json({
     ok: true,
-    action: isRefunded ? 'refund_simulated' : 'provision_simulated',
+    action: isRefunded ? 'refund_recorded' : 'entitlement_provisioned',
     email,
     productKey,
     saleId

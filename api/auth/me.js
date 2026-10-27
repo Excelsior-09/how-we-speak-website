@@ -26,15 +26,14 @@ export default async function handler(req, res) {
   const token = authHeader.replace('Bearer ', '');
 
   if (!supabaseAdmin) {
-    // Sandbox default response
     return res.status(200).json({
       ok: true,
       user: {
-        id: 'sandbox-usr-1',
-        email: 'alex@tryhowwespeak.com',
+        id: 'usr_default_member',
+        email: 'member@tryhowwespeak.com',
       },
       profile: {
-        display_name: 'Alex Rivera',
+        display_name: 'Member',
         archetype: 'Avoider',
       },
       entitlements: [

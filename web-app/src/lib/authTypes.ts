@@ -14,7 +14,7 @@ export interface AuthContextType {
   signUp: (email: string, password: string, displayName?: string, archetype?: string) => Promise<{ error?: string; data?: any; needsConfirmation?: boolean }>
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signInWithMagicLink: (email: string) => Promise<{ error?: string }>
-  signInWithOAuth: (provider: 'google') => Promise<{ error?: string }>
+  signInWithOAuth: (provider: 'google') => Promise<{ error?: string; data?: any }>
   resetPassword: (email: string) => Promise<{ error?: string }>
   updatePassword: (newPassword: string) => Promise<{ error?: string }>
   deleteAccount: () => Promise<{ error?: string }>

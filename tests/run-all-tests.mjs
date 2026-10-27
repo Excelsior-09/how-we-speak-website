@@ -23,6 +23,7 @@ const testSuites = [
   'tests/phase7-supabase-integration.test.mjs',
   'tests/phase8-auth-security-and-mfa.test.mjs',
   'tests/phase9-gemini-integration.test.mjs',
+  'tests/phase10-production-auth.test.mjs',
 ];
 
 async function runCommand(file) {

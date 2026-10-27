@@ -2068,14 +2068,10 @@
         try {
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && (key.startsWith('sb-') && key.endsWith('-auth-token'))) {
+            if (key && ((key.startsWith('sb-') && key.endsWith('-auth-token')) || key === 'hws-auth-token')) {
               const data = JSON.parse(localStorage.getItem(key));
               if (data && (data.user || data.currentSession)) { isAuth = true; break; }
             }
-          }
-          if (!isAuth && localStorage.getItem('hws_sandbox_auth')) {
-            const s = JSON.parse(localStorage.getItem('hws_sandbox_auth'));
-            if (s && s.user) isAuth = true;
           }
         } catch (e) {}
 
