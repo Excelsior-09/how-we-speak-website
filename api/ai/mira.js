@@ -205,7 +205,16 @@ export default async function handler(req, res) {
 
   // 3. Read GEMINI_API_KEY from server environment ONLY
   const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '').trim();
-  const AI_MODEL = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
+  const configuredModel = (process.env.GEMINI_MODEL || process.env.AI_MODEL || '').trim();
+  const candidateModels = [
+    configuredModel,
+    'gemini-flash-lite-latest',
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-flash-latest'
+  ].filter(Boolean);
+  const modelsToTry = [...new Set(candidateModels)];
+  const AI_MODEL = modelsToTry[0];
 
   if (!GEMINI_API_KEY) {
     console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 4 FAILED: GEMINI_API_KEY is not configured in the server environment.`);
@@ -217,7 +226,7 @@ export default async function handler(req, res) {
     });
   }
 
-  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 4: GEMINI_API_KEY present in server environment. Model=${AI_MODEL}`);
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 4: GEMINI_API_KEY present in server environment. Primary Model=${AI_MODEL}, fallbackQueue=${modelsToTry.join(',')}`);
 
   // 4. Construct Clinical System Prompt for Mira
   const systemPrompt = `
@@ -407,52 +416,24 @@ Return ONLY a valid JSON object matching this schema:
     normalizedContents.shift();
   }
 
-  const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 5: Sending request to Google Gemini API. models=${modelsToTry.join(',')} turns=${normalizedContents.length}`);
 
-  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 5: Sending request to Google Gemini API. endpoint=models/${AI_MODEL}:generateContent, turns=${normalizedContents.length}`);
+  let geminiResponse = null;
+  let lastErrorText = '';
+  let successfulModel = null;
 
-  let geminiResponse;
-  const startTime = Date.now();
-
-  try {
-    geminiResponse = await fetch(geminiEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        contents: normalizedContents,
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 1500,
-          responseMimeType: 'application/json'
-        }
-      })
-    });
-  } catch (netErr) {
-    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Network failure calling Gemini API:`, netErr.message);
-    return res.status(502).json({
-      error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
-      code: "GEMINI_NETWORK_ERROR",
-      details: "Network failure reaching Google Gemini API.",
-      correlationId
-    });
-  }
-
-  const elapsed = Date.now() - startTime;
-  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 6: Gemini response received. status=${geminiResponse.status} (${elapsed}ms)`);
-
-  // Resilient failover: If primary model encounters a temporary high-demand spike (503) or 404, failover to gemini-3.5-flash
-  if (!geminiResponse.ok && (geminiResponse.status === 503 || geminiResponse.status === 404) && AI_MODEL !== 'gemini-3.5-flash') {
-    console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Model ${AI_MODEL} returned ${geminiResponse.status}. Attempting resilient failover to gemini-3.5-flash...`);
-    const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  for (const modelName of modelsToTry) {
+    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+    const startTime = Date.now();
     try {
-      const fallbackResponse = await fetch(fallbackEndpoint, {
+      const response = await fetch(geminiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(12000),
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
           contents: normalizedContents,
           generationConfig: {
             temperature: 0.35,
@@ -461,28 +442,45 @@ Return ONLY a valid JSON object matching this schema:
           }
         })
       });
-      if (fallbackResponse.ok) {
-        console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Resilient failover to gemini-3.5-flash succeeded with HTTP 200!`);
-        geminiResponse = fallbackResponse;
+
+      const elapsed = Date.now() - startTime;
+      console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Model ${modelName} responded with status ${response.status} (${elapsed}ms)`);
+
+      if (response.ok) {
+        geminiResponse = response;
+        successfulModel = modelName;
+        break;
       }
-    } catch (fbErr) {
-      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Failover error:`, fbErr.message);
+
+      // If client-side auth error (400 Invalid Key, 401 Unauthorized, 403 Forbidden), don't try other models
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        geminiResponse = response;
+        break;
+      }
+
+      // If 503 (high demand capacity spike), 404 (not found / deprecated), or 500 (internal error), try next candidate model
+      lastErrorText = await response.text();
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Model ${modelName} returned ${response.status}. Trying next resilient model...`);
+    } catch (netErr) {
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Network or timeout error on model ${modelName}:`, netErr.message);
+      lastErrorText = netErr.message;
     }
   }
 
-  if (!geminiResponse.ok) {
-    const errText = await geminiResponse.text();
+  if (!geminiResponse || !geminiResponse.ok) {
+    const errText = geminiResponse ? await geminiResponse.text() : lastErrorText;
     let sanitizedErr = errText;
     try {
       sanitizedErr = JSON.parse(errText);
     } catch (e) {}
 
-    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Gemini returned error HTTP ${geminiResponse.status}:`, typeof sanitizedErr === 'object' ? JSON.stringify(sanitizedErr) : sanitizedErr);
+    const errStatus = geminiResponse ? geminiResponse.status : 504;
+    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Gemini returned error HTTP ${errStatus}:`, typeof sanitizedErr === 'object' ? JSON.stringify(sanitizedErr) : sanitizedErr);
 
     return res.status(502).json({
       error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
       code: "GEMINI_UPSTREAM_ERROR",
-      upstreamStatus: geminiResponse.status,
+      upstreamStatus: errStatus,
       correlationId
     });
   }

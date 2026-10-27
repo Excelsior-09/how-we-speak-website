@@ -74,7 +74,16 @@ serve(async (req: Request) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const geminiApiKey = (Deno.env.get("GEMINI_API_KEY") || Deno.env.get("AI_API_KEY") || "").trim();
-    const geminiModel = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
+    const configuredModel = (Deno.env.get("GEMINI_MODEL") || "").trim();
+    const candidateModels = [
+      configuredModel,
+      "gemini-flash-lite-latest",
+      "gemini-3.5-flash-lite",
+      "gemini-3.5-flash",
+      "gemini-flash-latest"
+    ].filter(Boolean);
+    const modelsToTry = [...new Set(candidateModels)];
+    const geminiModel = modelsToTry[0];
 
     // Validate Supabase User
     const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
@@ -220,60 +229,62 @@ serve(async (req: Request) => {
       contents.shift();
     }
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
+    console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Calling Google Gemini API models=${modelsToTry.join(",")}`);
 
-    console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Calling Google Gemini API model=${geminiModel}`);
-    const startGemini = Date.now();
+    let finalResponse: Response | null = null;
+    let lastErrorText = "";
 
-    const response = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemInstructionContent }],
-        },
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 1500,
-          responseMimeType: "application/json",
-        },
-        contents,
-      }),
-    });
-
-    const elapsed = Date.now() - startGemini;
-    console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Stage 4: Gemini responded with status ${response.status} (${elapsed}ms)`);
-
-    let finalResponse = response;
-    if (!finalResponse.ok && (finalResponse.status === 503 || finalResponse.status === 404) && geminiModel !== 'gemini-3.5-flash') {
-      console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Model ${geminiModel} returned ${finalResponse.status}. Attempting resilient failover to gemini-3.5-flash...`);
+    for (const modelName of modelsToTry) {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
+      const startGemini = Date.now();
       try {
-        const fallbackRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiApiKey}`, {
+        const response = await fetch(geminiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(12000),
           body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemInstructionContent }] },
-            generationConfig: { temperature: 0.35, maxOutputTokens: 1500, responseMimeType: "application/json" },
+            systemInstruction: {
+              parts: [{ text: systemInstructionContent }],
+            },
+            generationConfig: {
+              temperature: 0.35,
+              maxOutputTokens: 1500,
+              responseMimeType: "application/json",
+            },
             contents,
           }),
         });
-        if (fallbackRes.ok) {
-          console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Failover to gemini-3.5-flash succeeded!`);
-          finalResponse = fallbackRes;
+
+        const elapsed = Date.now() - startGemini;
+        console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Model ${modelName} responded with status ${response.status} (${elapsed}ms)`);
+
+        if (response.ok) {
+          finalResponse = response;
+          break;
         }
-      } catch (fbErr) {
-        console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Failover error:`, fbErr.message);
+
+        if (response.status === 400 || response.status === 401 || response.status === 403) {
+          finalResponse = response;
+          break;
+        }
+
+        lastErrorText = await response.text();
+        console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Model ${modelName} returned ${response.status}. Trying next resilient model...`);
+      } catch (err: any) {
+        console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Network or timeout error on model ${modelName}:`, err.message);
+        lastErrorText = err.message;
       }
     }
 
-    if (!finalResponse.ok) {
-      const errText = await finalResponse.text();
-      console.error(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Gemini API error:`, finalResponse.status, errText);
+    if (!finalResponse || !finalResponse.ok) {
+      const errText = finalResponse ? await finalResponse.text() : lastErrorText;
+      const errStatus = finalResponse ? finalResponse.status : 504;
+      console.error(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Gemini API error:`, errStatus, errText);
       return new Response(
         JSON.stringify({
           error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
           code: "GEMINI_UPSTREAM_ERROR",
-          upstreamStatus: finalResponse.status,
+          upstreamStatus: errStatus,
           correlationId,
         }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
