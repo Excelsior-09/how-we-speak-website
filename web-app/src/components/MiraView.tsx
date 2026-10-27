@@ -345,7 +345,12 @@ export const MiraView: React.FC = () => {
       }
 
       if (!res.ok) {
-        throw new Error('Mira service temporarily unavailable. Please try again.')
+        let errJson: any = null
+        try {
+          errJson = await res.json()
+        } catch (e) {}
+        const fallbackErr = "Mira couldn't connect right now. Your message has not been lost. Please try again."
+        throw new Error(errJson?.error || fallbackErr)
       }
 
       const data = await res.json()
@@ -376,7 +381,7 @@ export const MiraView: React.FC = () => {
 
       saveMessages(targetConvId, [...updatedMsgs.map(m => ({ ...m, conversation_id: targetConvId })), assistantMessage])
     } catch (err: any) {
-      setErrorMsg(err.message || 'Unable to connect to Mira. Please check your connection and retry.')
+      setErrorMsg(err.message || "Mira couldn't connect right now. Your message has not been lost. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -832,10 +837,32 @@ export const MiraView: React.FC = () => {
               }}>
                 <AlertCircle size={18} style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>{errorMsg}</div>
-                {errorMsg.includes('Free trial limit') && (
+                {errorMsg.includes('Free trial limit') ? (
                   <a href="/index.html#bundle" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }}>
                     Upgrade
                   </a>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
+                      if (lastUserMsg) {
+                        handleSendMessage(lastUserMsg.content)
+                      }
+                    }}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      border: '1px solid #c53030',
+                      background: '#fff',
+                      color: '#c53030',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    Try again
+                  </button>
                 )}
               </div>
             )}

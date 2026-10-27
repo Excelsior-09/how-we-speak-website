@@ -22,6 +22,7 @@ const testSuites = [
   'tests/phase6-mira-and-scripts.test.mjs',
   'tests/phase7-supabase-integration.test.mjs',
   'tests/phase8-auth-security-and-mfa.test.mjs',
+  'tests/phase9-gemini-integration.test.mjs',
 ];
 
 async function runCommand(file) {

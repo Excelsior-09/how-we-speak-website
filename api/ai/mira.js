@@ -3,17 +3,14 @@
 // Endpoint: POST /api/ai/mira
 // Purpose: Powers Mira, the Relationship Communication Companion for TryHowWeSpeak.
 // Framework: Gottman Method, Emotionally Focused Therapy (EFT), Nonviolent Communication (NVC).
-// Features: Full 13-part clinical system instructions, user preferences,
-//           consent-based memory context, 6-part structured advice,
-//           free-trial quota enforcement, and clinical offline fallback.
+// Model: gemini-flash-latest via Google Gemini v1beta API
+// Secret: GEMINI_API_KEY (strictly server-side, never exposed to client)
 // ==============================================================================
 
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const AI_API_KEY = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
-const AI_MODEL = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
 
 const supabaseAdmin = (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -24,7 +21,7 @@ function sanitize(text, max = 3000) {
   return text.trim().slice(0, max);
 }
 
-// Built-in clinical fallback generator when AI API key is not supplied in local dev / test
+// Built-in clinical fallback generator exported for testing / offline utilities
 export function generateMiraClinicalFallback({
   message,
   history = [],
@@ -33,7 +30,6 @@ export function generateMiraClinicalFallback({
 }) {
   const lowerMsg = (message || '').toLowerCase();
 
-  // 1. Situation: Distant partner
   if (lowerMsg.includes('distant') || lowerMsg.includes('pulling away') || lowerMsg.includes('quiet') || lowerMsg.includes('shut down')) {
     return {
       message: "I can help you work through that. When you say distant, what have you noticed most—fewer messages, less affection, shorter conversations, or something else? And has anything changed recently between you?",
@@ -53,7 +49,6 @@ export function generateMiraClinicalFallback({
     };
   }
 
-  // 2. Situation: Same argument / Recurring conflict
   if (lowerMsg.includes('same argument') || lowerMsg.includes('keep fighting') || lowerMsg.includes('recurring') || lowerMsg.includes('loop')) {
     return {
       message: "Recurring arguments almost always point to an unaddressed emotional need beneath the surface topic. What is the disagreement usually about on the surface, and what does it end up feeling like for you?",
@@ -73,7 +68,6 @@ export function generateMiraClinicalFallback({
     };
   }
 
-  // 3. Situation: Boundaries
   if (lowerMsg.includes('boundary') || lowerMsg.includes('boundaries') || lowerMsg.includes('harsh') || lowerMsg.includes('space')) {
     return {
       message: "Expressing a healthy boundary is an act of care for the relationship, not a punishment. What is the boundary you need to set, and what makes you worried it might sound harsh?",
@@ -93,27 +87,6 @@ export function generateMiraClinicalFallback({
     };
   }
 
-  // 4. Situation: Bringing up something difficult
-  if (lowerMsg.includes('difficult') || lowerMsg.includes('bring up') || lowerMsg.includes('hard to talk') || lowerMsg.includes('nervous')) {
-    return {
-      message: "It takes courage to address something uncomfortable. What is the core topic you want to talk about, and what is your biggest hesitation right now?",
-      structuredAdvice: {
-        whatWeKnow: "You have an important issue to raise and want to do so without triggering defensiveness, conflict, or shutdown.",
-        whatMightBeHappening: "When anticipating difficult talks, our minds often rehearse the worst-case reaction. Approaching with curiosity instead of a verdict completely changes the dynamic.",
-        whatYouCanDo: "Choose a distraction-free window when neither of you is exhausted or rushed. Start with appreciation before naming the concern.",
-        whatYouCouldSay: '"There\'s something on my mind that I\'d really appreciate your thoughts on. I want us to understand each other better—can we sit down for 15 minutes after dinner?"',
-        whatToWatchFor: "Don't spring a serious talk while they are multitasking, driving, or getting ready for bed.",
-        followUpQuestion: "What is the single most important feeling or thought you want them to understand?"
-      },
-      suggestedFollowUps: [
-        "Help me craft the opening sentence",
-        "What should I do if they react defensively?",
-        "How do I ask without making them feel blamed?"
-      ]
-    };
-  }
-
-  // Default general thoughtful response
   return {
     message: "I hear you, and it makes complete sense that you want to navigate this thoughtfully. To help you find the most grounded words: what actually happened most recently, and what outcome are you hoping for?",
     structuredAdvice: {
@@ -133,8 +106,13 @@ export function generateMiraClinicalFallback({
 }
 
 export default async function handler(req, res) {
+  const correlationId = 'mira_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 1: Request received. method=${req.method}`);
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Method not allowed: ${req.method}`);
+    return res.status(405).json({ error: 'Method Not Allowed', correlationId });
   }
 
   const {
@@ -147,10 +125,11 @@ export default async function handler(req, res) {
 
   const cleanMessage = sanitize(message, 3000);
   if (!cleanMessage || cleanMessage.length < 2) {
-    return res.status(400).json({ error: 'Please enter a message for Mira.' });
+    console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Validation failed: empty or too short message.`);
+    return res.status(400).json({ error: 'Please enter a message for Mira.', correlationId });
   }
 
-  // 1. Authenticate user & check server-side free trial limit
+  // 1. Authenticate user & check usage entitlements
   let userId = null;
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ') && supabaseAdmin) {
@@ -159,6 +138,7 @@ export default async function handler(req, res) {
       const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
       if (!authErr && user) {
         userId = user.id;
+        console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 2: User authenticated. userId=${userId}`);
 
         // Check entitlements: Is user Pro or Bundle owner?
         const { data: entitlements } = await supabaseAdmin
@@ -172,8 +152,7 @@ export default async function handler(req, res) {
         );
 
         if (!isPro) {
-          // Count rehearsals + mira messages consumed
-          const { count, error: countErr } = await supabaseAdmin
+          const { count } = await supabaseAdmin
             .from('usage_records')
             .select('id', { count: 'exact', head: true })
             .eq('user_id', userId)
@@ -181,24 +160,67 @@ export default async function handler(req, res) {
 
           const usageUsed = count || 0;
           if (usageUsed >= 3) {
+            console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Free trial limit reached for user ${userId} (${usageUsed}/3)`);
             return res.status(402).json({
               error: 'Free trial limit reached (3 AI sessions). Upgrade to the Complete Bundle for unlimited access to Mira and Conversation Rehearsals.',
               limitReached: true,
               usageUsed,
-              upgradeUrl: '/index.html#bundle'
+              upgradeUrl: '/index.html#bundle',
+              correlationId
             });
           }
         }
+      } else {
+        console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Auth token verification failed or expired`);
       }
     } catch (err) {
-      console.warn('Auth verification warning in Mira endpoint:', err.message);
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Auth verification warning:`, err.message);
+    }
+  } else {
+    console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 2: Anonymous or local session (no Bearer token)`);
+  }
+
+  // 2. Validate conversation ownership if conversationId is provided and user is authenticated
+  if (userId && supabaseAdmin && conversationId && conversationId !== 'default' && !conversationId.startsWith('conv-')) {
+    try {
+      const { data: convRecord, error: convErr } = await supabaseAdmin
+        .from('mira_conversations')
+        .select('id, user_id')
+        .eq('id', conversationId)
+        .maybeSingle();
+
+      if (!convErr && convRecord && convRecord.user_id !== userId) {
+        console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Conversation authorization failed. user ${userId} does not own conv ${conversationId}`);
+        return res.status(403).json({
+          error: 'Forbidden: You do not have access to this conversation.',
+          code: 'UNAUTHORIZED_CONVERSATION',
+          correlationId
+        });
+      }
+      console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Conversation authorization passed.`);
+    } catch (authConvErr) {
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Conversation ownership check warning:`, authConvErr.message);
     }
   }
 
-  // 2. Real AI Generation via Gemini
-  if (AI_API_KEY) {
-    try {
-      const systemPrompt = `
+  // 3. Read GEMINI_API_KEY from server environment ONLY
+  const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '').trim();
+  const AI_MODEL = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-flash-latest';
+
+  if (!GEMINI_API_KEY) {
+    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 4 FAILED: GEMINI_API_KEY is not configured in the server environment.`);
+    return res.status(503).json({
+      error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
+      code: "MISSING_GEMINI_API_KEY",
+      details: "Server secret GEMINI_API_KEY is not configured. Please configure it in your Supabase Edge Function Secrets or Vercel Environment Variables.",
+      correlationId
+    });
+  }
+
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 4: GEMINI_API_KEY present in server environment. Model=${AI_MODEL}`);
+
+  // 4. Construct Clinical System Prompt for Mira
+  const systemPrompt = `
 # MIRA — SYSTEM INSTRUCTIONS
 ## TryHowWeSpeak Relationship Communication Companion
 
@@ -228,8 +250,6 @@ When a user shares a problem, identify:
 - What practical constraints might affect the advice.
 Do not treat the user's interpretation as established fact.
 For example, if a user says, "My partner doesn't care about me," do not immediately conclude that the partner is uncaring.
-You might respond:
-"That sounds painful. What has been happening that makes you feel they don't care? Is it mainly about time, affection, communication, or something else?"
 Ask one or two focused questions at a time when the answers would materially improve your advice.
 Do not turn every conversation into an interview. If enough context is already available, help immediately.
 Never ask a question merely to prolong the conversation.
@@ -355,108 +375,125 @@ Return ONLY a valid JSON object matching this schema:
 }
 `;
 
-      const formattedContents = [
-        { role: 'user', parts: [{ text: systemPrompt }] },
-        ...history.slice(-8).map((m) => ({
-          role: m.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: m.content }]
-        })),
-        { role: 'user', parts: [{ text: cleanMessage }] }
-      ];
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${AI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: formattedContents,
-            generationConfig: {
-              temperature: 0.35,
-              responseMimeType: 'application/json'
-            }
-          })
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed = JSON.parse(rawText);
-
-          // Record in database
-          if (userId && supabaseAdmin) {
-            try {
-              let validConv = conversationId;
-              if (!validConv || validConv === 'default' || validConv.startsWith('conv-')) {
-                const autoTitle = cleanMessage.length > 30 ? `${cleanMessage.slice(0, 30)}...` : cleanMessage;
-                const { data: createdConv } = await supabaseAdmin
-                  .from('mira_conversations')
-                  .insert({
-                    user_id: userId,
-                    title: autoTitle,
-                    conversation_type: 'general',
-                    status: 'active'
-                  })
-                  .select('id')
-                  .maybeSingle();
-
-                if (createdConv) {
-                  validConv = createdConv.id;
-                  parsed.newConversationId = validConv;
-                }
-              }
-
-              if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
-                const { data: conv } = await supabaseAdmin
-                  .from('mira_conversations')
-                  .select('id, user_id')
-                  .eq('id', validConv)
-                  .maybeSingle();
-
-                if (conv && conv.user_id === userId) {
-                  await supabaseAdmin.from('mira_messages').insert([
-                    { conversation_id: validConv, user_id: userId, role: 'user', content: cleanMessage },
-                    { conversation_id: validConv, user_id: userId, role: 'assistant', content: parsed.message, structured_data: parsed.structuredAdvice || null }
-                  ]);
-                  await supabaseAdmin.from('mira_conversations').update({ updated_at: new Date().toISOString() }).eq('id', validConv);
-                }
-              }
-
-              await supabaseAdmin.from('usage_records').insert({
-                user_id: userId,
-                action_type: 'ai_mira',
-                tokens_used: 1,
-                model_used: AI_MODEL
-              });
-            } catch (persistErr) {
-              console.warn('Mira message persistence warning:', persistErr.message);
-            }
-          }
-
-          return res.status(200).json(parsed);
-        }
+  // 5. Build strictly alternating contents structure for Google Gemini v1beta
+  const rawTurns = [];
+  if (Array.isArray(history) && history.length > 0) {
+    for (const h of history.slice(-8)) {
+      if (typeof h.content === 'string' && h.content.trim()) {
+        const role = h.role === 'assistant' ? 'model' : 'user';
+        rawTurns.push({ role, text: h.content.trim() });
       }
-    } catch (err) {
-      console.warn('Mira Gemini call failed, falling back to structured clinical response:', err.message);
+    }
+  }
+  rawTurns.push({ role: 'user', text: cleanMessage });
+
+  // Normalize turns to guarantee strict user/model alternation (avoids Gemini HTTP 400)
+  const normalizedContents = [];
+  for (const turn of rawTurns) {
+    if (normalizedContents.length === 0) {
+      normalizedContents.push({ role: turn.role, parts: [{ text: turn.text }] });
+    } else {
+      const prev = normalizedContents[normalizedContents.length - 1];
+      if (prev.role === turn.role) {
+        prev.parts[0].text += `\n\n${turn.text}`;
+      } else {
+        normalizedContents.push({ role: turn.role, parts: [{ text: turn.text }] });
+      }
     }
   }
 
-  // 3. Fallback response for dev / offline / test environments
-  const fallback = generateMiraClinicalFallback({
-    message: cleanMessage,
-    history,
-    preferences,
-    memories
-  });
+  // Ensure first turn is from user if required by provider
+  if (normalizedContents.length > 0 && normalizedContents[0].role === 'model') {
+    normalizedContents.shift();
+  }
 
+  const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 5: Sending request to Google Gemini API. endpoint=models/${AI_MODEL}:generateContent, turns=${normalizedContents.length}`);
+
+  let geminiResponse;
+  const startTime = Date.now();
+
+  try {
+    geminiResponse = await fetch(geminiEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: normalizedContents,
+        generationConfig: {
+          temperature: 0.35,
+          maxOutputTokens: 1500,
+          responseMimeType: 'application/json'
+        }
+      })
+    });
+  } catch (netErr) {
+    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Network failure calling Gemini API:`, netErr.message);
+    return res.status(502).json({
+      error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
+      code: "GEMINI_NETWORK_ERROR",
+      details: "Network failure reaching Google Gemini API.",
+      correlationId
+    });
+  }
+
+  const elapsed = Date.now() - startTime;
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 6: Gemini response received. status=${geminiResponse.status} (${elapsed}ms)`);
+
+  if (!geminiResponse.ok) {
+    const errText = await geminiResponse.text();
+    let sanitizedErr = errText;
+    try {
+      sanitizedErr = JSON.parse(errText);
+    } catch (e) {}
+
+    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Gemini returned error HTTP ${geminiResponse.status}:`, typeof sanitizedErr === 'object' ? JSON.stringify(sanitizedErr) : sanitizedErr);
+
+    return res.status(502).json({
+      error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
+      code: "GEMINI_UPSTREAM_ERROR",
+      upstreamStatus: geminiResponse.status,
+      correlationId
+    });
+  }
+
+  // 6. Parse and validate Gemini output
+  let parsed;
+  try {
+    const data = await geminiResponse.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!rawText || !rawText.trim()) {
+      console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 7 FAILED: Gemini returned empty candidate text`);
+      return res.status(502).json({
+        error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
+        code: "EMPTY_GEMINI_RESPONSE",
+        correlationId
+      });
+    }
+
+    const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
+    parsed = JSON.parse(cleanJson);
+    console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 7: Gemini response parsed successfully.`);
+  } catch (parseErr) {
+    console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 7 FAILED: Could not parse Gemini response JSON:`, parseErr.message);
+    return res.status(502).json({
+      error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
+      code: "INVALID_GEMINI_PAYLOAD",
+      correlationId
+    });
+  }
+
+  // 7. Persist to Supabase database ONLY on successful Gemini generation
   if (userId && supabaseAdmin) {
     try {
       let validConv = conversationId;
       if (!validConv || validConv === 'default' || validConv.startsWith('conv-')) {
         const autoTitle = cleanMessage.length > 30 ? `${cleanMessage.slice(0, 30)}...` : cleanMessage;
-        const { data: createdConv } = await supabaseAdmin
+        const { data: createdConv, error: createConvErr } = await supabaseAdmin
           .from('mira_conversations')
           .insert({
             user_id: userId,
@@ -467,26 +504,33 @@ Return ONLY a valid JSON object matching this schema:
           .select('id')
           .maybeSingle();
 
-        if (createdConv) {
+        if (!createConvErr && createdConv) {
           validConv = createdConv.id;
-          fallback.newConversationId = validConv;
+          parsed.newConversationId = validConv;
         }
       }
 
       if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
-        const { data: conv } = await supabaseAdmin
-          .from('mira_conversations')
-          .select('id, user_id')
-          .eq('id', validConv)
-          .maybeSingle();
+        await supabaseAdmin.from('mira_messages').insert([
+          {
+            conversation_id: validConv,
+            user_id: userId,
+            role: 'user',
+            content: cleanMessage
+          },
+          {
+            conversation_id: validConv,
+            user_id: userId,
+            role: 'assistant',
+            content: parsed.message,
+            structured_data: parsed.structuredAdvice || null
+          }
+        ]);
 
-        if (conv && conv.user_id === userId) {
-          await supabaseAdmin.from('mira_messages').insert([
-            { conversation_id: validConv, user_id: userId, role: 'user', content: cleanMessage },
-            { conversation_id: validConv, user_id: userId, role: 'assistant', content: fallback.message, structured_data: fallback.structuredAdvice || null }
-          ]);
-          await supabaseAdmin.from('mira_conversations').update({ updated_at: new Date().toISOString() }).eq('id', validConv);
-        }
+        await supabaseAdmin
+          .from('mira_conversations')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', validConv);
       }
 
       await supabaseAdmin.from('usage_records').insert({
@@ -495,8 +539,16 @@ Return ONLY a valid JSON object matching this schema:
         tokens_used: 1,
         model_used: AI_MODEL
       });
-    } catch (e) {}
+
+      console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 8: Database persistence succeeded. convId=${validConv}`);
+    } catch (persistErr) {
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Database persistence warning:`, persistErr.message);
+    }
   }
 
-  return res.status(200).json(fallback);
+  console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 9: Returning successful Gemini response to client.`);
+  return res.status(200).json({
+    ...parsed,
+    correlationId
+  });
 }
