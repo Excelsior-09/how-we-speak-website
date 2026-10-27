@@ -443,6 +443,33 @@ Return ONLY a valid JSON object matching this schema:
   const elapsed = Date.now() - startTime;
   console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 6: Gemini response received. status=${geminiResponse.status} (${elapsed}ms)`);
 
+  // Resilient failover: If primary model encounters a temporary high-demand spike (503) or 404, failover to gemini-3.5-flash
+  if (!geminiResponse.ok && (geminiResponse.status === 503 || geminiResponse.status === 404) && AI_MODEL !== 'gemini-3.5-flash') {
+    console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Model ${AI_MODEL} returned ${geminiResponse.status}. Attempting resilient failover to gemini-3.5-flash...`);
+    const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    try {
+      const fallbackResponse = await fetch(fallbackEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: normalizedContents,
+          generationConfig: {
+            temperature: 0.35,
+            maxOutputTokens: 1500,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+      if (fallbackResponse.ok) {
+        console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Resilient failover to gemini-3.5-flash succeeded with HTTP 200!`);
+        geminiResponse = fallbackResponse;
+      }
+    } catch (fbErr) {
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Failover error:`, fbErr.message);
+    }
+  }
+
   if (!geminiResponse.ok) {
     const errText = await geminiResponse.text();
     let sanitizedErr = errText;

@@ -244,21 +244,43 @@ serve(async (req: Request) => {
     const elapsed = Date.now() - startGemini;
     console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Stage 4: Gemini responded with status ${response.status} (${elapsed}ms)`);
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Gemini API error:`, response.status, errText);
+    let finalResponse = response;
+    if (!finalResponse.ok && (finalResponse.status === 503 || finalResponse.status === 404) && geminiModel !== 'gemini-3.5-flash') {
+      console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Model ${geminiModel} returned ${finalResponse.status}. Attempting resilient failover to gemini-3.5-flash...`);
+      try {
+        const fallbackRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiApiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemInstructionContent }] },
+            generationConfig: { temperature: 0.35, maxOutputTokens: 1500, responseMimeType: "application/json" },
+            contents,
+          }),
+        });
+        if (fallbackRes.ok) {
+          console.log(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Failover to gemini-3.5-flash succeeded!`);
+          finalResponse = fallbackRes;
+        }
+      } catch (fbErr) {
+        console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Failover error:`, fbErr.message);
+      }
+    }
+
+    if (!finalResponse.ok) {
+      const errText = await finalResponse.text();
+      console.error(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] Gemini API error:`, finalResponse.status, errText);
       return new Response(
         JSON.stringify({
           error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
           code: "GEMINI_UPSTREAM_ERROR",
-          upstreamStatus: response.status,
+          upstreamStatus: finalResponse.status,
           correlationId,
         }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const geminiData = await response.json();
+    const geminiData = await finalResponse.json();
     const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!rawText || !rawText.trim()) {
