@@ -16,6 +16,7 @@ import { SettingsView } from './components/SettingsView'
 import { WorkspaceView } from './components/WorkspaceView'
 import { ScriptsView } from './components/ScriptsView'
 import { MiraView } from './components/MiraView'
+import { ConfirmEmailView } from './components/ConfirmEmailView'
 import { AuthModal } from './components/AuthModal'
 import { useAuth } from './lib/useAuth'
 import { Lock, LogIn, ArrowRight } from 'lucide-react'
@@ -125,6 +126,18 @@ function AppContent() {
         {route === 'dashboard' && (
           <div className="animate-fade-in">
             <DashboardView />
+          </div>
+        )}
+
+        {/* /app/confirm-email — Dedicated Sign-Up Confirmation Page */}
+        {route === 'confirm-email' && (
+          <div className="animate-fade-in">
+            <ConfirmEmailView
+              onOpenSignIn={() => {
+                setAuthMode('signin')
+                setIsAuthOpen(true)
+              }}
+            />
           </div>
         )}
 

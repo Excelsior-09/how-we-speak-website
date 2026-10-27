@@ -21,6 +21,7 @@ const testSuites = [
   'tests/dashboard-ux-redesign.test.mjs',
   'tests/phase6-mira-and-scripts.test.mjs',
   'tests/phase7-supabase-integration.test.mjs',
+  'tests/phase8-auth-security-and-mfa.test.mjs',
 ];
 
 async function runCommand(file) {

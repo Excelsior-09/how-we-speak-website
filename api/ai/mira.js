@@ -389,8 +389,26 @@ Return ONLY a valid JSON object matching this schema:
           if (userId && supabaseAdmin) {
             try {
               let validConv = conversationId;
+              if (!validConv || validConv === 'default' || validConv.startsWith('conv-')) {
+                const autoTitle = cleanMessage.length > 30 ? `${cleanMessage.slice(0, 30)}...` : cleanMessage;
+                const { data: createdConv } = await supabaseAdmin
+                  .from('mira_conversations')
+                  .insert({
+                    user_id: userId,
+                    title: autoTitle,
+                    conversation_type: 'general',
+                    status: 'active'
+                  })
+                  .select('id')
+                  .maybeSingle();
+
+                if (createdConv) {
+                  validConv = createdConv.id;
+                  parsed.newConversationId = validConv;
+                }
+              }
+
               if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
-                // Ensure conversation belongs to user
                 const { data: conv } = await supabaseAdmin
                   .from('mira_conversations')
                   .select('id, user_id')
@@ -436,6 +454,25 @@ Return ONLY a valid JSON object matching this schema:
   if (userId && supabaseAdmin) {
     try {
       let validConv = conversationId;
+      if (!validConv || validConv === 'default' || validConv.startsWith('conv-')) {
+        const autoTitle = cleanMessage.length > 30 ? `${cleanMessage.slice(0, 30)}...` : cleanMessage;
+        const { data: createdConv } = await supabaseAdmin
+          .from('mira_conversations')
+          .insert({
+            user_id: userId,
+            title: autoTitle,
+            conversation_type: 'general',
+            status: 'active'
+          })
+          .select('id')
+          .maybeSingle();
+
+        if (createdConv) {
+          validConv = createdConv.id;
+          fallback.newConversationId = validConv;
+        }
+      }
+
       if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
         const { data: conv } = await supabaseAdmin
           .from('mira_conversations')

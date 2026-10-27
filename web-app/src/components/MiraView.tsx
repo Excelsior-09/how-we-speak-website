@@ -349,10 +349,24 @@ export const MiraView: React.FC = () => {
       }
 
       const data = await res.json()
+      const targetConvId = data.newConversationId || activeConvId
+
+      if (data.newConversationId && activeConvId !== data.newConversationId) {
+        setActiveConvId(data.newConversationId)
+        const autoTitle = msg.length > 30 ? `${msg.slice(0, 30)}...` : msg
+        const newConvItem: ConversationItem = {
+          id: data.newConversationId,
+          title: autoTitle,
+          updated_at: new Date().toISOString()
+        }
+        const updatedList = [newConvItem, ...conversations.filter(c => c.id !== 'default' && c.id !== data.newConversationId)]
+        setConversations(updatedList)
+        localStorage.setItem('hws_mira_conversations', JSON.stringify(updatedList))
+      }
 
       const assistantMessage: MiraMessage = {
         id: `ast-${Date.now()}`,
-        conversation_id: activeConvId,
+        conversation_id: targetConvId,
         user_id: user?.id || 'anon',
         role: 'assistant',
         content: data.message || "I'm listening and here to support you. Let's work through this together.",
@@ -360,7 +374,7 @@ export const MiraView: React.FC = () => {
         created_at: new Date().toISOString()
       }
 
-      saveMessages(activeConvId, [...updatedMsgs, assistantMessage])
+      saveMessages(targetConvId, [...updatedMsgs.map(m => ({ ...m, conversation_id: targetConvId })), assistantMessage])
     } catch (err: any) {
       setErrorMsg(err.message || 'Unable to connect to Mira. Please check your connection and retry.')
     } finally {

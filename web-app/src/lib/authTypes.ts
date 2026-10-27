@@ -11,7 +11,7 @@ export interface AuthContextType {
   entitlements: Entitlement[]
   isConfigured: boolean
   loading: boolean
-  signUp: (email: string, password: string, displayName?: string, archetype?: string) => Promise<{ error?: string }>
+  signUp: (email: string, password: string, displayName?: string, archetype?: string) => Promise<{ error?: string; data?: any; needsConfirmation?: boolean }>
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signInWithMagicLink: (email: string) => Promise<{ error?: string }>
   signInWithOAuth: (provider: 'google') => Promise<{ error?: string }>

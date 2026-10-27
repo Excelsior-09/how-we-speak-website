@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -160,7 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       })
       if (error) return { error: error.message }
-      return {}
+      const needsConfirmation = !data?.session || !data?.user?.email_confirmed_at
+      return { data, needsConfirmation }
     } catch (err: any) {
       return { error: err.message || 'Registration failed.' }
     }
@@ -205,14 +206,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/app/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+          },
         },
       })
       if (error) return { error: error.message }
-      return {}
+      return { data }
     } catch (err: any) {
       return { error: err.message || 'OAuth sign in failed.' }
     }

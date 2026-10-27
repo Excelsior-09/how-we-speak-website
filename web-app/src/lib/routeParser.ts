@@ -11,6 +11,7 @@ export type AppRoute =
   | 'workspace'
   | 'scripts'
   | 'mira'
+  | 'confirm-email'
 
 export function parseRoute(pathname: string): { route: AppRoute; params: Record<string, string> } {
   let clean = (pathname || '').replace(/^\/app\/?/, '')
@@ -18,6 +19,10 @@ export function parseRoute(pathname: string): { route: AppRoute; params: Record<
 
   if (!clean || clean === '') {
     return { route: 'dashboard', params: {} }
+  }
+
+  if (clean === 'confirm-email') {
+    return { route: 'confirm-email', params: {} }
   }
 
   if (clean === 'mira') {
