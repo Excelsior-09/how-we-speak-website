@@ -4,10 +4,13 @@
   "description": "A premium digital education platform focused on helping couples improve communication and build healthier relationships.",
   "main": "extract.js",
   "type": "module",
+  "workspaces": [
+    "web-app"
+  ],
   "scripts": {
     "start": "node dev-server.mjs",
     "dev": "node dev-server.mjs",
-    "build": "npm --prefix web-app run build",
+    "build": "npm --prefix web-app install && npm --prefix web-app run build",
     "dev:app": "npm --prefix web-app run dev",
     "dev:site": "node dev-server.mjs",
     "test": "node tests/run-all-tests.mjs"
