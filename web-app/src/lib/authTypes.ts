@@ -13,6 +13,8 @@ export interface AuthContextType {
   loading: boolean
   mfaRequired: boolean
   mfaFactors: any[]
+  isPasswordRecovery: boolean
+  setIsPasswordRecovery: (val: boolean) => void
   signUp: (email: string, password: string, displayName?: string, archetype?: string) => Promise<{ error?: string; data?: any; needsConfirmation?: boolean }>
   signIn: (email: string, password: string) => Promise<{ error?: string; data?: any; mfaRequired?: boolean }>
   signInWithMagicLink: (email: string) => Promise<{ error?: string }>

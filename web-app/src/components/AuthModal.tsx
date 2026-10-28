@@ -377,9 +377,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 5 }}>
-                  Password
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--charcoal)' }}>
+                    Password
+                  </label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      id="btn-forgot-password"
+                      onClick={() => {
+                        onClose()
+                        navigate('/app/reset-password')
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--burgundy)',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <div style={{ position: 'relative' }}>
                   <Lock size={16} color="var(--gray)" style={{ position: 'absolute', left: 14, top: 15 }} />
                   <input

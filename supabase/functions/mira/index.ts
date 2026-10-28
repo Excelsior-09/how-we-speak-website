@@ -51,6 +51,82 @@ RESPONSE STRUCTURE (Respond in valid JSON with these fields):
   ]
 }`;
 
+function extractAndParseJson(rawText: string) {
+  if (!rawText || typeof rawText !== "string") return null;
+
+  let text = rawText.trim();
+
+  // 1. If wrapped in markdown code fence, extract the content inside the fence
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch && fenceMatch[1]) {
+    text = fenceMatch[1].trim();
+  } else {
+    text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```+$/i, "").trim();
+  }
+
+  // 2. Direct JSON.parse
+  try {
+    return JSON.parse(text);
+  } catch (_e1) {
+    // 3. Find outer-most braces { ... }
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      const sliced = text.slice(firstBrace, lastBrace + 1).trim();
+      try {
+        return JSON.parse(sliced);
+      } catch (_e2) {
+        // 4. Try cleaning trailing commas
+        const noTrailingCommas = sliced.replace(/,(\s*[}\]])/g, "$1");
+        try {
+          return JSON.parse(noTrailingCommas);
+        } catch (_e3) {
+          try {
+            const noControlChars = noTrailingCommas.replace(/[\u0000-\u001F\u007F-\u009F]/g, (c) => {
+              if (c === "\n") return "\\n";
+              if (c === "\r") return "\\r";
+              if (c === "\t") return "\\t";
+              return "";
+            });
+            return JSON.parse(noControlChars);
+          } catch (_e4) {}
+        }
+      }
+    }
+  }
+
+  // 5. Recovery of message field
+  const msgMatch = text.match(/"message"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (msgMatch && msgMatch[1]) {
+    try {
+      const recoveredMsg = JSON.parse(`"${msgMatch[1]}"`);
+      return {
+        message: recoveredMsg,
+        structuredAdvice: null,
+        suggestedFollowUps: []
+      };
+    } catch (_) {}
+  }
+
+  if (text.length > 20) {
+    const fallbackMsg = text
+      .replace(/^[\s\S]*?"message"\s*:\s*"?/i, "")
+      .replace(/"?\s*,\s*"structuredAdvice"[\s\S]*$/i, "")
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/```$/i, "")
+      .trim();
+    if (fallbackMsg && fallbackMsg.length > 10) {
+      return {
+        message: fallbackMsg,
+        structuredAdvice: null,
+        suggestedFollowUps: []
+      };
+    }
+  }
+
+  return null;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -76,7 +152,7 @@ serve(async (req: Request) => {
     const geminiApiKey = (Deno.env.get("GEMINI_API_KEY") || Deno.env.get("AI_API_KEY") || "").trim();
     const configuredModel = (Deno.env.get("GEMINI_MODEL") || "").trim();
     const candidateModels = [
-      configuredModel,
+      (configuredModel && configuredModel !== "gemini-flash-latest") ? configuredModel : null,
       "gemini-flash-lite-latest",
       "gemini-3.5-flash-lite",
       "gemini-3.5-flash",
@@ -306,11 +382,8 @@ serve(async (req: Request) => {
       );
     }
 
-    const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
-    let aiResult;
-    try {
-      aiResult = JSON.parse(cleanJson);
-    } catch {
+    let aiResult = extractAndParseJson(rawText);
+    if (!aiResult || !aiResult.message) {
       aiResult = {
         message: rawText,
         structuredAdvice: null,

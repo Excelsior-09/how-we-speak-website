@@ -350,7 +350,9 @@ export const MiraView: React.FC = () => {
           errJson = await res.json()
         } catch (e) {}
         const fallbackErr = "Mira couldn't connect right now. Your message has not been lost. Please try again."
-        throw new Error(errJson?.error || fallbackErr)
+        const customMessage = errJson?.error || fallbackErr
+        const correlationNote = errJson?.correlationId ? ` (Ref: ${errJson.correlationId})` : ''
+        throw new Error(`${customMessage}${correlationNote}`)
       }
 
       const data = await res.json()
@@ -382,6 +384,9 @@ export const MiraView: React.FC = () => {
       saveMessages(targetConvId, [...updatedMsgs.map(m => ({ ...m, conversation_id: targetConvId })), assistantMessage])
     } catch (err: any) {
       setErrorMsg(err.message || "Mira couldn't connect right now. Your message has not been lost. Please try again.")
+      if (!inputMessage) {
+        setInputMessage(msg)
+      }
     } finally {
       setIsLoading(false)
     }

@@ -17,6 +17,7 @@ import { WorkspaceView } from './components/WorkspaceView'
 import { ScriptsView } from './components/ScriptsView'
 import { MiraView } from './components/MiraView'
 import { ConfirmEmailView } from './components/ConfirmEmailView'
+import { ResetPasswordView } from './components/ResetPasswordView'
 import { MfaChallengeGate } from './components/MfaChallengeGate'
 import { AuthModal } from './components/AuthModal'
 import { useAuth } from './lib/useAuth'
@@ -73,7 +74,7 @@ function AuthRequiredGate({ title, onSignIn }: { title: string; onSignIn: () => 
 
 function AppContent() {
   const { route, params, navigate, returnTo, setReturnTo } = useRouter()
-  const { user, activeSpace, mfaRequired } = useAuth()
+  const { user, activeSpace, mfaRequired, isPasswordRecovery } = useAuth()
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
 
@@ -86,6 +87,12 @@ function AppContent() {
       const searchParams = new URLSearchParams(window.location.search)
       const authParam = searchParams.get('auth') || searchParams.get('mode')
       const hash = window.location.hash
+
+      if (isPasswordRecovery || hash.includes('type=recovery') || searchParams.get('type') === 'recovery') {
+        navigate('/app/reset-password', { replace: true })
+        return
+      }
+
       if (!user && (authParam === 'signup' || hash === '#signup')) {
         setAuthMode('signup')
         setIsAuthOpen(true)
@@ -94,7 +101,7 @@ function AppContent() {
         setIsAuthOpen(true)
       }
     }
-  }, [user])
+  }, [user, isPasswordRecovery, navigate])
 
   const handleAuthSuccess = () => {
     setIsAuthOpen(false)
@@ -124,23 +131,46 @@ function AppContent() {
         padding: '36px 24px 80px',
       }}>
         {mfaRequired ? (
-          <div className="animate-fade-in">
-            <MfaChallengeGate
-              onSuccess={() => {
-                if (returnTo) {
-                  const dest = returnTo
-                  setReturnTo(null)
-                  navigate(dest)
-                }
-              }}
-              onCancel={() => {
-                setIsAuthOpen(true)
-                setAuthMode('signin')
-              }}
-            />
-          </div>
+          !isPasswordRecovery && route !== 'reset-password' ? (
+            <div className="animate-fade-in">
+              <MfaChallengeGate
+                onSuccess={() => {
+                  if (returnTo) {
+                    const dest = returnTo
+                    setReturnTo(null)
+                    navigate(dest)
+                  }
+                }}
+                onCancel={() => {
+                  setIsAuthOpen(true)
+                  setAuthMode('signin')
+                }}
+              />
+            </div>
+          ) : (
+            <div className="animate-fade-in">
+              <ResetPasswordView
+                onSignIn={() => {
+                  setAuthMode('signin')
+                  setIsAuthOpen(true)
+                }}
+              />
+            </div>
+          )
         ) : (
           <>
+            {/* /app/reset-password — Dedicated Password Reset & Account Recovery */}
+            {route === 'reset-password' && (
+              <div className="animate-fade-in">
+                <ResetPasswordView
+                  onSignIn={() => {
+                    setAuthMode('signin')
+                    setIsAuthOpen(true)
+                  }}
+                />
+              </div>
+            )}
+
             {/* /app — Dashboard */}
             {route === 'dashboard' && (
               <div className="animate-fade-in">

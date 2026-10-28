@@ -67,6 +67,30 @@
   ],
   "rewrites": [
     {
+      "source": "/reset-password",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/reset-password/",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/password-reset",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/recovery",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/auth/callback",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/app",
       "destination": "/app/index.html"
     },

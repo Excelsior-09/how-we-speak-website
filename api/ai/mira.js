@@ -9,6 +9,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+export const maxDuration = 30;
+
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -19,6 +21,86 @@ const supabaseAdmin = (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
 function sanitize(text, max = 3000) {
   if (typeof text !== 'string') return '';
   return text.trim().slice(0, max);
+}
+
+// Resilient extraction and validation for LLM-generated JSON
+export function extractAndParseJson(rawText) {
+  if (!rawText || typeof rawText !== 'string') return null;
+
+  let text = rawText.trim();
+
+  // 1. If wrapped in markdown code fence, extract the content inside the fence
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch && fenceMatch[1]) {
+    text = fenceMatch[1].trim();
+  } else {
+    // Also remove leading ```json or trailing ``` if unclosed or malformed
+    text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```+$/i, '').trim();
+  }
+
+  // 2. Direct JSON.parse
+  try {
+    return JSON.parse(text);
+  } catch (e1) {
+    // 3. Find outer-most braces { ... }
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      const sliced = text.slice(firstBrace, lastBrace + 1).trim();
+      try {
+        return JSON.parse(sliced);
+      } catch (e2) {
+        // 4. Try cleaning trailing commas: e.g. , } or , ]
+        const noTrailingCommas = sliced.replace(/,(\s*[}\]])/g, '$1');
+        try {
+          return JSON.parse(noTrailingCommas);
+        } catch (e3) {
+          // 5. Try fixing unescaped control characters inside strings
+          try {
+            const noControlChars = noTrailingCommas.replace(/[\u0000-\u001F\u007F-\u009F]/g, (c) => {
+              if (c === '\n') return '\\n';
+              if (c === '\r') return '\\r';
+              if (c === '\t') return '\\t';
+              return '';
+            });
+            return JSON.parse(noControlChars);
+          } catch (e4) {}
+        }
+      }
+    }
+  }
+
+  // 6. Resilient Recovery: extract "message" field if valid JSON substring exists
+  const msgMatch = text.match(/"message"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (msgMatch && msgMatch[1]) {
+    try {
+      const recoveredMsg = JSON.parse(`"${msgMatch[1]}"`);
+      return {
+        message: recoveredMsg,
+        structuredAdvice: null,
+        suggestedFollowUps: []
+      };
+    } catch (_) {}
+  }
+
+  // 7. Non-empty human language recovery: preserve real advice rather than returning error
+  if (text.length > 20) {
+    const fallbackMsg = text
+      .replace(/^[\s\S]*?"message"\s*:\s*"?/i, '')
+      .replace(/"?\s*,\s*"structuredAdvice"[\s\S]*$/i, '')
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/```$/i, '')
+      .trim();
+    if (fallbackMsg && fallbackMsg.length > 10) {
+      return {
+        message: fallbackMsg,
+        structuredAdvice: null,
+        suggestedFollowUps: []
+      };
+    }
+  }
+
+  return null;
 }
 
 // Built-in clinical fallback generator exported for testing / offline utilities
@@ -207,7 +289,7 @@ export default async function handler(req, res) {
   const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '').trim();
   const configuredModel = (process.env.GEMINI_MODEL || process.env.AI_MODEL || '').trim();
   const candidateModels = [
-    configuredModel,
+    (configuredModel && configuredModel !== 'gemini-flash-latest') ? configuredModel : null,
     'gemini-flash-lite-latest',
     'gemini-3.5-flash-lite',
     'gemini-3.5-flash',
@@ -500,14 +582,17 @@ Return ONLY a valid JSON object matching this schema:
       });
     }
 
-    const cleanJson = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
-    parsed = JSON.parse(cleanJson);
+    parsed = extractAndParseJson(rawText);
+    if (!parsed || !parsed.message) {
+      throw new Error('Parsed payload missing valid message content');
+    }
     console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 7: Gemini response parsed successfully.`);
   } catch (parseErr) {
     console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 7 FAILED: Could not parse Gemini response JSON:`, parseErr.message);
     return res.status(502).json({
       error: "Mira couldn't connect right now. Your message has not been lost. Please try again.",
       code: "INVALID_GEMINI_PAYLOAD",
+      details: parseErr.message,
       correlationId
     });
   }

@@ -24,6 +24,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true)
   const [mfaRequired, setMfaRequired] = useState<boolean>(false)
   const [mfaFactors, setMfaFactors] = useState<any[]>([])
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || ''
+      const search = window.location.search || ''
+      return hash.includes('type=recovery') || search.includes('type=recovery')
+    }
+    return false
+  })
 
   const fetchUserData = useCallback(async (userId: string, email: string) => {
     if (!isConfigured) return
@@ -143,6 +151,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return
     }
 
+    // Handle PKCE code exchange or recovery tokens
+    if (typeof window !== 'undefined') {
+      const search = window.location.search || ''
+      const hash = window.location.hash || ''
+      const urlParams = new URLSearchParams(search)
+      const code = urlParams.get('code')
+
+      if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+        setIsPasswordRecovery(true)
+      }
+
+      if (code) {
+        supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+          if (!error && data?.session) {
+            setSession(data.session)
+            setUser(data.user)
+            if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+              setIsPasswordRecovery(true)
+            }
+          }
+        }).catch(err => {
+          console.warn('PKCE exchange error:', err)
+        })
+      }
+    }
+
     // Live Supabase Auth session restoration
     supabase.auth.getSession().then(async ({ data: { session: initSession }, error }) => {
       if (error) {
@@ -165,8 +199,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      const event = _event
       setSession(currentSession)
       setUser(currentSession?.user ?? null)
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true)
+      }
 
       if (currentSession?.user) {
         const isMfaNeeded = await checkMfaStatus()
@@ -180,6 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setEntitlements([])
         setMfaRequired(false)
         setMfaFactors([])
+        setIsPasswordRecovery(false)
       }
       setLoading(false)
     })
@@ -349,8 +389,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
+      const redirectUrl = `${window.location.origin}/app/reset-password`
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/app/settings`,
+        redirectTo: redirectUrl,
       })
       if (error) return { error: error.message }
       return {}
@@ -367,6 +408,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) return { error: error.message }
+      setIsPasswordRecovery(false)
       return {}
     } catch (err: any) {
       return { error: err.message || 'Failed to update password.' }
@@ -463,6 +505,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         mfaRequired,
         mfaFactors,
+        isPasswordRecovery,
+        setIsPasswordRecovery,
         signUp,
         signIn,
         signInWithMagicLink,

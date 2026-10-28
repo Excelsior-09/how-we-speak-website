@@ -12,13 +12,18 @@ export type AppRoute =
   | 'scripts'
   | 'mira'
   | 'confirm-email'
+  | 'reset-password'
 
 export function parseRoute(pathname: string): { route: AppRoute; params: Record<string, string> } {
-  let clean = (pathname || '').replace(/^\/app\/?/, '')
+  let clean = (pathname || '').replace(/^\/app\/?/, '').replace(/^\//, '')
   clean = clean.replace(/\/$/, '')
 
   if (!clean || clean === '') {
     return { route: 'dashboard', params: {} }
+  }
+
+  if (clean === 'reset-password' || clean === 'password-reset' || clean === 'recovery') {
+    return { route: 'reset-password', params: {} }
   }
 
   if (clean === 'confirm-email') {
