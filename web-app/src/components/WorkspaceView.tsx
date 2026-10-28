@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
+import { executeRecaptcha } from '../lib/recaptcha'
 
 interface WorkspaceViewProps {
   partnerLinked?: boolean
@@ -195,13 +196,22 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
     const activeTopic = isCustomTopic ? customTopic : topic
 
     try {
+      let captchaToken: string | null = null
+      try {
+        captchaToken = await executeRecaptcha('joint_summary')
+      } catch (cErr) {}
+
       // Call joint summary or Mira endpoint with explicitly authorized content
       const res = await fetch('/api/ai/joint-summary', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(captchaToken ? { 'x-captcha-token': captchaToken } : {}),
+        },
         body: JSON.stringify({
           exerciseId: 'ex_couples_joint_session',
           mockExercise: { topic: activeTopic },
+          captchaToken: captchaToken || undefined,
           mockReflections: [
             {
               trigger_notes: myExperience,

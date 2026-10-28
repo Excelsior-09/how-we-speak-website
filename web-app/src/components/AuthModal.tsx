@@ -470,6 +470,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </>
               )}
             </div>
+            <div style={{ marginTop: 12, textAlign: 'center', fontSize: 11, color: 'var(--gray)' }}>
+              Protected by Google reCAPTCHA. <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'var(--gray)', textDecoration: 'underline' }}>Privacy</a> &middot; <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: 'var(--gray)', textDecoration: 'underline' }}>Terms</a>
+            </div>
           </>
         )}
       </div>

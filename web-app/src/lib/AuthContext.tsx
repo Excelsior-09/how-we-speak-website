@@ -9,6 +9,7 @@ import type { User, Session } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from './supabase'
 import type { Profile, CouplesSpace, Entitlement } from '../types/database'
 import { AuthContext } from './authTypes'
+import { executeRecaptcha } from './recaptcha'
 
 export const MAIN_WEBSITE_URL = 'https://tryhowwespeak.com/'
 
@@ -239,6 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
+      const captchaToken = await executeRecaptcha('signup')
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -248,6 +250,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             archetype: archetype || 'Avoider',
           },
           emailRedirectTo: `${window.location.origin}/app/`,
+          captchaToken: captchaToken || undefined,
         },
       })
       if (error) return { error: error.message }
@@ -264,7 +267,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      const captchaToken = await executeRecaptcha('login')
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: {
+          captchaToken: captchaToken || undefined,
+        },
+      })
       if (error) return { error: error.message }
 
       // Check if 2FA verification is required before granting access
@@ -347,10 +357,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
+      const captchaToken = await executeRecaptcha('magic_link')
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/app/`,
+          captchaToken: captchaToken || undefined,
         },
       })
       if (error) return { error: error.message }
@@ -366,6 +378,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
+      await executeRecaptcha('oauth_google')
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -390,8 +403,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const redirectUrl = `${window.location.origin}/app/reset-password`
+      const captchaToken = await executeRecaptcha('password_reset')
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
+        captchaToken: captchaToken || undefined,
       })
       if (error) return { error: error.message }
       return {}

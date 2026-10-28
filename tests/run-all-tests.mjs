@@ -26,6 +26,7 @@ const testSuites = [
   'tests/phase10-production-auth.test.mjs',
   'tests/phase11-auth-mfa-and-logout.test.mjs',
   'tests/phase12-password-reset-and-mira-fix.test.mjs',
+  'tests/phase13-recaptcha-security.test.mjs',
 ];
 
 async function runCommand(file) {

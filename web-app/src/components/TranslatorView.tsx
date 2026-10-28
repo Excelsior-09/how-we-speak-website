@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
+import { executeRecaptcha } from '../lib/recaptcha'
 import type { RehearsalPlan, FollowupPractice, CommunicationGoal, PreferredTone } from '../types/database'
 
 interface GeneratedScript {
@@ -147,10 +148,19 @@ export const TranslatorView: React.FC = () => {
         headers['Authorization'] = `Bearer ${session.access_token}`
       }
 
+      let captchaToken: string | null = null
+      try {
+        captchaToken = await executeRecaptcha('rehearsal')
+      } catch (cErr) {}
+
+      if (captchaToken) {
+        headers['x-captcha-token'] = captchaToken
+      }
+
       const res = await fetch('/api/ai/rehearsal', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ situation, goal, tone }),
+        body: JSON.stringify({ situation, goal, tone, captchaToken: captchaToken || undefined }),
       })
 
       const json = await res.json()
@@ -178,12 +188,21 @@ export const TranslatorView: React.FC = () => {
     setIsSimulatingFollowup(true)
 
     try {
+      let captchaToken: string | null = null
+      try {
+        captchaToken = await executeRecaptcha('followup')
+      } catch (cErr) {}
+
       const res = await fetch('/api/ai/followup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(captchaToken ? { 'x-captcha-token': captchaToken } : {}),
+        },
         body: JSON.stringify({
           chosenScript: selectedScriptForFollowup,
           partnerReaction: rx,
+          captchaToken: captchaToken || undefined,
         }),
       })
 

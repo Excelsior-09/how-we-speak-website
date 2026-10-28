@@ -5,6 +5,8 @@
 // ==============================================================================
 
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '../lib/rate-limiter.js';
+import { verifyRecaptchaToken } from '../lib/recaptcha.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -66,6 +68,34 @@ function generateClinicalFollowupFallback(chosenScript, partnerReaction) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Rate Limiting: Max 20 followup requests per minute per client IP
+  const clientIp = getClientIp(req);
+  const rateLimit = checkRateLimit(`followup:${clientIp}`, { limit: 20, windowMs: 60000 });
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', Math.ceil(rateLimit.resetMs / 1000));
+    return res.status(429).json({
+      error: 'Rate limit exceeded. Please wait a moment before requesting more followups.',
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfter: Math.ceil(rateLimit.resetMs / 1000)
+    });
+  }
+
+  // reCAPTCHA Token Verification
+  const captchaToken = req.body?.captchaToken || req.headers['x-captcha-token'];
+  const recaptchaCheck = await verifyRecaptchaToken({
+    token: captchaToken,
+    expectedAction: 'followup',
+    minScore: 0.5,
+    remoteIp: clientIp
+  });
+
+  if (!recaptchaCheck.success) {
+    return res.status(403).json({
+      error: recaptchaCheck.error || 'Security verification failed. Please try again.',
+      code: recaptchaCheck.code || 'CAPTCHA_VERIFICATION_FAILED'
+    });
   }
 
   const { chosenScript, partnerReaction } = req.body || {};

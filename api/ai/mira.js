@@ -8,6 +8,8 @@
 // ==============================================================================
 
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '../lib/rate-limiter.js';
+import { verifyRecaptchaToken } from '../lib/recaptcha.js';
 
 export const maxDuration = 30;
 
@@ -195,6 +197,38 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Method not allowed: ${req.method}`);
     return res.status(405).json({ error: 'Method Not Allowed', correlationId });
+  }
+
+  // Rate Limiting: Max 25 message submissions per minute per client IP
+  const clientIp = getClientIp(req);
+  const rateLimit = checkRateLimit(`mira:${clientIp}`, { limit: 25, windowMs: 60000 });
+  if (!rateLimit.allowed) {
+    res.setHeader('Retry-After', Math.ceil(rateLimit.resetMs / 1000));
+    console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Rate limit exceeded for IP ${clientIp}`);
+    return res.status(429).json({
+      error: 'Rate limit exceeded. Please wait a moment before sending more messages.',
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfter: Math.ceil(rateLimit.resetMs / 1000),
+      correlationId
+    });
+  }
+
+  // Google reCAPTCHA v3 Verification
+  const captchaToken = req.body?.captchaToken || req.headers['x-captcha-token'];
+  const recaptchaCheck = await verifyRecaptchaToken({
+    token: captchaToken,
+    expectedAction: 'mira_chat',
+    minScore: 0.5,
+    remoteIp: clientIp,
+  });
+
+  if (!recaptchaCheck.success) {
+    console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] reCAPTCHA verification failed: ${recaptchaCheck.code}`);
+    return res.status(403).json({
+      error: recaptchaCheck.error || 'Security verification failed. Please try again.',
+      code: recaptchaCheck.code || 'CAPTCHA_VERIFICATION_FAILED',
+      correlationId
+    });
   }
 
   const {

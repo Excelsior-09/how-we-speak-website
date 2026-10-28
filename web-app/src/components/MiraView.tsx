@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
+import { executeRecaptcha } from '../lib/recaptcha'
 import type { MiraMessage, MiraPreferences, MiraMemory } from '../types/database'
 
 interface ConversationItem {
@@ -322,14 +323,22 @@ export const MiraView: React.FC = () => {
 
       const activeMemories = preferences.persistent_memory_enabled ? memories.map(m => m.content) : []
 
+      // Invisible Google reCAPTCHA v3 bot token execution
+      let captchaToken: string | null = null
+      try {
+        captchaToken = await executeRecaptcha('mira_chat')
+      } catch (cErr) {}
+
       const res = await fetch('/api/ai/mira', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          ...(captchaToken ? { 'x-captcha-token': captchaToken } : {})
         },
         body: JSON.stringify({
           message: msg,
+          captchaToken: captchaToken || undefined,
           conversationId: activeConvId,
           history: updatedMsgs.slice(-8).map(m => ({ role: m.role, content: m.content })),
           preferences,
@@ -340,6 +349,13 @@ export const MiraView: React.FC = () => {
       if (res.status === 402) {
         const errData = await res.json()
         setErrorMsg(errData.error || 'Free trial limit reached. Please upgrade to continue.')
+        setIsLoading(false)
+        return
+      }
+
+      if (res.status === 429) {
+        const errData = await res.json()
+        setErrorMsg(errData.error || 'Rate limit reached. Please wait a moment before sending more messages.')
         setIsLoading(false)
         return
       }
@@ -924,6 +940,9 @@ export const MiraView: React.FC = () => {
             >
               <Send size={16} />
             </button>
+          </div>
+          <div style={{ padding: '4px 20px 8px', fontSize: 11, color: 'var(--gray)', textAlign: 'center' }}>
+            Protected by Google reCAPTCHA. <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'var(--gray)', textDecoration: 'underline' }}>Privacy</a> &middot; <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" style={{ color: 'var(--gray)', textDecoration: 'underline' }}>Terms</a>
           </div>
         </div>
       </div>

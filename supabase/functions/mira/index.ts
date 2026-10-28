@@ -196,6 +196,48 @@ serve(async (req: Request) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Google reCAPTCHA Bot Protection (if configured in Supabase Edge Secrets)
+    const recaptchaSecret = (Deno.env.get("RECAPTCHA_SECRET_KEY") || "").trim();
+    if (recaptchaSecret) {
+      const captchaToken = body.captchaToken || req.headers.get("x-captcha-token");
+      if (!captchaToken) {
+        return new Response(
+          JSON.stringify({
+            error: "Security verification token is required.",
+            code: "CAPTCHA_TOKEN_MISSING",
+            correlationId
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      try {
+        const verifyParams = new URLSearchParams();
+        verifyParams.append("secret", recaptchaSecret);
+        verifyParams.append("response", captchaToken.trim());
+
+        const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+          method: "POST",
+          body: verifyParams,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        });
+
+        const verifyData = await verifyRes.json();
+        if (!verifyData.success || (typeof verifyData.score === "number" && verifyData.score < 0.5)) {
+          return new Response(
+            JSON.stringify({
+              error: "Security verification failed. Please try again.",
+              code: "CAPTCHA_VERIFICATION_FAILED",
+              correlationId
+            }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (e: any) {
+        console.warn(`[EDGE_MIRA_DIAGNOSTIC][${correlationId}] reCAPTCHA siteverify error:`, e.message);
+      }
+    }
+
     // 1. Verify Usage Entitlements
     const { data: allowanceData } = await supabaseAdmin.rpc("check_user_ai_allowance", {
       check_user_id: user.id,

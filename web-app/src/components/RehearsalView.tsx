@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { useRouter } from '../lib/useRouter'
+import { executeRecaptcha } from '../lib/recaptcha'
 import { supabase } from '../lib/supabase'
 import type {
   SituationCategory,
@@ -143,6 +144,15 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
         headers['Authorization'] = `Bearer ${session.access_token}`
       }
 
+      let captchaToken: string | null = null
+      try {
+        captchaToken = await executeRecaptcha('rehearsal')
+      } catch (cErr) {}
+
+      if (captchaToken) {
+        headers['x-captcha-token'] = captchaToken
+      }
+
       const res = await fetch('/api/ai/rehearsal', {
         method: 'POST',
         headers,
@@ -153,6 +163,7 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
           preferredTone,
           communicationMethod,
           additionalContext,
+          captchaToken: captchaToken || undefined,
         }),
       })
 
