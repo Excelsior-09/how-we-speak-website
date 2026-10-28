@@ -71,7 +71,7 @@
       "destination": "/app/index.html"
     },
     {
-      "source": "/reset-password/",
+      "source": "/reset-password/(.*)",
       "destination": "/app/index.html"
     },
     {
@@ -79,7 +79,15 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/password-reset/(.*)",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/recovery",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/recovery/(.*)",
       "destination": "/app/index.html"
     },
     {
@@ -95,7 +103,7 @@
       "destination": "/app/index.html"
     },
     {
-      "source": "/app/",
+      "source": "/app/(.*)",
       "destination": "/app/index.html"
     },
     {

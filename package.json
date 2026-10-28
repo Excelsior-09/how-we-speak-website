@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node dev-server.mjs",
     "dev": "node dev-server.mjs",
-    "build": "npm --prefix web-app install && npm --prefix web-app run build",
+    "build": "npm --prefix web-app install && npm --prefix web-app run build && node scripts/sync-app-routes.mjs",
     "dev:app": "npm --prefix web-app run dev",
     "dev:site": "node dev-server.mjs",
     "test": "node tests/run-all-tests.mjs"
