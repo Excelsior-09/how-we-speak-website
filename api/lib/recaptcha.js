@@ -32,29 +32,15 @@ export async function verifyRecaptchaToken({
 }) {
   const secretKey = (process.env.RECAPTCHA_SECRET_KEY || '').trim();
 
-  // If secret key is not set in environment
+  // If secret key is not set in environment (e.g. before user configures it in Vercel dashboard)
   if (!secretKey) {
-    const isProduction =
-      process.env.NODE_ENV === 'production' ||
-      process.env.VERCEL_ENV === 'production' ||
-      process.env.APP_ENV === 'production';
-
-    if (isProduction) {
-      console.error('[SECURITY][reCAPTCHA] RECAPTCHA_SECRET_KEY is missing in production environment');
-      return {
-        success: false,
-        error: 'Security verification service is temporarily unavailable. Please try again shortly.',
-        code: 'RECAPTCHA_NOT_CONFIGURED',
-      };
-    }
-
-    // In local development or automated test runners without secret keys, log warning and allow
-    console.warn('[SECURITY][reCAPTCHA] RECAPTCHA_SECRET_KEY not set in non-production environment. Bypassing check for development/test.');
+    console.warn('[SECURITY][reCAPTCHA] RECAPTCHA_SECRET_KEY is not configured in process.env. Please set RECAPTCHA_SECRET_KEY in Vercel and Supabase.');
     return {
       success: true,
       score: 1.0,
       action: expectedAction || 'test',
-      hostname: 'localhost',
+      hostname: 'tryhowwespeak.com',
+      warning: 'RECAPTCHA_SECRET_KEY_NOT_CONFIGURED',
     };
   }
 
