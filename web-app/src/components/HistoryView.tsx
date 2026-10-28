@@ -432,9 +432,22 @@ export const HistoryView: React.FC = () => {
                     }}>
                       <Sparkles size={16} />
                     </div>
-                    <h3 style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>
-                      {conv.title || 'Conversation with Mira'}
-                    </h3>
+                    <div>
+                      <h3 style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>
+                        {conv.title || 'Conversation with Mira'}
+                      </h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                        {conv.is_shared ? (
+                          <span className="badge badge-gold" style={{ fontSize: 10.5, padding: '2px 8px' }}>
+                            Shared with Partner
+                          </span>
+                        ) : (
+                          <span className="badge badge-neutral" style={{ fontSize: 10.5, padding: '2px 8px' }}>
+                            Private Mira Space
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <button
@@ -466,11 +479,17 @@ export const HistoryView: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => navigate('/app/mira')}
+                    onClick={() => {
+                      if (conv.is_shared) {
+                        navigate('/app/workspace')
+                      } else {
+                        navigate('/app/mira')
+                      }
+                    }}
                     className="btn btn-secondary"
                     style={{ padding: '6px 14px', fontSize: 12.5, minHeight: 'auto', gap: 6 }}
                   >
-                    <span>Resume Chat</span>
+                    <span>{conv.is_shared ? 'Open Shared Space' : 'Resume Chat'}</span>
                     <ArrowRight size={13} />
                   </button>
                 </div>

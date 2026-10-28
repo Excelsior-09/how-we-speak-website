@@ -91,6 +91,14 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/invite",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/invite/(.*)",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/login",
       "destination": "/app/index.html"
     },

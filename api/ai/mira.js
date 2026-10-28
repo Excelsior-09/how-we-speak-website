@@ -635,6 +635,9 @@ Return ONLY a valid JSON object matching this schema:
   if (userId && supabaseAdmin) {
     try {
       let validConv = conversationId;
+      const isSharedReq = Boolean(req.body?.isShared && req.body?.spaceId);
+      const reqSpaceId = req.body?.spaceId || null;
+
       if (!validConv || validConv === 'default' || validConv.startsWith('conv-')) {
         const autoTitle = cleanMessage.length > 30 ? `${cleanMessage.slice(0, 30)}...` : cleanMessage;
         const { data: createdConv, error: createConvErr } = await supabaseAdmin
@@ -642,8 +645,10 @@ Return ONLY a valid JSON object matching this schema:
           .insert({
             user_id: userId,
             title: autoTitle,
-            conversation_type: 'general',
-            status: 'active'
+            conversation_type: isSharedReq ? 'partner' : 'general',
+            status: 'active',
+            is_shared: isSharedReq,
+            space_id: reqSpaceId
           })
           .select('id')
           .maybeSingle();
@@ -652,22 +657,55 @@ Return ONLY a valid JSON object matching this schema:
           validConv = createdConv.id;
           parsed.newConversationId = validConv;
         }
+      } else {
+        // Verify conversation ownership or shared space authorization
+        const { data: existingConv } = await supabaseAdmin
+          .from('mira_conversations')
+          .select('id, user_id, is_shared, space_id')
+          .eq('id', validConv)
+          .maybeSingle();
+
+        if (existingConv) {
+          if (existingConv.is_shared && existingConv.space_id) {
+            // Verify caller is a partner in this space
+            const { data: space } = await supabaseAdmin
+              .from('couples_spaces')
+              .select('partner_1_id, partner_2_id')
+              .eq('id', existingConv.space_id)
+              .maybeSingle();
+
+            const isAuthorized = space && (space.partner_1_id === userId || space.partner_2_id === userId);
+            if (!isAuthorized && process.env.NODE_ENV === 'production') {
+              console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] User ${userId} unauthorized for shared conversation ${validConv}`);
+              validConv = null;
+            }
+          } else if (existingConv.user_id !== userId && process.env.NODE_ENV === 'production') {
+            console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] User ${userId} does not own private conversation ${validConv}`);
+            validConv = null;
+          }
+        }
       }
 
       if (validConv && validConv !== 'default' && !validConv.startsWith('conv-')) {
+        const clientUserMsgId = req.body?.userMessageId || `usr_${validConv}_${Date.now()}`;
+        const assistantMsgId = `ast_${validConv}_${Date.now()}`;
+
+        // Insert user message and assistant message
         await supabaseAdmin.from('mira_messages').insert([
           {
             conversation_id: validConv,
             user_id: userId,
             role: 'user',
-            content: cleanMessage
+            content: cleanMessage,
+            idempotency_key: clientUserMsgId
           },
           {
             conversation_id: validConv,
             user_id: userId,
             role: 'assistant',
             content: parsed.message,
-            structured_data: parsed.structuredAdvice || null
+            structured_data: parsed.structuredAdvice || null,
+            idempotency_key: assistantMsgId
           }
         ]);
 

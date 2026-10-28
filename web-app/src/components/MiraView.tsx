@@ -110,22 +110,44 @@ export const MiraView: React.FC = () => {
           }
         } catch (e) {}
 
-        // 3. Conversations
+        // 3. Persistent Supabase Conversations
         try {
-          const { data: convData } = await supabase
+          const { data: convData, error: convErr } = await supabase
             .from('mira_conversations')
             .select('id, title, updated_at')
             .eq('user_id', user.id)
+            .eq('is_shared', false)
             .order('updated_at', { ascending: false })
-          if (convData && convData.length > 0) {
+
+          if (!convErr && convData && convData.length > 0) {
             setConversations(convData as ConversationItem[])
             setActiveConvId(convData[0].id)
             return
+          } else if (!convErr && (!convData || convData.length === 0)) {
+            // First time user: initialize initial persistent conversation in Supabase
+            const { data: initialConv } = await supabase
+              .from('mira_conversations')
+              .insert({
+                user_id: user.id,
+                title: 'Conversation with Mira',
+                is_shared: false,
+                status: 'active'
+              })
+              .select('id, title, updated_at')
+              .maybeSingle()
+
+            if (initialConv) {
+              setConversations([initialConv as ConversationItem])
+              setActiveConvId(initialConv.id)
+              return
+            }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Error loading Supabase conversations:', e)
+        }
       }
 
-      // Local fallback if unauthenticated
+      // Local fallback ONLY if unauthenticated or offline
       const savedPrefs = localStorage.getItem('hws_mira_preferences')
       if (savedPrefs) {
         try { setPreferences(JSON.parse(savedPrefs)) } catch (e) {}
@@ -385,6 +407,23 @@ export const MiraView: React.FC = () => {
         const updatedList = [newConvItem, ...conversations.filter(c => c.id !== 'default' && c.id !== data.newConversationId)]
         setConversations(updatedList)
         localStorage.setItem('hws_mira_conversations', JSON.stringify(updatedList))
+      }
+
+      if (user && isConfigured && targetConvId && targetConvId !== 'default' && !targetConvId.startsWith('conv-')) {
+        try {
+          const { data: dbMessages } = await supabase
+            .from('mira_messages')
+            .select('*')
+            .eq('conversation_id', targetConvId)
+            .order('created_at', { ascending: true })
+
+          if (dbMessages && dbMessages.length > 0) {
+            setMessages(dbMessages as MiraMessage[])
+            return
+          }
+        } catch (dbErr) {
+          console.warn('Error fetching persisted messages from Supabase:', dbErr)
+        }
       }
 
       const assistantMessage: MiraMessage = {
@@ -654,6 +693,25 @@ export const MiraView: React.FC = () => {
         }}>
           {/* Scrollable Message List */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Explicit Privacy Banner */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              borderRadius: 10,
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              fontSize: 12,
+              color: '#065f46'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                <strong style={{ fontWeight: 600 }}>Private & Confidential Mira Space</strong>
+              </div>
+              <span style={{ color: '#047857' }}>Saved to your account • Visible only to you</span>
+            </div>
+
             {/* Welcoming state for empty conversation */}
             {messages.length === 0 && (
               <div style={{ maxWidth: 640, margin: 'auto', textAlign: 'center', padding: '40px 20px' }}>

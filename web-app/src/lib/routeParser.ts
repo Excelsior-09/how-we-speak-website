@@ -51,7 +51,7 @@ export function parseRoute(pathname: string): { route: AppRoute; params: Record<
     return { route: 'settings', params: {} }
   }
 
-  if (clean === 'workspace') {
+  if (clean === 'workspace' || clean === 'partner' || clean === 'invite') {
     return { route: 'workspace', params: {} }
   }
 

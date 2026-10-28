@@ -190,6 +190,10 @@ export interface MiraConversation {
   id: string
   user_id: string
   title: string
+  is_shared?: boolean
+  space_id?: string | null
+  conversation_type?: string
+  status?: string
   created_at: string
   updated_at: string
 }
@@ -201,6 +205,30 @@ export interface MiraMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
   structured_data?: MiraStructuredAdvice | null
+  sender_name?: string
+  idempotency_key?: string
+  created_at: string
+}
+
+export interface ConversationAnalysis {
+  id: string
+  conversation_id: string
+  space_id: string
+  requested_by: string
+  analysis_type: string
+  overview: string
+  partner_1_perspective?: string | null
+  partner_2_perspective?: string | null
+  misunderstandings: string[]
+  shared_longings: string[]
+  repair_steps: Array<{
+    step: number
+    title: string
+    action: string
+    scriptPartner1?: string
+    scriptPartner2?: string
+  }>
+  clarifying_questions: string[]
   created_at: string
 }
 
