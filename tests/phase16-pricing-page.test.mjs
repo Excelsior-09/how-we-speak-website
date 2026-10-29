@@ -180,5 +180,59 @@ test('Phase 16: TryHowWeSpeak /pricing Page Implementation & Quality Verificatio
     const componentsJs = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'components.js'), 'utf8');
     assert.ok(componentsJs.includes('href="/pricing"'), 'components.js navbar/footer must include /pricing link');
   });
+
+  await t.test('6. Local Cover Image Assets & High-Resolution Integrity', () => {
+    const catalogCode = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'pricing-catalog.js'), 'utf8');
+    const mockWindow = {};
+    new Function('window', catalogCode)(mockWindow);
+    const catalog = mockWindow.HWS_CATALOG;
+
+    // Verify all product covers are local assets and exist with full file size (> 50KB)
+    for (const product of catalog.products) {
+      assert.ok(product.covers && product.covers.front, `Product ${product.id} must define covers.front`);
+      assert.ok(product.covers.front.startsWith('/assets/images/covers/'), `Product ${product.id} front cover must use local asset path`);
+      
+      const localFront = path.join(ROOT_DIR, product.covers.front.replace(/^\//, ''));
+      assert.ok(fs.existsSync(localFront), `Cover file must exist on disk: ${localFront}`);
+      const stats = fs.statSync(localFront);
+      assert.ok(stats.size > 50000, `Cover file must be authentic high-res image (>50KB), got ${stats.size} bytes for ${product.id}`);
+
+      if (product.covers.back) {
+        assert.ok(product.covers.back.startsWith('/assets/images/covers/'), `Product ${product.id} back cover must use local asset path`);
+        const localBack = path.join(ROOT_DIR, product.covers.back.replace(/^\//, ''));
+        assert.ok(fs.existsSync(localBack), `Back cover file must exist: ${localBack}`);
+        assert.ok(fs.statSync(localBack).size > 50000, `Back cover must be high-res image (>50KB) for ${product.id}`);
+      }
+    }
+
+    // Verify bundle cover
+    assert.ok(catalog.bundle.cover.startsWith('/assets/images/covers/'), 'Bundle cover must use local asset path');
+    const bundleCoverPath = path.join(ROOT_DIR, catalog.bundle.cover.replace(/^\//, ''));
+    assert.ok(fs.existsSync(bundleCoverPath), 'Bundle cover must exist on disk');
+    assert.ok(fs.statSync(bundleCoverPath).size > 100000, 'Bundle cover must be high-res');
+  });
+
+  await t.test('7. Sticky Header Warm Off-White Integration & Anchor Scroll Offsets', () => {
+    const componentsCss = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'css', 'components.css'), 'utf8');
+    assert.ok(componentsCss.includes('rgba(245, 243, 240'), 'Navbar must use warm off-white surface');
+    assert.ok(componentsCss.includes('backdrop-filter: blur'), 'Navbar must feature backdrop-filter blur');
+    assert.ok(componentsCss.includes('scroll-padding-top: 96px'), 'html must define scroll-padding-top for anchor links');
+    assert.ok(componentsCss.includes('scroll-margin-top: 96px'), '[id] must define scroll-margin-top');
+
+    const pricingCss = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'css', 'pricing.css'), 'utf8');
+    assert.ok(pricingCss.includes('rgba(245, 243, 240, 0.94)'), 'pricing-controls must match warm off-white token');
+  });
+
+  await t.test('8. Product Grid & Interaction Architecture', () => {
+    const pricingJs = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'pricing.js'), 'utf8');
+    assert.ok(pricingJs.includes('pricing-card__btn'), 'Must render dedicated pricing-card__btn elements');
+    assert.ok(pricingJs.includes('pricing-card__btn--free'), 'Must distinguish free resources with specific class');
+    assert.ok(pricingJs.includes('onerror='), 'Must include fail-safe image error fallback');
+
+    const pricingCss = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'css', 'pricing.css'), 'utf8');
+    assert.ok(pricingCss.includes('.pricing-card:hover'), 'Must define card hover state');
+    assert.ok(pricingCss.includes('transform: translateY(-3px)'), 'Must use restrained 3px hover elevation');
+    assert.ok(pricingCss.includes('@media (max-width: 480px)'), 'Must include mobile refinement media query');
+  });
 });
 

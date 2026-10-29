@@ -33,8 +33,8 @@
           'Immediate, lifetime download access on all personal devices'
         ],
         covers: {
-          front: 'https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png',
-          back: 'https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png'
+          front: '/assets/images/covers/bundle-cover.png',
+          back: '/assets/images/covers/bundle-cover.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-bundle',
@@ -59,8 +59,8 @@
           'Word-for-word phrases that open him up vs. shut him down'
         ],
         covers: {
-          front: 'https://i.ibb.co/rffWKyGB/Chat-GPT-Image-Aug-5-2026-07-50-17-PM.png',
-          back: 'https://i.ibb.co/1GK88Vnm/Chat-GPT-Image-Aug-5-2026-07-55-13-PM.png'
+          front: '/assets/images/covers/men-edition-front.png',
+          back: '/assets/images/covers/men-edition-back.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true',
@@ -85,8 +85,8 @@
           'How to make her feel genuinely understood and emotionally held'
         ],
         covers: {
-          front: 'https://i.ibb.co/j9fk1Qq0/Chat-GPT-Image-Aug-6-2026-10-23-22-AM.png',
-          back: 'https://i.ibb.co/b51mxMRh/Chat-GPT-Image-Aug-7-2026-12-21-33-AM.png'
+          front: '/assets/images/covers/women-edition-front.png',
+          back: '/assets/images/covers/women-edition-back.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-women?wanted=true',
@@ -111,8 +111,8 @@
           'Expressing firm personal limits without pushing your partner away'
         ],
         covers: {
-          front: 'https://i.ibb.co/KxgzQmtY/Chat-GPT-Image-Aug-6-2026-11-17-13-AM.png',
-          back: 'https://i.ibb.co/My7dwTJH/Chat-GPT-Image-Aug-6-2026-11-26-29-AM.png'
+          front: '/assets/images/covers/scripts-front.jpg',
+          back: '/assets/images/covers/scripts-back.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true',
@@ -137,8 +137,8 @@
           'Building the emotional safety that deepens physical connection'
         ],
         covers: {
-          front: 'https://i.ibb.co/dJpxv1hb/Chat-GPT-Image-Aug-6-2026-11-36-39-AM.png',
-          back: 'https://i.ibb.co/TqhrG4kK/Chat-GPT-Image-Aug-7-2026-12-26-10-AM.png'
+          front: '/assets/images/covers/sex-talk-front.png',
+          back: '/assets/images/covers/sex-talk-back.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-sextalk?wanted=true',
@@ -163,8 +163,8 @@
           'Gentle reconnection check-ins after conflict'
         ],
         covers: {
-          front: 'https://i.ibb.co/TBjpfwj1/Chat-GPT-Image-Aug-5-2026-08-04-08-PM.png',
-          back: 'https://i.ibb.co/TBjpfwj1/Chat-GPT-Image-Aug-5-2026-08-04-08-PM.png'
+          front: '/assets/images/covers/free-scripts-front.png',
+          back: '/assets/images/covers/free-scripts-front.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-free?wanted=true',
@@ -190,7 +190,7 @@
       bundlePrice: 97,
       savingsAmount: 31,
       savingsPercentage: 24,
-      cover: 'https://i.ibb.co/84LyRsYY/Chat-GPT-Image-Aug-7-2026-12-18-35-AM.png',
+      cover: '/assets/images/covers/bundle-cover.png',
       checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-bundle',
       ctaText: 'Get The Complete Bundle ($97)'
     },
