@@ -5,6 +5,17 @@
             Gold (#C9A84C), Charcoal (#1A1A1A), Border (rgba(26,26,26,0.10))
    ============================================================================== */
 
+/* ── 0. STICKY NAVBAR SCROLL STATE (PRICING PAGE) ──────────────────────────── */
+.pricing-page .nav.scrolled,
+#navbar.scrolled {
+  background: #ffffff !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(26, 26, 26, 0.09);
+  padding: 12px 0;
+}
+
 /* ── 1. HERO SECTION ───────────────────────────────────────────────────────── */
 .pricing-hero {
   position: relative;

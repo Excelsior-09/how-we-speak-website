@@ -168,6 +168,16 @@
     if (navSlot) navSlot.outerHTML = NAV_HTML;
     if (footerSlot) footerSlot.outerHTML = FOOTER_HTML;
 
+    // Sticky Scroll Logic for Shared Navbar
+    const nav = document.getElementById('navbar');
+    if (nav) {
+      const updateNavScroll = () => {
+        nav.classList.toggle('scrolled', window.scrollY > 20);
+      };
+      window.addEventListener('scroll', updateNavScroll, { passive: true });
+      updateNavScroll();
+    }
+
     // Mobile Nav Logic
     const toggle = document.querySelector('.nav__mobile-toggle');
     const links = document.getElementById('navLinks');

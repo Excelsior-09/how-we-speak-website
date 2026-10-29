@@ -221,6 +221,13 @@ test('Phase 16: TryHowWeSpeak /pricing Page Implementation & Quality Verificatio
 
     const pricingCss = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'css', 'pricing.css'), 'utf8');
     assert.ok(pricingCss.includes('rgba(245, 243, 240, 0.94)'), 'pricing-controls must match warm off-white token');
+    assert.ok(pricingCss.includes('#navbar.scrolled') && pricingCss.includes('#ffffff'), 'Pricing page scrolled navbar must have distinct #ffffff background');
+
+    const componentsJs = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'components.js'), 'utf8');
+    assert.ok(componentsJs.includes('scrolled'), 'components.js must toggle scrolled class on window scroll');
+
+    const pricingJs = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'pricing.js'), 'utf8');
+    assert.ok(pricingJs.includes('scrolled'), 'pricing.js must ensure scrolled class is handled');
   });
 
   await t.test('8. Product Grid & Interaction Architecture', () => {

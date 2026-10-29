@@ -153,7 +153,18 @@
     });
   }
 
+  function initNavScroll() {
+    var nav = document.getElementById('navbar');
+    if (!nav) return;
+    var updateNav = function () {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    };
+    window.addEventListener('scroll', updateNav, { passive: true });
+    updateNav();
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    initNavScroll();
     renderProducts();
     initCategoryFilter();
     initSortControl();
