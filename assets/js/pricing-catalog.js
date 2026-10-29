@@ -148,23 +148,23 @@
       {
         id: 'free-scripts',
         slug: 'howwespeak-free',
-        title: '10 Free Essential Scripts',
-        tag: 'Starter Guide',
-        badge: 'Free Guide',
+        title: "20 Conversations You've Been Avoiding",
+        tag: 'Free Guide',
+        badge: 'Free',
         category: 'scripts',
-        categoryLabel: 'Starter PDF',
-        format: 'Free Instant Digital Download',
+        categoryLabel: 'Free Guide',
+        format: 'Digital PDF + 4 Bonus Sections',
         price: 0,
         wasPrice: null,
-        description: 'A focused starter collection of 10 vital conversation phrases to de-escalate tension and prevent argument spirals.',
+        description: "Twenty ready-to-use scripts for the conversations you've been putting off — plus why each one actually works.",
         outcomes: [
-          'Immediate de-escalation phrases for intense moments',
-          'How to ask for space without triggering abandonment fears',
-          'Gentle reconnection check-ins after conflict'
+          '20 ready-to-use conversation scripts',
+          'The reasoning behind why each one works',
+          '4 bonus sections including The 20-Minute Rule'
         ],
         covers: {
-          front: '/assets/images/covers/free-scripts-front.png',
-          back: '/assets/images/covers/free-scripts-front.png'
+          front: '/assets/images/covers/20-conversations-front.png',
+          back: '/assets/images/covers/20-conversations-back.png'
         },
         provider: 'gumroad',
         checkoutUrl: 'https://themindly.gumroad.com/l/howwespeak-free?wanted=true',

@@ -67,7 +67,7 @@
           '</li>';
       }).join('');
 
-      var ctaText = p.price === 0 ? 'Download Free' : (p.category === 'bundles' ? 'Get The Bundle' : 'Get This Guide');
+      var ctaText = p.price === 0 ? 'Claim Free Copy' : (p.category === 'bundles' ? 'Get The Bundle' : 'Read Now');
       var btnClass = p.price === 0 ? 'btn btn-secondary pricing-card__btn pricing-card__btn--free' : 'btn btn-primary pricing-card__btn';
 
       return '<article class="pricing-card ' + (hasDistinctBack ? 'pricing-card--has-flip' : '') + '" data-category="' + p.category + '" id="product-' + p.id + '">' +
