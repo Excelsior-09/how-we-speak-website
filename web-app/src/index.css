@@ -331,3 +331,75 @@ h1, h2, h3, h4 {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   RESPONSIVE LAYOUT SYSTEM (320px, 375px, 430px, 768px, 1024px, 1280px, 1440px)
+   ============================================================ */
+
+.main-app-container {
+  flex: 1;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+@media (max-width: 640px) {
+  .main-app-container {
+    padding: 16px 12px 60px;
+  }
+}
+
+.dashboard-card-responsive {
+  padding: 36px 40px;
+}
+
+@media (max-width: 640px) {
+  .dashboard-card-responsive {
+    padding: 20px 16px !important;
+  }
+}
+
+.mira-grid-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  min-height: 640px;
+}
+
+@media (max-width: 900px) {
+  .mira-grid-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 16px;
+  }
+}
+
+.workspace-dialogue-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  min-height: 620px;
+}
+
+@media (max-width: 900px) {
+  .workspace-dialogue-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 16px;
+  }
+}
+
+/* Ensure no horizontal overflow on mobile screens (320px, 375px, 430px) */
+@media (max-width: 480px) {
+  .btn {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  
+  .input-field {
+    padding: 10px 12px;
+    font-size: 13.5px;
+  }
+}

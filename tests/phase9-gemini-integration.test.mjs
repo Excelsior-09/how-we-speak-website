@@ -31,7 +31,7 @@ describe('Phase 9: Gemini AI Real API Integration', () => {
 
     const mockReq = {
       method: 'POST',
-      headers: {},
+      headers: { authorization: 'Bearer test_token' },
       body: { message: 'We need to talk about our schedule.' }
     };
     const mockRes = {
@@ -66,7 +66,7 @@ describe('Phase 9: Gemini AI Real API Integration', () => {
 
     const mockReq = {
       method: 'POST',
-      headers: {},
+      headers: { authorization: 'Bearer test_token' },
       body: { message: 'Can you help me ask for quiet time?' }
     };
     const mockRes = {

@@ -285,7 +285,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({ planId }) => {
       {/* Stated Situation & Neutral Summary */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
         gap: 20,
       }}>
         <div className="card-glass" style={{ padding: 22 }}>
@@ -316,7 +316,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({ planId }) => {
             Alternative Script Variations
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 12 }}>
             <div style={{ background: '#FFF', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', marginBottom: 4 }}>
                 Gentle Opening
@@ -357,7 +357,7 @@ export const PlanDetailView: React.FC<PlanDetailViewProps> = ({ planId }) => {
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 12 }}>
             <div style={{ background: '#FFF', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#27ae60', textTransform: 'uppercase', marginBottom: 4 }}>
                 If Partner Is Receptive

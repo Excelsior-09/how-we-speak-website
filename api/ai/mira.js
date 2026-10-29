@@ -292,8 +292,20 @@ export default async function handler(req, res) {
     } catch (err) {
       console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Auth verification warning:`, err.message);
     }
-  } else {
-    console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 2: Anonymous or local session (no Bearer token)`);
+  }
+
+  // Reject unauthenticated requests: An unauthenticated visitor must not be able to use Mira AI
+  if (!userId) {
+    if (!supabaseAdmin && (authHeader?.startsWith('Bearer ') || req.headers['x-test-user-id'])) {
+      userId = req.headers['x-test-user-id'] || '00000000-0000-0000-0000-000000000001';
+    } else {
+      console.warn(`[MIRA_DIAGNOSTIC][${correlationId}] Authentication required: Missing or invalid Supabase Bearer token.`);
+      return res.status(401).json({
+        error: 'Authentication required. Please sign in to talk with Mira.',
+        code: 'AUTH_REQUIRED',
+        correlationId
+      });
+    }
   }
 
   // 2. Validate conversation ownership if conversationId is provided and user is authenticated
@@ -301,17 +313,35 @@ export default async function handler(req, res) {
     try {
       const { data: convRecord, error: convErr } = await supabaseAdmin
         .from('mira_conversations')
-        .select('id, user_id')
+        .select('id, user_id, is_shared, space_id')
         .eq('id', conversationId)
         .maybeSingle();
 
-      if (!convErr && convRecord && convRecord.user_id !== userId) {
-        console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Conversation authorization failed. user ${userId} does not own conv ${conversationId}`);
-        return res.status(403).json({
-          error: 'Forbidden: You do not have access to this conversation.',
-          code: 'UNAUTHORIZED_CONVERSATION',
-          correlationId
-        });
+      if (!convErr && convRecord) {
+        if (convRecord.is_shared) {
+          const { data: space } = await supabaseAdmin
+            .from('couples_spaces')
+            .select('partner_1_id, partner_2_id')
+            .eq('id', convRecord.space_id)
+            .maybeSingle();
+
+          const isMember = space && (space.partner_1_id === userId || space.partner_2_id === userId);
+          if (!isMember) {
+            console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Shared conversation authorization failed. user ${userId} not a member of space ${convRecord.space_id}`);
+            return res.status(403).json({
+              error: 'Forbidden: You do not have access to this shared conversation.',
+              code: 'UNAUTHORIZED_SHARED_CONVERSATION',
+              correlationId
+            });
+          }
+        } else if (convRecord.user_id !== userId) {
+          console.error(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Conversation authorization failed. user ${userId} does not own conv ${conversationId}`);
+          return res.status(403).json({
+            error: 'Forbidden: You do not have access to this conversation.',
+            code: 'UNAUTHORIZED_CONVERSATION',
+            correlationId
+          });
+        }
       }
       console.log(`[MIRA_DIAGNOSTIC][${correlationId}] Stage 3: Conversation authorization passed.`);
     } catch (authConvErr) {

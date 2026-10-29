@@ -25,7 +25,8 @@ import {
   MessageSquare,
   Send,
   Users,
-  BookOpen
+  BookOpen,
+  AlertCircle
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
@@ -35,6 +36,7 @@ import type { MiraConversation, MiraMessage, ConversationAnalysis } from '../typ
 interface WorkspaceViewProps {
   partnerLinked?: boolean
   onTogglePartnerLink?: () => void
+  onRequireAuth?: (mode?: 'signin' | 'signup') => void
 }
 
 interface JointMediationResult {
@@ -67,17 +69,27 @@ const COMMON_EMOTIONS = [
   'Disconnected',
 ]
 
-export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
+export const WorkspaceView: React.FC<WorkspaceViewProps> = ({ onRequireAuth }) => {
   const { user, profile, activeSpace, partnerProfile, isConfigured, refreshUserData } = useAuth()
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'dialogue' | 'reflections' | 'settings'>('dialogue')
 
   // Real Partner Invitation State
-  const [copied, setCopied] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(false)
   const [inviteInput, setInviteInput] = useState('')
   const [realInviteToken, setRealInviteToken] = useState<string | null>(null)
   const [inviteExpiresAt, setInviteExpiresAt] = useState<string | null>(null)
+  const [incomingInviteToken, setIncomingInviteToken] = useState<string | null>(null)
+  const [incomingInviteData, setIncomingInviteData] = useState<{
+    valid: boolean
+    inviter_name?: string
+    inviter_archetype?: string
+    expires_at?: string
+    error?: string
+  } | null>(null)
+  const [incomingInviteLoading, setIncomingInviteLoading] = useState(false)
   const [pairingError, setPairingError] = useState<string | null>(null)
   const [pairingSuccess, setPairingSuccess] = useState<string | null>(null)
   const [isPairing, setIsPairing] = useState(false)
@@ -138,20 +150,35 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
   const partnerDisplayName = partnerProfile?.display_name || 'Your Partner'
   const myDisplayName = profile?.display_name || 'You'
 
-  // Construct invite link
-  const inviteCode = realInviteToken || (activeSpace ? `hws-${activeSpace.id.substring(0, 8)}` : 'hws-pair-8f3a92e1')
+  // Construct invite link and code
+  const inviteCode = realInviteToken || (activeSpace ? `hws_${activeSpace.id.replace(/-/g, '').substring(0, 10)}` : 'hws_7a2b9f1c')
   const inviteLink = typeof window !== 'undefined'
-    ? `${window.location.origin}/app?invite=${inviteCode}`
-    : `https://tryhowwespeak.com/app?invite=${inviteCode}`
+    ? `${window.location.origin}/app/workspace?invite=${inviteCode}`
+    : `https://tryhowwespeak.com/app/workspace?invite=${inviteCode}`
 
-  // 1. Detect incoming ?invite= query from URL on mount
+  // 1. Detect incoming invitation token from URL or session storage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const incoming = params.get('invite')
-      if (incoming) {
-        setInviteInput(incoming.trim())
-      }
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('invite') || params.get('code') || params.get('token') || sessionStorage.getItem('hws_partner_invite_token')
+    if (token) {
+      const cleanToken = token.trim()
+      setInviteInput(cleanToken)
+      setIncomingInviteToken(cleanToken)
+      sessionStorage.setItem('hws_partner_invite_token', cleanToken)
+      setIncomingInviteLoading(true)
+
+      fetch(`/api/partner/invite?token=${encodeURIComponent(cleanToken)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setIncomingInviteData(data)
+        })
+        .catch(() => {
+          setIncomingInviteData({ valid: false, error: 'Could not connect to verify invitation code.' })
+        })
+        .finally(() => {
+          setIncomingInviteLoading(false)
+        })
     }
   }, [])
 
@@ -306,14 +333,21 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [sharedMessages])
 
+  // Copy Invite Code
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(inviteCode)
+    setCopiedCode(true)
+    setTimeout(() => setCopiedCode(false), 2200)
+  }
+
   // Copy Invite Link
   const handleCopyInvite = () => {
     navigator.clipboard.writeText(inviteLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2200)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2200)
   }
 
-  // Accept Partner Invitation
+  // Accept Partner Invitation by manual input
   const handleAcceptInvite = async () => {
     if (!inviteInput.trim()) return
     setIsPairing(true)
@@ -351,6 +385,66 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
     } else {
       setPairingError('Please sign in or create an account to accept your partner invitation code.')
       setIsPairing(false)
+      onRequireAuth?.('signin')
+    }
+  }
+
+  // Accept Incoming Partner Invitation (from URL link or banner)
+  const handleAcceptIncomingInvite = async () => {
+    if (!incomingInviteToken) return
+    setIsPairing(true)
+    setPairingError(null)
+    setPairingSuccess(null)
+
+    if (!user) {
+      onRequireAuth?.('signin')
+      setIsPairing(false)
+      return
+    }
+
+    try {
+      const session = (await supabase.auth.getSession()).data.session
+      const res = await fetch('/api/partner/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
+        },
+        body: JSON.stringify({ action: 'accept', token: incomingInviteToken })
+      })
+
+      const json = await res.json()
+      if (!res.ok) {
+        throw new Error(json.error || 'Could not connect with partner.')
+      }
+
+      setPairingSuccess('Partner connected successfully! Activating your shared communication room...')
+      sessionStorage.removeItem('hws_partner_invite_token')
+      setIncomingInviteToken(null)
+      setIncomingInviteData(null)
+      await refreshUserData()
+      setTimeout(() => {
+        setPairingSuccess(null)
+        setActiveTab('dialogue')
+      }, 1500)
+    } catch (err: any) {
+      setPairingError(err.message || 'Could not connect with partner.')
+    } finally {
+      setIsPairing(false)
+    }
+  }
+
+  const handleDeclineIncomingInvite = () => {
+    sessionStorage.removeItem('hws_partner_invite_token')
+    setIncomingInviteToken(null)
+    setIncomingInviteData(null)
+    setPairingError(null)
+    if (typeof window !== 'undefined' && window.history?.replaceState) {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('invite')
+      url.searchParams.delete('code')
+      url.searchParams.delete('token')
+      window.history.replaceState({}, '', url.pathname + (url.search || ''))
     }
   }
 
@@ -697,56 +791,258 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
             </p>
           </div>
 
+          {/* INCOMING INVITATION REVIEW CARD (When visiting invite link or entering partner code) */}
+          {incomingInviteToken && incomingInviteLoading && (
+            <div
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-card)',
+                padding: '24px 32px',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                maxWidth: 720,
+                color: 'var(--charcoal-muted)'
+              }}
+            >
+              <RefreshCw size={20} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
+              <span style={{ fontSize: 14 }}>Verifying partner invitation details...</span>
+            </div>
+          )}
+
+          {incomingInviteToken && !incomingInviteLoading && incomingInviteData && (
+            <div
+              id="incoming-partner-invitation-card"
+              style={{
+                background: '#FFFFFF',
+                border: '2px solid var(--burgundy)',
+                borderRadius: 'var(--radius-card)',
+                padding: '28px 32px',
+                boxShadow: 'var(--shadow-md)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                maxWidth: 720,
+              }}
+            >
+              {!incomingInviteData.valid ? (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--burgundy)', fontWeight: 600, fontSize: 16 }}>
+                    <AlertCircle size={20} />
+                    <span>Invitation Unavailable</span>
+                  </div>
+                  <p style={{ color: 'var(--gray)', fontSize: 13.5, margin: '8px 0 16px', lineHeight: 1.5 }}>
+                    {incomingInviteData.error || 'This partner invitation code is no longer valid or has expired. Please ask your partner to generate a new invitation.'}
+                  </p>
+                  <button
+                    onClick={handleDeclineIncomingInvite}
+                    className="btn btn-secondary"
+                    style={{ fontSize: 13 }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      background: 'var(--burgundy-subtle)',
+                      color: 'var(--burgundy)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <HeartHandshake size={24} />
+                    </div>
+                    <div>
+                      <span className="badge badge-burgundy">Incoming Partner Invitation</span>
+                      <h3 style={{ fontSize: 20, margin: '2px 0 0', color: 'var(--charcoal)' }}>
+                        Connect with {incomingInviteData.inviter_name || 'Your Partner'}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: 14, color: 'var(--charcoal-muted)', lineHeight: 1.6, margin: 0 }}>
+                    <strong>{incomingInviteData.inviter_name || 'Your Partner'}</strong> has invited you to connect on TryHowWeSpeak in a private shared couples room. Connecting enables shared conversation practice, gentle perspective-taking, and objective Mira AI mediation.
+                  </p>
+
+                  <div style={{ fontSize: 12, color: 'var(--gray)', background: 'var(--warm-white)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)' }}>
+                    🔒 <strong>Strict Privacy Boundary:</strong> Connecting your partner will never expose your personal private reflections or solo rehearsal plans. Only conversations explicitly initiated or shared in the couples room will be accessible to both partners.
+                  </div>
+
+                  {!user ? (
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 4 }}>
+                      <button
+                        onClick={() => onRequireAuth?.('signup')}
+                        className="btn btn-primary"
+                        style={{ fontSize: 14, padding: '10px 22px' }}
+                        id="btn-invite-create-account"
+                      >
+                        Create Account to Connect
+                      </button>
+                      <button
+                        onClick={() => onRequireAuth?.('signin')}
+                        className="btn btn-secondary"
+                        style={{ fontSize: 14, padding: '10px 20px' }}
+                        id="btn-invite-sign-in"
+                      >
+                        Sign In with Existing Account
+                      </button>
+                      <button
+                        onClick={handleDeclineIncomingInvite}
+                        className="btn btn-ghost"
+                        style={{ fontSize: 13, color: 'var(--gray)' }}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 4 }}>
+                      <button
+                        onClick={handleAcceptIncomingInvite}
+                        disabled={isPairing}
+                        className="btn btn-primary"
+                        style={{ fontSize: 14, padding: '10px 24px' }}
+                        id="btn-accept-partner-invitation"
+                      >
+                        {isPairing ? <RefreshCw size={15} className="animate-spin" /> : <UserCheck size={16} />}
+                        <span>{isPairing ? 'Connecting Partner...' : 'Accept Invitation & Connect'}</span>
+                      </button>
+                      <button
+                        onClick={handleDeclineIncomingInvite}
+                        disabled={isPairing}
+                        className="btn btn-secondary"
+                        style={{ fontSize: 13.5, padding: '10px 18px' }}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {/* Invitation Box */}
           <div
             style={{
               background: 'var(--surface-tint)',
-              borderRadius: 'var(--radius-md)',
-              padding: 26,
+              borderRadius: 'var(--radius-card)',
+              padding: '28px 32px',
               border: '1px solid var(--border)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 18,
-              maxWidth: 700,
+              gap: 20,
+              maxWidth: 720,
             }}
           >
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 4 }}>
-                Invite your partner
-              </h3>
-              <p style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5 }}>
-                Send this private invitation link. Once your partner opens it and accepts, your persistent shared space will be activated.
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 4 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--charcoal)', margin: 0 }}>
+                  Invite your partner
+                </h3>
+                <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981' }} />
+                  Pending Partner Connection
+                </span>
+              </div>
+              <p style={{ fontSize: 13.5, color: 'var(--gray)', lineHeight: 1.5, margin: '6px 0 0' }}>
+                Share your invitation code or private invitation link. Once your partner opens it and accepts, your persistent shared communication room will be activated.
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <input
-                type="text"
-                readOnly
-                value={inviteLink}
-                className="input-field"
-                style={{ fontSize: 13, background: '#FFFFFF', flex: 1, minWidth: 260 }}
-              />
+            {/* Display Invitation Code */}
+            <div style={{
+              background: '#FFFFFF',
+              border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--gray)' }}>
+                  Your Private Invitation Code
+                </span>
+                <code id="invitation-code-display" style={{ fontSize: 18, fontFamily: 'monospace', fontWeight: 700, color: 'var(--burgundy)', letterSpacing: '0.06em' }}>
+                  {inviteCode}
+                </code>
+              </div>
               <button
-                onClick={handleCopyInvite}
-                className="btn btn-primary"
-                style={{ padding: '0 22px', fontSize: 13.5 }}
+                id="btn-copy-invite-code"
+                onClick={handleCopyCode}
+                className="btn btn-secondary"
+                style={{ padding: '8px 18px', fontSize: 13 }}
               >
-                {copied ? <Check size={16} /> : <Copy size={16} />}
-                <span>{copied ? 'Link Copied' : 'Copy Invite Link'}</span>
+                {copiedCode ? <Check size={15} color="#10b981" /> : <Copy size={15} />}
+                <span>{copiedCode ? 'Code Copied' : 'Copy Code'}</span>
               </button>
             </div>
 
+            {/* Display Invitation Link */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--gray)' }}>
+                Private Invitation Link
+              </span>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  readOnly
+                  value={inviteLink}
+                  id="invitation-link-input"
+                  className="input-field"
+                  style={{ fontSize: 13, background: '#FFFFFF', flex: 1, minWidth: 240 }}
+                />
+                <button
+                  id="btn-copy-invite-link"
+                  onClick={handleCopyInvite}
+                  className="btn btn-primary"
+                  style={{ padding: '0 20px', fontSize: 13.5 }}
+                >
+                  {copiedLink ? <Check size={16} /> : <Copy size={16} />}
+                  <span>{copiedLink ? 'Link Copied' : 'Copy Invitation Link'}</span>
+                </button>
+              </div>
+            </div>
+
             {inviteExpiresAt && (
-              <span style={{ fontSize: 11.5, color: 'var(--gray)' }}>
+              <span style={{ fontSize: 12, color: 'var(--gray)' }}>
                 Valid for 7 days (expires {new Date(inviteExpiresAt).toLocaleDateString()})
               </span>
             )}
 
+            {/* How Partner Joins Instructions */}
+            <div style={{
+              background: 'var(--warm-white)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '14px 16px',
+              border: '1px solid var(--border-subtle)',
+              fontSize: 12.5,
+              color: 'var(--charcoal-muted)',
+              lineHeight: 1.55
+            }}>
+              <strong style={{ color: 'var(--charcoal)', display: 'block', marginBottom: 4 }}>
+                How your partner joins:
+              </strong>
+              <ol style={{ paddingLeft: 18, margin: 0 }}>
+                <li>Copy either your <strong>Invitation Code</strong> or <strong>Invitation Link</strong> above.</li>
+                <li>Send it to your partner via private text message, email, or chat.</li>
+                <li>When they open the link or paste the code below, your shared room is instantly activated.</li>
+              </ol>
+            </div>
+
             {/* Paste Code Box */}
             <div style={{ paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <span style={{ fontSize: 12.5, color: 'var(--gray)', fontWeight: 600 }}>
-                Already received an invitation link from your partner?
+                Already received an invitation code from your partner?
               </span>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <input
@@ -758,6 +1054,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
                   style={{ fontSize: 13, background: '#FFFFFF', flex: 1, minWidth: 240 }}
                 />
                 <button
+                  id="btn-connect-partner"
                   onClick={handleAcceptInvite}
                   disabled={isPairing || !inviteInput.trim()}
                   className="btn btn-secondary"
@@ -776,7 +1073,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
               gap: 20,
               paddingTop: 12,
             }}
@@ -834,7 +1131,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
           </div>
 
           {/* Conversation Workspace Layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24, minHeight: 620 }}>
+          <div className="workspace-dialogue-grid">
             {/* Left: Shared Topics Sidebar */}
             <div style={{
               background: '#FFFFFF',
@@ -1047,7 +1344,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
                   </div>
 
                   {/* Perspectives Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 16 }}>
                     <div style={{ background: 'var(--surface-tint)', padding: 16, borderRadius: 12, border: '1px solid var(--border)' }}>
                       <strong style={{ fontSize: 13, color: 'var(--charcoal)', display: 'block', marginBottom: 4 }}>
                         {myDisplayName}'s Underlying Longing
@@ -1200,7 +1497,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
               gap: 24,
             }}
           >
@@ -1476,7 +1773,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
                 <div style={{ background: 'var(--surface-tint)', padding: 18, borderRadius: 10, border: '1px solid var(--border)' }}>
                   <strong style={{ fontSize: 13, color: 'var(--charcoal)', display: 'block', marginBottom: 4 }}>
                     Your Underlying Longing:
@@ -1730,7 +2027,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = () => {
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--burgundy)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                 Your Individual Style
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 12 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--charcoal)', marginBottom: 6 }}>
                     Communication Tone:

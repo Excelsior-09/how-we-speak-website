@@ -54,7 +54,11 @@ const SUGGESTED_STARTERS = [
   { text: "Help me decide what to say next.", category: "Find the words" },
 ]
 
-export const MiraView: React.FC = () => {
+interface MiraViewProps {
+  onRequireAuth?: (mode?: 'signin' | 'signup') => void
+}
+
+export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
   const { user, isConfigured } = useAuth()
   
   // Conversations State
@@ -308,6 +312,11 @@ export const MiraView: React.FC = () => {
   }
 
   const handleSendMessage = async (textToSend?: string) => {
+    if (!user) {
+      onRequireAuth?.('signin')
+      return
+    }
+
     const msg = (textToSend || inputMessage).trim()
     if (!msg || isLoading) return
 
@@ -600,7 +609,7 @@ export const MiraView: React.FC = () => {
       </div>
 
       {/* Main Workspace Layout (Sidebar + Chat Area) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, minHeight: 640 }}>
+      <div className="mira-grid-layout">
         {/* Left: Saved Conversations List */}
         <div className="card-glass" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
@@ -740,7 +749,13 @@ export const MiraView: React.FC = () => {
                   {SUGGESTED_STARTERS.map((s, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleSendMessage(s.text)}
+                      onClick={() => {
+                        if (!user) {
+                          onRequireAuth?.('signin')
+                          return
+                        }
+                        handleSendMessage(s.text)
+                      }}
                       style={{
                         padding: '12px 14px',
                         background: '#fff',
@@ -949,6 +964,54 @@ export const MiraView: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Unauthenticated Visitor Sign-in Prompt */}
+          {!user && (
+            <div
+              id="mira-auth-required-banner"
+              style={{
+                margin: '12px 20px',
+                padding: '16px 20px',
+                background: 'var(--cream)',
+                border: '1px solid var(--blush)',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 240 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--burgundy)' }}>
+                  Sign in to start your conversation with Mira.
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--charcoal-muted)', marginTop: 2 }}>
+                  Create a free account or sign in to use Mira AI and keep your conversations connected to your account.
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  id="btn-mira-create-account"
+                  onClick={() => onRequireAuth?.('signup')}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 16px', fontSize: 13 }}
+                >
+                  Create account
+                </button>
+                <button
+                  type="button"
+                  id="btn-mira-sign-in"
+                  onClick={() => onRequireAuth?.('signin')}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: 13 }}
+                >
+                  Sign in
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Input Composer Area */}
           <div style={{
             padding: '16px 20px',
@@ -961,13 +1024,22 @@ export const MiraView: React.FC = () => {
             <textarea
               value={inputMessage}
               onChange={e => setInputMessage(e.target.value)}
+              onFocus={() => {
+                if (!user) {
+                  onRequireAuth?.('signin')
+                }
+              }}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
+                  if (!user) {
+                    onRequireAuth?.('signin')
+                    return
+                  }
                   handleSendMessage()
                 }
               }}
-              placeholder="Ask Mira anything or describe what happened with your partner..."
+              placeholder={user ? "Ask Mira anything or describe what happened with your partner..." : "Sign in to start your conversation with Mira..."}
               rows={2}
               style={{
                 flex: 1,
@@ -984,8 +1056,15 @@ export const MiraView: React.FC = () => {
             />
 
             <button
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isLoading}
+              id="btn-mira-send"
+              onClick={() => {
+                if (!user) {
+                  onRequireAuth?.('signin')
+                  return
+                }
+                handleSendMessage()
+              }}
+              disabled={Boolean(user && (!inputMessage.trim() || isLoading))}
               className="btn btn-primary"
               style={{
                 borderRadius: 12,
@@ -993,7 +1072,7 @@ export const MiraView: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: !inputMessage.trim() || isLoading ? 0.6 : 1
+                opacity: user && (!inputMessage.trim() || isLoading) ? 0.6 : 1
               }}
             >
               <Send size={16} />

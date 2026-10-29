@@ -123,13 +123,7 @@ function AppContent() {
       />
 
       {/* Main Content Area */}
-      <main style={{
-        flex: 1,
-        maxWidth: 1280,
-        width: '100%',
-        margin: '0 auto',
-        padding: '36px 24px 80px',
-      }}>
+      <main className="main-app-container">
         {mfaRequired ? (
           !isPasswordRecovery && route !== 'reset-password' ? (
             <div className="animate-fade-in">
@@ -193,7 +187,13 @@ function AppContent() {
         {/* /app/mira — Mira AI Relationship Companion */}
         {route === 'mira' && (
           <div className="animate-fade-in">
-            <MiraView />
+            <MiraView
+              onRequireAuth={(mode) => {
+                setReturnTo('/app/mira')
+                setAuthMode(mode || 'signin')
+                setIsAuthOpen(true)
+              }}
+            />
           </div>
         )}
 
@@ -266,6 +266,11 @@ function AppContent() {
             <WorkspaceView
               partnerLinked={partnerLinked}
               onTogglePartnerLink={() => {}}
+              onRequireAuth={(mode) => {
+                setReturnTo('/app/workspace')
+                setAuthMode(mode || 'signin')
+                setIsAuthOpen(true)
+              }}
             />
           </div>
         )}

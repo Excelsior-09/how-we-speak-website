@@ -10,7 +10,6 @@ import {
   Mail,
   Lock,
   User as UserIcon,
-  Sparkles,
   ShieldCheck,
   RefreshCw
 } from 'lucide-react'
@@ -32,7 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onSuccess,
   initialMode = 'signin',
 }) => {
-  const { isConfigured, signIn, signUp, signInWithMagicLink, signInWithOAuth } = useAuth()
+  const { isConfigured, signIn, signUp, signInWithOAuth } = useAuth()
   const { navigate } = useRouter()
   const [isSignUp, setIsSignUp] = useState(initialMode === 'signup')
   const [isMfaStep, setIsMfaStep] = useState(false)
@@ -145,26 +144,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setMessage(err.message || 'Google sign in failed. Please try again.')
       setGoogleLoading(false)
     }
-  }
-
-  const handleMagicLink = async () => {
-    if (!email.trim()) {
-      setIsError(true)
-      setMessage('Please enter your email address first.')
-      return
-    }
-    setLoading(true)
-    setMessage(null)
-    setIsError(false)
-
-    const res = await signInWithMagicLink(email.trim())
-    if (res.error) {
-      setIsError(true)
-      setMessage(res.error)
-    } else {
-      setMessage('Magic link dispatched! Check your email inbox to sign in instantly.')
-    }
-    setLoading(false)
   }
 
   return (
@@ -424,17 +403,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 style={{ width: '100%', padding: '13px', marginTop: 4, fontSize: 14.5 }}
               >
                 {loading ? 'Processing...' : isSignUp ? 'Create My Account' : 'Sign In'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleMagicLink}
-                disabled={loading || googleLoading}
-                className="btn btn-secondary"
-                style={{ width: '100%', padding: '11px', fontSize: 13 }}
-              >
-                <Sparkles size={14} color="var(--gold)" />
-                Send Passwordless Magic Link
               </button>
             </form>
 

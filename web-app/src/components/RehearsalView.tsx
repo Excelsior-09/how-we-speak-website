@@ -101,6 +101,7 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
 
   // Execution & Output State
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [aiResult, setAiResult] = useState<StructuredAIResult | null>(null)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
@@ -180,6 +181,86 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
       setErrorMessage(err.message || 'Error connecting to the conversation assistant.')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleRegenerateOpenings = async () => {
+    if (!aiResult) return
+    if (!situation.trim() || situation.trim().length < 5) {
+      setErrorMessage('Please share a few words about what is happening (at least 5 characters).')
+      return
+    }
+
+    setIsRegenerating(true)
+    setErrorMessage(null)
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+
+      let captchaToken: string | null = null
+      try {
+        captchaToken = await executeRecaptcha('rehearsal')
+      } catch (cErr) {}
+
+      if (captchaToken) {
+        headers['x-captcha-token'] = captchaToken
+      }
+
+      const prevOpenings = [
+        aiResult.openings?.gentle,
+        aiResult.openings?.direct,
+        aiResult.openings?.firm,
+      ].filter(Boolean)
+
+      const res = await fetch('/api/ai/rehearsal', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          situationCategory,
+          situation,
+          goal,
+          preferredTone,
+          communicationMethod,
+          additionalContext,
+          regenerateOpenings: true,
+          previousOpenings: prevOpenings,
+          captchaToken: captchaToken || undefined,
+        }),
+      })
+
+      const json = await res.json()
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to regenerate openings. Please try again.')
+      }
+
+      if (!json.data?.openings?.gentle || !json.data?.openings?.direct || !json.data?.openings?.firm) {
+        throw new Error('Received incomplete openings from assistant. Previous openings preserved.')
+      }
+
+      // Update openings in aiResult while preserving the rest of the plan
+      setAiResult((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          openings: json.data.openings,
+          comparisonExplanation: json.data.comparisonExplanation || prev.comparisonExplanation,
+        }
+      })
+
+      // Update currently selected opening text
+      const newOpening = json.data.openings[selectedOpeningKey] || json.data.openings.gentle
+      setEditedScript(newOpening)
+      setIsEditing(false)
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error regenerating conversation openings. Your previous openings have been preserved.')
+    } finally {
+      setIsRegenerating(false)
     }
   }
 
@@ -281,7 +362,7 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
           gap: 32,
           alignItems: 'start',
         }}
@@ -886,13 +967,23 @@ export const RehearsalView: React.FC<RehearsalViewProps> = ({ onRequireAuth }) =
               >
                 <button
                   type="button"
-                  onClick={() => handleGenerate()}
-                  disabled={isGenerating}
+                  id="btn-regenerate-openings"
+                  onClick={handleRegenerateOpenings}
+                  disabled={isRegenerating || isGenerating}
                   className="btn btn-secondary"
                   style={{ fontSize: 13 }}
                 >
-                  <RotateCcw size={14} />
-                  Regenerate Openings
+                  {isRegenerating ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      Regenerating Openings...
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw size={14} />
+                      Regenerate Openings
+                    </>
+                  )}
                 </button>
 
                 <div style={{ display: 'flex', gap: 10 }}>

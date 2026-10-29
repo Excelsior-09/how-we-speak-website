@@ -31,7 +31,9 @@ export function generateClinicalStructuredFallback({
   goal,
   preferredTone,
   communicationMethod,
-  additionalContext
+  additionalContext,
+  regenerateOpenings = false,
+  previousOpenings = []
 }) {
   const isText = communicationMethod === 'text';
   const isCall = communicationMethod === 'call';
@@ -42,14 +44,41 @@ export function generateClinicalStructuredFallback({
     ? '[Phone/Video Call Prep]'
     : '[Face-to-Face Prep]';
 
+  const openingSets = [
+    {
+      gentle: `${methodPrefix} "I've been feeling a bit disconnected lately and I really miss feeling close to you. When you have some quiet time today, I'd love for us to talk for a few minutes without any pressure or blame."`,
+      direct: `${methodPrefix} "I notice we've been hitting a familiar disconnect around this, and I want to talk about how we can handle it together. Can we find 15 minutes tonight to check in?"`,
+      firm: `${methodPrefix} "I care about our relationship deeply, and this is something important that I need us to address respectfully. I'd like us to set aside time today where we can both be fully present."`,
+      explanation: "The Gentle opening leads with vulnerability and disarms potential defensiveness. The Direct option clearly states the topic and invites collaboration without preamble. The Firm opening establishes a clear emotional boundary while maintaining respect and commitment."
+    },
+    {
+      gentle: `${methodPrefix} "Our closeness means a lot to me, and there's something on my heart that I want to share with warmth. Are you open to listening when we're settled tonight?"`,
+      direct: `${methodPrefix} "I want to address what happened earlier so we don't let unspoken frustration build between us. Do you have a few minutes for us to reset?"`,
+      firm: `${methodPrefix} "I love our partnership, and for us to stay healthy, I need to be honest about where I'm feeling hurt. Let's find an uninterrupted time to talk through this calmly."`,
+      explanation: "This second set emphasizes relationship appreciation first (Gentle), immediate constructive repair (Direct), and intentional boundary alignment without aggression (Firm)."
+    },
+    {
+      gentle: `${methodPrefix} "I'm coming to you not with criticism, but because I want us to understand each other better. Could we make time for a calm cup of tea and a gentle check-in?"`,
+      direct: `${methodPrefix} "I'd really appreciate hearing your perspective on this, and I'd like to share mine without either of us getting into a defense-attack cycle."`,
+      firm: `${methodPrefix} "This issue keeps surfacing, and I need us to commit to a real solution together. When can we sit down and look at practical adjustments?"`,
+      explanation: "This alternative set disarms defensiveness by requesting mutual perspective-taking (Gentle & Direct) and invites collaborative problem-solving (Firm)."
+    }
+  ];
+
+  let selectedSet = openingSets[0];
+  if (regenerateOpenings) {
+    const prevStr = JSON.stringify(previousOpenings || []);
+    selectedSet = openingSets.find((s) => !prevStr.includes(s.gentle.slice(0, 30))) || openingSets[1];
+  }
+
   return {
     neutralSummary: `You are preparing to address a relationship situation (${situationCategory || 'interpersonal topic'}) where the focus is to ${goal.replace(/-/g, ' ')}. Stated situation details: "${situation.substring(0, 160)}${situation.length > 160 ? '...' : ''}".`,
     openings: {
-      gentle: `${methodPrefix} "I've been feeling a bit disconnected lately and I really miss feeling close to you. When you have some quiet time today, I'd love for us to talk for a few minutes without any pressure or blame."`,
-      direct: `${methodPrefix} "I notice we've been hitting a familiar disconnect around this, and I want to talk about how we can handle it together. Can we find 15 minutes tonight to check in?"`,
-      firm: `${methodPrefix} "I care about our relationship deeply, and this is something important that I need us to address respectfully. I'd like us to set aside time today where we can both be fully present."`
+      gentle: selectedSet.gentle,
+      direct: selectedSet.direct,
+      firm: selectedSet.firm
     },
-    comparisonExplanation: "The Gentle opening leads with vulnerability and disarms potential defensiveness. The Direct option clearly states the topic and invites collaboration without preamble. The Firm opening establishes a clear emotional boundary while maintaining respect and commitment.",
+    comparisonExplanation: selectedSet.explanation,
     followups: {
       receptive: "If your partner is open and receptive: 'Thank you for listening to me. What has this felt like from your side?'",
       disagreement: "If your partner disagrees: 'I hear that you see it differently. I don't want to argue about who is right—I just want us to understand each other's experience.'",
@@ -100,7 +129,9 @@ export default async function handler(req, res) {
     goal = 'understand',
     preferredTone = 'gentle',
     communicationMethod = 'face-to-face',
-    additionalContext = ''
+    additionalContext = '',
+    regenerateOpenings = false,
+    previousOpenings = []
   } = req.body || {};
 
   const cleanCategory = sanitize(situationCategory, 100) || 'other';
@@ -138,7 +169,7 @@ export default async function handler(req, res) {
         );
 
         if (!isPro) {
-          // Count rehearsals consumed
+          // Count rehearsals consumed (regenerating openings in an existing session does not consume a new rehearsal quota)
           const { count, error: countErr } = await supabaseAdmin
             .from('usage_records')
             .select('id', { count: 'exact', head: true })
@@ -146,7 +177,7 @@ export default async function handler(req, res) {
             .eq('action_type', 'ai_rehearsal');
 
           const rehearsalsUsed = count || 0;
-          if (rehearsalsUsed >= 3) {
+          if (!regenerateOpenings && rehearsalsUsed >= 3) {
             return res.status(402).json({
               error: 'Free trial limit reached (3 AI Rehearsals). Upgrade to the Complete Bundle for unlimited rehearsals.',
               limitReached: true,
@@ -164,7 +195,44 @@ export default async function handler(req, res) {
   // 2. AI Generation via Google Gemini
   if (AI_API_KEY) {
     try {
-      const prompt = `
+      const isRegen = !!regenerateOpenings;
+      const prevList = Array.isArray(previousOpenings) && previousOpenings.length > 0
+        ? `PREVIOUS OPENINGS TO AVOID (Provide freshly phrased alternatives with distinct emotional angles):\n${previousOpenings.map((o) => `- "${o}"`).join('\n')}`
+        : '';
+
+      const prompt = isRegen
+        ? `
+You are the senior relationship communication specialist and conversation coach for TryHowWeSpeak.
+The user has prepared a conversation plan and is now requesting 3 BRAND NEW, DISTINCT ALTERNATIVE CONVERSATION OPENINGS.
+
+STRICT SAFETY AND ETHICAL BOUNDARIES:
+- NON-DIAGNOSTIC: Never diagnose either person (no "narcissist", "bpd", "sociopath", etc.).
+- NO MANIPULATION: Do not provide manipulative tactics or guarantee specific partner reactions.
+- EMPHASIZE RESPECT: Encourage self-responsibility, emotional boundaries, and collaborative communication.
+
+USER INPUT:
+- Situation Category: "${cleanCategory}"
+- Stated Situation / Raw Input: "${cleanSituation}"
+- Stated Goal: "${cleanGoal}"
+- Preferred Tone: "${cleanTone}"
+- Communication Method: "${cleanMethod}"
+- Additional Context: "${cleanContext}"
+
+${prevList}
+
+Generate 3 genuinely fresh, differently phrased conversation openings (gentle, direct, firm) tailored for ${cleanMethod} delivery.
+
+Generate a structured response adhering strictly to this JSON format:
+{
+  "openings": {
+    "gentle": "A newly worded softened, disarming opening script tailored for ${cleanMethod} delivery.",
+    "direct": "A newly worded clear, respectful direct opening script for ${cleanMethod} delivery.",
+    "firm": "A newly worded grounded opening establishing emotional clarity and boundaries for ${cleanMethod} delivery."
+  },
+  "comparisonExplanation": "A concise paragraph explaining how these fresh alternatives approach the conversation differently."
+}
+`
+        : `
 You are the senior relationship communication specialist and conversation coach for TryHowWeSpeak.
 Your task is to prepare an individual conversation rehearsal plan based on Gottman Method, Non-Violent Communication (NVC), and Emotionally Focused Therapy (EFT).
 
@@ -210,7 +278,7 @@ Generate a structured response adhering strictly to this JSON format:
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
-              temperature: 0.3,
+              temperature: isRegen ? 0.7 : 0.3,
               responseMimeType: 'application/json'
             }
           })
@@ -233,16 +301,21 @@ Generate a structured response adhering strictly to this JSON format:
 
       const parsed = JSON.parse(rawText);
 
+      // Validate openings structure
+      if (!parsed.openings || !parsed.openings.gentle || !parsed.openings.direct || !parsed.openings.firm) {
+        throw new Error('Incomplete openings returned from assistant.');
+      }
+
       // Record usage audit without storing private user conversation text in audit logs
       if (userId && supabaseAdmin) {
         await supabaseAdmin.from('usage_records').insert({
           user_id: userId,
-          action_type: 'ai_rehearsal',
+          action_type: isRegen ? 'ai_rehearsal_regen' : 'ai_rehearsal',
           tokens_used: data.usageMetadata?.totalTokenCount || 300
         });
       }
 
-      return res.status(200).json({ ok: true, data: parsed });
+      return res.status(200).json({ ok: true, data: parsed, isRegeneration: isRegen });
     } catch (err) {
       console.error('AI Execution Error:', err.message);
       // If API key is present but call failed, return explicit 502 without silent fake fallback
@@ -259,7 +332,9 @@ Generate a structured response adhering strictly to this JSON format:
     goal: cleanGoal,
     preferredTone: cleanTone,
     communicationMethod: cleanMethod,
-    additionalContext: cleanContext
+    additionalContext: cleanContext,
+    regenerateOpenings: !!regenerateOpenings,
+    previousOpenings
   });
 
   // Log usage record in database if authenticated
@@ -267,7 +342,7 @@ Generate a structured response adhering strictly to this JSON format:
     try {
       await supabaseAdmin.from('usage_records').insert({
         user_id: userId,
-        action_type: 'ai_rehearsal',
+        action_type: regenerateOpenings ? 'ai_rehearsal_regen' : 'ai_rehearsal',
         tokens_used: 150
       });
     } catch {
@@ -278,6 +353,7 @@ Generate a structured response adhering strictly to this JSON format:
   return res.status(200).json({
     ok: true,
     data: fallback,
+    isRegeneration: !!regenerateOpenings,
     devNotice: 'Generated via built-in clinical rule engine (AI_API_KEY not configured in local environment).'
   });
 }
