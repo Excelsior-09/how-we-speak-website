@@ -14,6 +14,7 @@
   const NAV_LINKS_FULL = `
         <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
         <li><a href="index.html#guides">Guides</a></li>
+        <li><a href="/pricing">Pricing</a></li>
         <li><a href="articles.html">Articles</a></li>
         <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
         <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
@@ -118,6 +119,7 @@
         <div>
           <h3 class="footer__col-title">Products</h3>
           <ul class="footer__links" role="list">
+            <li><a href="/pricing">Pricing & Memberships</a></li>
             <li><a href="https://themindly.gumroad.com/l/How-We-Speak-Men-Edition?wanted=true" target="_blank" rel="noopener noreferrer">Men Edition</a></li>
             <li><a href="https://themindly.gumroad.com/l/howwespeak-women?wanted=true" target="_blank" rel="noopener noreferrer">Women Edition</a></li>
             <li><a href="https://themindly.gumroad.com/l/howwespeak-scripts?wanted=true" target="_blank" rel="noopener noreferrer">Complete Script Collection</a></li>

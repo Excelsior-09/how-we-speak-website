@@ -9,6 +9,7 @@ import followupHandler from './api/ai/followup.js';
 import jointSummaryHandler from './api/ai/joint-summary.js';
 import miraHandler from './api/ai/mira.js';
 import gumroadWebhookHandler from './api/webhooks/gumroad.js';
+import paddleWebhookHandler from './api/webhooks/paddle.js';
 import authMeHandler from './api/auth/me.js';
 
 const app = express();
@@ -27,8 +28,17 @@ if (fs.existsSync(path.join(__dirname, '.env'))) {
     });
 }
 
-app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString('utf-8');
+    }
+}));
+app.use(express.static(__dirname, { extensions: ['html'] }));
+
+// Pricing Route
+app.get('/pricing', (req, res) => {
+    res.sendFile(path.join(__dirname, 'pricing.html'));
+});
 
 // Adapter for Vercel/Node Serverless handler compatibility
 function createVercelAdapter(handler) {
@@ -60,6 +70,7 @@ app.post('/api/ai/followup', createVercelAdapter(followupHandler));
 app.post('/api/ai/joint-summary', createVercelAdapter(jointSummaryHandler));
 app.post('/api/ai/mira', createVercelAdapter(miraHandler));
 app.post('/api/webhooks/gumroad', createVercelAdapter(gumroadWebhookHandler));
+app.post('/api/webhooks/paddle', createVercelAdapter(paddleWebhookHandler));
 app.get('/api/auth/me', createVercelAdapter(authMeHandler));
 
 // SPA Fallback for /app routes (matching vercel.json rewrites, Express 5 compatible)

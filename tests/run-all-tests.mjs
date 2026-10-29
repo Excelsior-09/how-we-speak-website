@@ -28,6 +28,8 @@ const testSuites = [
   'tests/phase12-password-reset-and-mira-fix.test.mjs',
   'tests/phase13-recaptcha-security.test.mjs',
   'tests/phase14-partner-collaboration-and-mira-analysis.test.mjs',
+  'tests/phase15-paddle-live-migration.test.mjs',
+  'tests/phase16-pricing-page.test.mjs',
 ];
 
 async function runCommand(file) {
