@@ -186,4 +186,85 @@ test('Phase 17: Dashboard, Mira AI, Partner Invitations & Responsive Overhaul', 
     assert.ok(!planDetailContent.includes('minmax(340px'), 'PlanDetailView must not have rigid minmax(340px) grid columns');
   });
 
+  await t.test('6. "Try it free" Buttons & Signup Navigation Flow Across All Surfaces', () => {
+    const indexPath = path.join(ROOT_DIR, 'index.html');
+    assert.ok(fs.existsSync(indexPath), 'index.html must exist');
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+
+    // Check that desktop nav, mobile nav, hero, AI section, and final CTA point to signup
+    assert.ok(indexContent.includes('id="navPrimaryCta"') && indexContent.includes('href="/app?auth=signup&returnTo=/app/rehearse"'), 'Desktop nav CTA must link to signup');
+    assert.ok(indexContent.includes('id="mobilePrimaryCta"') && indexContent.includes('href="/app?auth=signup&returnTo=/app/rehearse"'), 'Mobile nav CTA must link to signup');
+    assert.ok(indexContent.includes('id="heroPrimaryCta"') && indexContent.includes('href="/app?auth=signup&returnTo=/app/rehearse"'), 'Hero CTA must link to signup');
+    assert.ok(indexContent.includes('id="finalPrimaryCta"') && indexContent.includes('href="/app?auth=signup&returnTo=/app/rehearse"'), 'Final CTA must link to signup');
+
+    // Check pricing page Free Starter card
+    const pricingPath = path.join(ROOT_DIR, 'pricing.html');
+    assert.ok(fs.existsSync(pricingPath), 'pricing.html must exist');
+    const pricingContent = fs.readFileSync(pricingPath, 'utf8');
+    assert.ok(pricingContent.includes('id="pricingFreeStarterCta"') && pricingContent.includes('href="/app?auth=signup&returnTo=/app/rehearse"'), 'Pricing Free Starter CTA must link to signup');
+
+    // Check components.js dynamic navbar and active auth state reflection
+    const compPath = path.join(ROOT_DIR, 'assets', 'js', 'components.js');
+    assert.ok(fs.existsSync(compPath), 'components.js must exist');
+    const compContent = fs.readFileSync(compPath, 'utf8');
+    assert.ok(compContent.includes('/app?auth=signup&returnTo=/app/rehearse'), 'components.js primary CTA must point to signup');
+    assert.ok(compContent.includes('Go to App') || compContent.includes('Dashboard'), 'components.js must adapt for authenticated users');
+
+    // Check App.tsx and routeParser.ts support /signup and authenticated user bypass
+    const routeParserPath = path.join(ROOT_DIR, 'web-app', 'src', 'lib', 'routeParser.ts');
+    const routeParserCode = fs.readFileSync(routeParserPath, 'utf8');
+    assert.ok(routeParserCode.includes("clean === 'signup'"), 'routeParser must support clean /signup route');
+
+    const appPath = path.join(ROOT_DIR, 'web-app', 'src', 'App.tsx');
+    const appCode = fs.readFileSync(appPath, 'utf8');
+    assert.ok(appCode.includes("setAuthMode('signup')") || appCode.includes("isSignupIntent"), 'App.tsx must handle signup intent');
+    assert.ok(appCode.includes("user") && appCode.includes("navigate"), 'App.tsx must redirect logged-in users away from signup');
+  });
+
+  await t.test('7. Mira AI: Supabase Persistence, Chronological History & Context Flow', () => {
+    const miraApiPath = path.join(ROOT_DIR, 'api', 'ai', 'mira.js');
+    assert.ok(fs.existsSync(miraApiPath), 'api/ai/mira.js must exist');
+    const miraCode = fs.readFileSync(miraApiPath, 'utf8');
+
+    // Stage 1: Auth Bearer validation
+    assert.ok(miraCode.includes('AUTH_REQUIRED'), 'Must enforce Bearer auth token');
+
+    // Stage 2: Conversation ownership check & persistent conversation creation
+    assert.ok(miraCode.includes('mira_conversations'), 'Must query or insert mira_conversations');
+    assert.ok(miraCode.includes('UNAUTHORIZED_CONVERSATION') && miraCode.includes('status(403)'), 'Must reject cross-user access violations with 403');
+
+    // Saving user message immediately
+    assert.ok(miraCode.includes('mira_messages'), 'Must interact with mira_messages');
+    assert.ok(miraCode.includes('userMessageSaved: true'), 'Must report userMessageSaved');
+
+    // Title auto-generation
+    assert.ok(miraCode.includes('update({ title:'), 'Must auto-update default title from user prompt');
+
+    // Context loading for Gemini continuity
+    assert.ok(miraCode.includes('order(\'created_at\', { ascending: true })'), 'Must fetch chronological messages for Gemini context');
+  });
+
+  await t.test('8. Mira AI UI: Timestamps, Confirmation Modal, Loading Spinner & Mobile Drawer', () => {
+    const miraViewPath = path.join(ROOT_DIR, 'web-app', 'src', 'components', 'MiraView.tsx');
+    assert.ok(fs.existsSync(miraViewPath), 'MiraView.tsx must exist');
+    const miraViewCode = fs.readFileSync(miraViewPath, 'utf8');
+
+    // Timestamp formatting
+    assert.ok(miraViewCode.includes('formatChatTimestamp'), 'Must have formatChatTimestamp helper');
+
+    // Messages loading spinner
+    assert.ok(miraViewCode.includes('isMessagesLoading'), 'Must have isMessagesLoading state');
+    assert.ok(miraViewCode.includes('Loading conversation history...'), 'Must render loading conversation history state');
+
+    // Delete conversation confirmation dialog
+    assert.ok(miraViewCode.includes('convToDelete'), 'Must track convToDelete for confirmation');
+    assert.ok(miraViewCode.includes('Delete conversation?'), 'Must render confirmation dialog');
+    assert.ok(miraViewCode.includes('executeDeleteConversation'), 'Must call executeDeleteConversation');
+
+    // Mobile conversations drawer
+    assert.ok(miraViewCode.includes('isMobileSidebarOpen'), 'Must have isMobileSidebarOpen state');
+    assert.ok(miraViewCode.includes('btn-toggle-mira-chats'), 'Must have btn-toggle-mira-chats button');
+    assert.ok(miraViewCode.includes('Saved Conversations'), 'Must render mobile drawer with saved conversations');
+  });
+
 });

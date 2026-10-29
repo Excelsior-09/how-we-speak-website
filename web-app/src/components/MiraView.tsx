@@ -19,7 +19,8 @@ import {
   Brain,
   MessageSquare,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  X
 } from 'lucide-react'
 import { useAuth } from '../lib/useAuth'
 import { supabase } from '../lib/supabase'
@@ -30,6 +31,26 @@ interface ConversationItem {
   id: string
   title: string
   updated_at: string
+}
+
+function formatChatTimestamp(isoDate?: string): string {
+  if (!isoDate) return ''
+  try {
+    const d = new Date(isoDate)
+    const now = new Date()
+    const diffMs = now.getTime() - d.getTime()
+    const diffMin = Math.floor(diffMs / 60000)
+    if (diffMin < 1) return 'Just now'
+    if (diffMin < 60) return `${diffMin}m ago`
+    const diffHours = Math.floor(diffMin / 60)
+    if (diffHours < 24) return `${diffHours}h ago`
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays}d ago`
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  } catch {
+    return ''
+  }
 }
 
 const DEFAULT_PREFERENCES: MiraPreferences = {
@@ -67,6 +88,10 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
   const [messages, setMessages] = useState<MiraMessage[]>([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [convToDelete, setConvToDelete] = useState<ConversationItem | null>(null)
+  const [lastAttemptedMsg, setLastAttemptedMsg] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
@@ -200,6 +225,7 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
 
     async function loadConvMessages() {
       if (user && isConfigured && activeConvId !== 'default' && !activeConvId.startsWith('conv-')) {
+        setIsMessagesLoading(true)
         try {
           const { data, error } = await supabase
             .from('mira_messages')
@@ -209,9 +235,14 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
 
           if (!error && data) {
             setMessages(data as MiraMessage[])
+            setIsMessagesLoading(false)
             return
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Error fetching Supabase messages:', e)
+        } finally {
+          setIsMessagesLoading(false)
+        }
       }
 
       const key = `hws_mira_msgs_${activeConvId}`
@@ -242,7 +273,8 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
             user_id: user.id,
             title: 'New Conversation',
             conversation_type: 'general',
-            status: 'active'
+            status: 'active',
+            is_shared: false
           })
           .select('id, title, updated_at')
           .single()
@@ -252,9 +284,12 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
           setConversations(updated)
           setActiveConvId(newConv.id)
           setMessages([])
+          setIsMobileSidebarOpen(false)
           return
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Error creating conversation in Supabase:', e)
+      }
     }
 
     const newId = `conv-${Date.now()}`
@@ -267,21 +302,25 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
     setConversations(updated)
     setActiveConvId(newId)
     localStorage.setItem('hws_mira_conversations', JSON.stringify(updated))
+    setIsMobileSidebarOpen(false)
     setMessages([])
   }
 
-  const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const executeDeleteConversation = async (id: string) => {
     if (user && isConfigured && id !== 'default' && !id.startsWith('conv-')) {
       try {
         await supabase.from('mira_conversations').delete().eq('id', id).eq('user_id', user.id)
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Error deleting conversation from Supabase:', e)
+      }
     }
 
     const updated = conversations.filter(c => c.id !== id)
     setConversations(updated)
     localStorage.setItem('hws_mira_conversations', JSON.stringify(updated))
     localStorage.removeItem(`hws_mira_msgs_${id}`)
+    setConvToDelete(null)
+
     if (activeConvId === id) {
       if (updated.length > 0) {
         setActiveConvId(updated[0].id)
@@ -322,11 +361,13 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
 
     setInputMessage('')
     setErrorMsg(null)
+    setLastAttemptedMsg(msg)
 
+    const clientMsgId = `usr-${Date.now()}`
     const userMessage: MiraMessage = {
-      id: `usr-${Date.now()}`,
+      id: clientMsgId,
       conversation_id: activeConvId,
-      user_id: user?.id || 'anon',
+      user_id: user.id,
       role: 'user',
       content: msg,
       created_at: new Date().toISOString()
@@ -337,7 +378,7 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
 
     // Update conversation title if this is the first user message
     if (messages.length === 0) {
-      const autoTitle = msg.length > 30 ? `${msg.slice(0, 30)}...` : msg
+      const autoTitle = msg.length > 36 ? `${msg.slice(0, 36).trim()}...` : msg
       const updatedConvs = conversations.map(c => c.id === activeConvId ? { ...c, title: autoTitle } : c)
       setConversations(updatedConvs)
       localStorage.setItem('hws_mira_conversations', JSON.stringify(updatedConvs))
@@ -369,6 +410,7 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
         },
         body: JSON.stringify({
           message: msg,
+          userMessageId: clientMsgId,
           captchaToken: captchaToken || undefined,
           conversationId: activeConvId,
           history: updatedMsgs.slice(-8).map(m => ({ role: m.role, content: m.content })),
@@ -376,6 +418,12 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
           memories: activeMemories
         })
       })
+
+      if (res.status === 401) {
+        onRequireAuth?.('signin')
+        setIsLoading(false)
+        return
+      }
 
       if (res.status === 402) {
         const errData = await res.json()
@@ -396,26 +444,17 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
         try {
           errJson = await res.json()
         } catch (e) {}
-        const fallbackErr = "Mira couldn't connect right now. Your message has not been lost. Please try again."
+        const fallbackErr = "Mira couldn't connect right now. Your message has been saved to your account. Click Retry to continue."
         const customMessage = errJson?.error || fallbackErr
         const correlationNote = errJson?.correlationId ? ` (Ref: ${errJson.correlationId})` : ''
         throw new Error(`${customMessage}${correlationNote}`)
       }
 
       const data = await res.json()
-      const targetConvId = data.newConversationId || activeConvId
+      const targetConvId = data.newConversationId || data.conversationId || activeConvId
 
-      if (data.newConversationId && activeConvId !== data.newConversationId) {
-        setActiveConvId(data.newConversationId)
-        const autoTitle = msg.length > 30 ? `${msg.slice(0, 30)}...` : msg
-        const newConvItem: ConversationItem = {
-          id: data.newConversationId,
-          title: autoTitle,
-          updated_at: new Date().toISOString()
-        }
-        const updatedList = [newConvItem, ...conversations.filter(c => c.id !== 'default' && c.id !== data.newConversationId)]
-        setConversations(updatedList)
-        localStorage.setItem('hws_mira_conversations', JSON.stringify(updatedList))
+      if (targetConvId && activeConvId !== targetConvId) {
+        setActiveConvId(targetConvId)
       }
 
       if (user && isConfigured && targetConvId && targetConvId !== 'default' && !targetConvId.startsWith('conv-')) {
@@ -428,24 +467,47 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
 
           if (dbMessages && dbMessages.length > 0) {
             setMessages(dbMessages as MiraMessage[])
-            return
+          } else {
+            const assistantMessage: MiraMessage = {
+              id: `ast-${Date.now()}`,
+              conversation_id: targetConvId,
+              user_id: user.id,
+              role: 'assistant',
+              content: data.message || "I'm listening and here to support you. Let's work through this together.",
+              structured_data: data.structuredAdvice || null,
+              created_at: new Date().toISOString()
+            }
+            saveMessages(targetConvId, [...updatedMsgs.map(m => ({ ...m, conversation_id: targetConvId })), assistantMessage])
+          }
+
+          // Refresh conversation list to get latest updated_at
+          const { data: convData } = await supabase
+            .from('mira_conversations')
+            .select('id, title, updated_at')
+            .eq('user_id', user.id)
+            .eq('is_shared', false)
+            .order('updated_at', { ascending: false })
+
+          if (convData && convData.length > 0) {
+            setConversations(convData as ConversationItem[])
           }
         } catch (dbErr) {
           console.warn('Error fetching persisted messages from Supabase:', dbErr)
         }
+      } else {
+        const assistantMessage: MiraMessage = {
+          id: `ast-${Date.now()}`,
+          conversation_id: targetConvId,
+          user_id: user.id,
+          role: 'assistant',
+          content: data.message || "I'm listening and here to support you. Let's work through this together.",
+          structured_data: data.structuredAdvice || null,
+          created_at: new Date().toISOString()
+        }
+        saveMessages(targetConvId, [...updatedMsgs.map(m => ({ ...m, conversation_id: targetConvId })), assistantMessage])
       }
 
-      const assistantMessage: MiraMessage = {
-        id: `ast-${Date.now()}`,
-        conversation_id: targetConvId,
-        user_id: user?.id || 'anon',
-        role: 'assistant',
-        content: data.message || "I'm listening and here to support you. Let's work through this together.",
-        structured_data: data.structuredAdvice || null,
-        created_at: new Date().toISOString()
-      }
-
-      saveMessages(targetConvId, [...updatedMsgs.map(m => ({ ...m, conversation_id: targetConvId })), assistantMessage])
+      setLastAttemptedMsg(null)
     } catch (err: any) {
       setErrorMsg(err.message || "Mira couldn't connect right now. Your message has not been lost. Please try again.")
       if (!inputMessage) {
@@ -576,7 +638,18 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            id="btn-toggle-mira-chats"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="btn btn-secondary mira-mobile-chats-toggle"
+            style={{ fontSize: 13, padding: '8px 12px', gap: 6 }}
+            title="View saved conversations"
+          >
+            <MessageSquare size={15} />
+            <span>Chats ({conversations.length})</span>
+          </button>
+
           <button
             onClick={() => setIsPrefsOpen(true)}
             className="btn btn-secondary"
@@ -645,7 +718,7 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
                   transition: 'all 0.15s ease'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden', flex: 1, minWidth: 0 }}>
                   <MessageSquare size={14} style={{ flexShrink: 0, opacity: 0.7 }} />
                   {editingTitleId === conv.id ? (
                     <input
@@ -655,12 +728,19 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
                       onBlur={() => handleSaveTitle(conv.id)}
                       onKeyDown={e => e.key === 'Enter' && handleSaveTitle(conv.id)}
                       autoFocus
-                      style={{ fontSize: 13, border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', width: 140 }}
+                      style={{ fontSize: 13, border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', width: '100%' }}
                     />
                   ) : (
-                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      {conv.title}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' }}>
+                      <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {conv.title}
+                      </span>
+                      {conv.updated_at && (
+                        <span style={{ fontSize: 10.5, color: 'var(--gray)', fontWeight: 400 }}>
+                          {formatChatTimestamp(conv.updated_at)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -678,7 +758,10 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
                   </button>
                   {conversations.length > 1 && (
                     <button
-                      onClick={(e) => handleDeleteConversation(conv.id, e)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setConvToDelete(conv)
+                      }}
                       style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', padding: 2 }}
                       title="Delete"
                     >
@@ -721,8 +804,13 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
               <span style={{ color: '#047857' }}>Saved to your account • Visible only to you</span>
             </div>
 
-            {/* Welcoming state for empty conversation */}
-            {messages.length === 0 && (
+            {/* Welcoming state for empty conversation or loading indicator */}
+            {isMessagesLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: 12 }}>
+                <RefreshCw size={24} className="animate-spin" style={{ color: 'var(--burgundy)' }} />
+                <span style={{ fontSize: 13, color: 'var(--gray)' }}>Loading conversation history...</span>
+              </div>
+            ) : messages.length === 0 ? (
               <div style={{ maxWidth: 640, margin: 'auto', textAlign: 'center', padding: '40px 20px' }}>
                 <div style={{
                   width: 54,
@@ -785,7 +873,7 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Rendered Messages */}
             {messages.map((m, idx) => (
@@ -938,9 +1026,9 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
                 ) : (
                   <button
                     onClick={() => {
-                      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
-                      if (lastUserMsg) {
-                        handleSendMessage(lastUserMsg.content)
+                      const msgToRetry = lastAttemptedMsg || [...messages].reverse().find(m => m.role === 'user')?.content
+                      if (msgToRetry) {
+                        handleSendMessage(msgToRetry)
                       }
                     }}
                     style={{
@@ -1359,6 +1447,188 @@ export const MiraView: React.FC<MiraViewProps> = ({ onRequireAuth }) => {
               <button onClick={() => setIsMemoryOpen(false)} className="btn btn-secondary">
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Conversation Confirmation Modal */}
+      {convToDelete && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            maxWidth: 440,
+            width: '100%',
+            padding: 24,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+            border: '1px solid var(--border)'
+          }}>
+            <h3 style={{ margin: '0 0 10px', fontSize: 18, color: 'var(--charcoal)', fontWeight: 600 }}>
+              Delete conversation?
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--gray)', lineHeight: 1.5 }}>
+              Are you sure you want to delete <strong>"{convToDelete.title}"</strong>? This will permanently remove its message history from your account. This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button
+                onClick={() => setConvToDelete(null)}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border)',
+                  background: 'transparent',
+                  color: 'var(--charcoal)',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => executeDeleteConversation(convToDelete.id)}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#c53030',
+                  color: '#ffffff',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Delete permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Conversations Drawer */}
+      {isMobileSidebarOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          zIndex: 999,
+          padding: 0
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            width: '100%',
+            maxHeight: '80vh',
+            padding: '24px 20px 32px',
+            boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            overflow: 'hidden'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <MessageSquare size={18} style={{ color: 'var(--burgundy)' }} />
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--charcoal)' }}>
+                  Saved Conversations
+                </h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => {
+                    handleStartNewConversation()
+                    setIsMobileSidebarOpen(false)
+                  }}
+                  className="btn btn-primary"
+                  style={{ fontSize: 12, padding: '6px 12px', gap: 4 }}
+                >
+                  <Plus size={14} />
+                  <span>New Chat</span>
+                </button>
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', padding: 6 }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', flex: 1 }}>
+              {conversations.map(conv => (
+                <div
+                  key={conv.id}
+                  onClick={() => {
+                    setActiveConvId(conv.id)
+                    setIsMobileSidebarOpen(false)
+                  }}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 12,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    background: activeConvId === conv.id ? 'var(--blush-soft)' : 'var(--cream)',
+                    color: activeConvId === conv.id ? 'var(--burgundy)' : 'var(--charcoal)',
+                    fontWeight: activeConvId === conv.id ? 600 : 400,
+                    border: '1px solid var(--border)'
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden', flex: 1, minWidth: 0 }}>
+                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      {conv.title}
+                    </span>
+                    {conv.updated_at && (
+                      <span style={{ fontSize: 11, color: 'var(--gray)', fontWeight: 400 }}>
+                        {formatChatTimestamp(conv.updated_at)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingTitleId(conv.id)
+                        setNewTitleInput(conv.title)
+                      }}
+                      style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', padding: 4 }}
+                      title="Rename"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    {conversations.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setConvToDelete(conv)
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#c53030', cursor: 'pointer', padding: 4 }}
+                        title="Delete"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

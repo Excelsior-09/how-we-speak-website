@@ -30,6 +30,14 @@ export function parseRoute(pathname: string): { route: AppRoute; params: Record<
     return { route: 'confirm-email', params: {} }
   }
 
+  if (clean === 'signup' || clean === 'register') {
+    return { route: 'dashboard', params: { auth: 'signup' } }
+  }
+
+  if (clean === 'login' || clean === 'signin') {
+    return { route: 'dashboard', params: { auth: 'signin' } }
+  }
+
   if (clean === 'mira') {
     return { route: 'mira', params: {} }
   }

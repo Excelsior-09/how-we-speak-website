@@ -25,7 +25,7 @@
           <a href="/app?auth=login" class="mobile-login-link">Log in</a>
         </li>
         <li class="mobile-cta">
-          <a href="/app/rehearse" class="btn btn-primary" id="mobilePrimaryCta">Try It Free</a>
+          <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary" id="mobilePrimaryCta">Try It Free</a>
         </li>`;
 
   const NAV_LINKS_QUIZ = `
@@ -42,7 +42,7 @@
           <a href="/app?auth=login" class="mobile-login-link">Log in</a>
         </li>
         <li class="mobile-cta">
-          <a href="/app/rehearse" class="btn btn-primary">Try It Free</a>
+          <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary">Try It Free</a>
         </li>`;
 
   /* ── NAV HTML ─────────────────────────────────────────── */
@@ -62,7 +62,7 @@
       <div class="nav__right">
         <div class="nav__cta">
           <a href="/app?auth=login" class="nav__login-btn" id="navLoginBtn">Log in</a>
-          <a href="/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
+          <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
         </div>
         <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
           <span></span><span></span><span></span>
@@ -165,7 +165,37 @@
   document.addEventListener('DOMContentLoaded', () => {
     const navSlot = document.getElementById('hws-nav');
     const footerSlot = document.getElementById('hws-footer');
-    if (navSlot) navSlot.outerHTML = NAV_HTML;
+    if (navSlot) {
+      navSlot.outerHTML = NAV_HTML;
+      // Check auth state to update navbar dynamically
+      try {
+        let isAuth = false;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && ((key.startsWith('sb-') && key.endsWith('-auth-token')) || key === 'hws-auth-token')) {
+            const data = JSON.parse(localStorage.getItem(key));
+            if (data && (data.user || data.currentSession)) { isAuth = true; break; }
+          }
+        }
+        if (isAuth) {
+          const loginBtn = document.getElementById('navLoginBtn');
+          const primaryCta = document.getElementById('navPrimaryCta');
+          const mobilePrimary = document.getElementById('mobilePrimaryCta');
+          if (loginBtn) {
+            loginBtn.textContent = 'Dashboard';
+            loginBtn.setAttribute('href', '/app');
+          }
+          if (primaryCta) {
+            primaryCta.textContent = 'Go to App';
+            primaryCta.setAttribute('href', '/app/dashboard');
+          }
+          if (mobilePrimary) {
+            mobilePrimary.textContent = 'Go to App';
+            mobilePrimary.setAttribute('href', '/app/dashboard');
+          }
+        }
+      } catch (e) {}
+    }
     if (footerSlot) footerSlot.outerHTML = FOOTER_HTML;
 
     // Sticky Scroll Logic for Shared Navbar

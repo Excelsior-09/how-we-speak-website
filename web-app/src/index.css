@@ -367,11 +367,21 @@ h1, h2, h3, h4 {
   min-height: 640px;
 }
 
+.mira-mobile-chats-toggle {
+  display: none !important;
+}
+
 @media (max-width: 900px) {
   .mira-grid-layout {
     grid-template-columns: 1fr;
     min-height: auto;
     gap: 16px;
+  }
+  .mira-grid-layout > div:first-child {
+    display: none;
+  }
+  .mira-mobile-chats-toggle {
+    display: inline-flex !important;
   }
 }
 

@@ -103,6 +103,14 @@
       "destination": "/app/index.html"
     },
     {
+      "source": "/signup",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/signup/(.*)",
+      "destination": "/app/index.html"
+    },
+    {
       "source": "/auth/callback",
       "destination": "/app/index.html"
     },

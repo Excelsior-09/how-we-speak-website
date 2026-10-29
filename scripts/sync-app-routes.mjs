@@ -21,11 +21,15 @@ const routesToSync = [
   path.join(rootDir, 'recovery.html'),
   path.join(rootDir, 'password-reset.html'),
   path.join(rootDir, 'invite.html'),
+  path.join(rootDir, 'signup.html'),
+  path.join(rootDir, 'login.html'),
   path.join(rootDir, 'app/reset-password/index.html'),
   path.join(rootDir, 'app/recovery/index.html'),
   path.join(rootDir, 'app/settings/index.html'),
   path.join(rootDir, 'app/dashboard/index.html'),
   path.join(rootDir, 'app/invite/index.html'),
+  path.join(rootDir, 'app/signup/index.html'),
+  path.join(rootDir, 'app/login/index.html'),
 ];
 
 for (const targetPath of routesToSync) {

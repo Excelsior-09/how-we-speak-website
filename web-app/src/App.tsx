@@ -85,23 +85,42 @@ function AppContent() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search)
-      const authParam = searchParams.get('auth') || searchParams.get('mode')
+      const authParam = searchParams.get('auth') || searchParams.get('mode') || params?.auth
       const hash = window.location.hash
+      const path = window.location.pathname
+
+      const isSignupIntent = authParam === 'signup' || hash === '#signup' || path.endsWith('/signup') || path.endsWith('/register')
+      const isSigninIntent = authParam === 'login' || authParam === 'signin' || hash === '#login' || hash === '#signin' || path.endsWith('/login') || path.endsWith('/signin')
+
+      const redirectDest = searchParams.get('returnTo') || searchParams.get('redirect') || searchParams.get('dest')
+      if (redirectDest) {
+        setReturnTo(redirectDest)
+      }
 
       if (isPasswordRecovery || hash.includes('type=recovery') || searchParams.get('type') === 'recovery') {
         navigate('/app/reset-password', { replace: true })
         return
       }
 
-      if (!user && (authParam === 'signup' || hash === '#signup')) {
-        setAuthMode('signup')
-        setIsAuthOpen(true)
-      } else if (!user && (authParam === 'login' || authParam === 'signin' || hash === '#login')) {
-        setAuthMode('signin')
-        setIsAuthOpen(true)
+      if (!user) {
+        if (isSignupIntent) {
+          setAuthMode('signup')
+          setIsAuthOpen(true)
+        } else if (isSigninIntent) {
+          setAuthMode('signin')
+          setIsAuthOpen(true)
+        }
+      } else {
+        // User is ALREADY authenticated: do not force them into sign-up or sign-in
+        if (isSignupIntent || isSigninIntent) {
+          const dest = redirectDest || returnTo || '/app/dashboard'
+          if (dest && dest !== path) {
+            navigate(dest, { replace: true })
+          }
+        }
       }
     }
-  }, [user, isPasswordRecovery, navigate])
+  }, [user, isPasswordRecovery, navigate, params])
 
   const handleAuthSuccess = () => {
     setIsAuthOpen(false)
@@ -109,6 +128,8 @@ function AppContent() {
       const destination = returnTo
       setReturnTo(null)
       navigate(destination)
+    } else {
+      navigate('/app/dashboard')
     }
   }
 
