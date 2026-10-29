@@ -13,7 +13,7 @@
 
   const NAV_LINKS_FULL = `
         <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
-        <li><a href="index.html#guides">Guides</a></li>
+        <li><a href="/pricing">Guides</a></li>
         <li><a href="/pricing">Pricing</a></li>
         <li><a href="articles.html">Articles</a></li>
         <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
@@ -30,7 +30,8 @@
 
   const NAV_LINKS_QUIZ = `
         <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
-        <li><a href="index.html#guides">Guides</a></li>
+        <li><a href="/pricing">Guides</a></li>
+        <li><a href="/pricing">Pricing</a></li>
         <li><a href="articles.html">Articles</a></li>
         <li><a href="quiz.html" class="nav-quiz" aria-current="page">Take the Quiz</a></li>
         <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
