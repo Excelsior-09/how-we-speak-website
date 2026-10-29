@@ -5,8 +5,8 @@
 // Rate-limited and validated before returning verification status.
 // ==============================================================================
 
-import { verifyRecaptchaToken } from '../lib/recaptcha.js';
-import { checkRateLimit, getClientIp } from '../lib/rate-limiter.js';
+import { verifyRecaptchaToken } from '../../lib/recaptcha.js';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limiter.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

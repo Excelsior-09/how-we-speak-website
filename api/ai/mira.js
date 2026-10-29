@@ -8,8 +8,8 @@
 // ==============================================================================
 
 import { createClient } from '@supabase/supabase-js';
-import { checkRateLimit, getClientIp } from '../lib/rate-limiter.js';
-import { verifyRecaptchaToken } from '../lib/recaptcha.js';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limiter.js';
+import { verifyRecaptchaToken } from '../../lib/recaptcha.js';
 
 export const maxDuration = 30;
 

@@ -78,7 +78,7 @@ describe('Phase 13: Google reCAPTCHA, Bot Protection & Secret Security', () => {
 
   // ── 3. RATE LIMITER ENGINE ─────────────────────────────────────────────────
   it('3. In-memory sliding window rate limiter throttles excessive requests', async () => {
-    const { checkRateLimit, getClientIp } = await import('../api/lib/rate-limiter.js');
+    const { checkRateLimit, getClientIp } = await import('../lib/rate-limiter.js');
 
     const testKey = 'test_ip_' + Date.now();
     const limit = 5;
@@ -104,7 +104,7 @@ describe('Phase 13: Google reCAPTCHA, Bot Protection & Secret Security', () => {
 
   // ── 4. SERVER-SIDE reCAPTCHA VERIFICATION ENGINE ────────────────────────────
   it('4. Server-side verifyRecaptchaToken enforces token validity and secret protection', async () => {
-    const { verifyRecaptchaToken } = await import('../api/lib/recaptcha.js');
+    const { verifyRecaptchaToken } = await import('../lib/recaptcha.js');
 
     // Test A: Missing token when secret is set
     const originalSecret = process.env.RECAPTCHA_SECRET_KEY;
