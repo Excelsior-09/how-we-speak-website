@@ -31,6 +31,7 @@ const testSuites = [
   'tests/phase15-paddle-live-migration.test.mjs',
   'tests/phase16-pricing-page.test.mjs',
   'tests/phase17-dashboard-mira-partner-overhaul.test.mjs',
+  'tests/phase18-simplified-mode-and-restoration.test.mjs',
 ];
 
 async function runCommand(file) {

@@ -1,0 +1,146 @@
+{
+  "restorationProtocol": "MIRA AI RESTORE",
+  "version": "1.0.0",
+  "createdAt": "2026-10-30T14:55:00Z",
+  "status": "temporary_simplified_mode_active",
+  "activeMode": "simplified_ebooks_and_quiz",
+  "restoredMode": "full_application",
+  "description": "Comprehensive audit and restoration manifest for TryHowWeSpeak temporary feature visibility mode. Preserves 100% of underlying application, database, and payment systems while focusing public presentation on eBooks, Bundles, and Quiz.",
+  "configurationFile": "assets/js/feature-flags.js",
+  "stylesheetFile": "assets/css/simplified-mode.css",
+  "featureFlags": {
+    "dashboard": false,
+    "authentication": false,
+    "membership": false,
+    "subscriptionPricing": false,
+    "miraAi": false,
+    "aiRehearsalTool": false,
+    "myPartner": false,
+    "ebooks": true,
+    "ebookBundles": true,
+    "quiz": true,
+    "paymentGateway": true
+  },
+  "hiddenComponents": [
+    {
+      "file": "index.html",
+      "selector": ".nav-ai-tool",
+      "description": "Navigation link to AI Conversation Tool",
+      "restorationClass": "hws-feature-ai"
+    },
+    {
+      "file": "index.html",
+      "selector": "#navLoginBtn",
+      "description": "Desktop navigation Log in button",
+      "restorationClass": "hws-feature-auth"
+    },
+    {
+      "file": "index.html",
+      "selector": ".mobile-login",
+      "description": "Mobile drawer navigation Log in link",
+      "restorationClass": "hws-feature-auth"
+    },
+    {
+      "file": "index.html",
+      "selector": "#ai-tool",
+      "description": "Dedicated AI Web App Conversation Rehearsal Studio Section",
+      "restorationClass": "hws-feature-ai"
+    },
+    {
+      "file": "index.html",
+      "selector": ".ai-process-section",
+      "description": "Three-Step Explanation (Describe, Rehearse, Prepare) AI Process Section",
+      "restorationClass": "hws-feature-ai"
+    },
+    {
+      "file": "index.html",
+      "selector": ".app-complement-banner",
+      "description": "Guides Section Theory Meets Practice App Bridge Banner",
+      "restorationClass": "hws-feature-app"
+    },
+    {
+      "file": "index.html",
+      "selector": ".bundle__includes li:nth-child(7)",
+      "description": "Bundle included list item for Full AI Web App Access",
+      "restorationClass": "hws-feature-ai"
+    },
+    {
+      "file": "index.html",
+      "selector": ".final-cta__trust-item (AI items)",
+      "description": "Final CTA trust badges for AI rehearsals and encrypted vault",
+      "restorationClass": "hws-feature-ai"
+    },
+    {
+      "file": "pricing.html",
+      "selector": ".category-pill[data-category=\"memberships\"]",
+      "description": "Category navigation tab for Memberships",
+      "restorationClass": "hws-feature-membership"
+    },
+    {
+      "file": "pricing.html",
+      "selector": ".pricing-hero__ctas a[href=\"#memberships\"]",
+      "description": "Hero secondary CTA scrolling to memberships",
+      "restorationClass": "hws-feature-membership"
+    },
+    {
+      "file": "pricing.html",
+      "selector": "#memberships",
+      "description": "Section E: Full Membership Plans & Comparison Table Section",
+      "restorationClass": "hws-feature-membership"
+    },
+    {
+      "file": "pricing.html",
+      "selector": ".decision-card (Pathway 3 Membership Card)",
+      "description": "Decision Pathway 3 card recommending Workspace Pro & Mira AI",
+      "restorationClass": "hws-feature-membership"
+    },
+    {
+      "file": "pricing.html",
+      "selector": ".faq__item (FAQs 4, 5, 6, 8)",
+      "description": "FAQ items detailing memberships, Workspace Pro, renewal, and Mira AI",
+      "restorationClass": "hws-feature-membership"
+    },
+    {
+      "file": "pricing.html",
+      "selector": ".final-cta__buttons a[href=\"#memberships\"]",
+      "description": "Final CTA secondary button to Explore Memberships",
+      "restorationClass": "hws-feature-membership"
+    },
+    {
+      "file": "assets/js/components.js",
+      "selector": "NAV_HTML right CTA and nav links",
+      "description": "Shared navigation bar injected across all subpages",
+      "restorationProperty": "isSimplified"
+    }
+  ],
+  "preservedCoreSystems": {
+    "webAppCode": "web-app/src (100% preserved)",
+    "databaseMigrations": "supabase/migrations (100% preserved)",
+    "databaseTables": ["profiles", "conversations", "mira_conversations", "mira_messages", "mira_preferences", "mira_memories", "couples_spaces", "workspace_invitations"],
+    "apiRoutes": ["api/ai/mira.js", "api/ai/rehearsal.js", "api/partner/invite.js", "api/quiz-submit.js"],
+    "paymentIntegrations": ["Gumroad webhooks & redirects", "Paddle billing client integration in assets/js/paddle-checkout.js"],
+    "eBookProducts": [
+      { "id": "men-edition", "price": 37, "status": "active" },
+      { "id": "women-edition", "price": 37, "status": "active" },
+      { "id": "script-collection", "price": 27, "status": "active" },
+      { "id": "sex-talk", "price": 27, "status": "active" },
+      { "id": "bundle", "price": 97, "status": "active" },
+      { "id": "free-scripts", "price": 0, "status": "active" }
+    ],
+    "quizSystem": {
+      "path": "quiz.html",
+      "form": "https://form.jotform.com/jsform/262838678818074",
+      "status": "fully_active"
+    }
+  },
+  "restorationSteps": [
+    "1. Receive trigger instruction: 'MIRA AI RESTORE'",
+    "2. In assets/js/feature-flags.js, update mode: 'full_application'",
+    "3. Set all feature flags in assets/js/feature-flags.js to true",
+    "4. In index.html, remove style='display:none;' from #ai-tool, .ai-process-section, and .app-complement-banner",
+    "5. In pricing.html, remove style='display:none;' from #memberships",
+    "6. Run npm test to verify 100% pass rate across all suites",
+    "7. Re-build frontend if desired: npm run build",
+    "8. Commit and push restored state to origin main"
+  ]
+}

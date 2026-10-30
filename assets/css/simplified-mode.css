@@ -1,0 +1,101 @@
+/* ==============================================================================
+   HOW WE SPEAK — TEMPORARY SIMPLIFIED MODE STYLES
+   Hides Dashboard, Authentication, Memberships, and AI sections.
+   Preserves eBooks, Bundles, Payment Gateway, and Relationship Quiz.
+   Trigger to restore: "MIRA AI RESTORE"
+   ============================================================================== */
+
+/* When in simplified mode, completely hide target feature classes */
+[data-hws-mode="simplified"] .hws-feature-ai,
+[data-hws-mode="simplified"] .hws-feature-membership,
+[data-hws-mode="simplified"] .hws-feature-auth,
+[data-hws-mode="simplified"] .hws-feature-dashboard,
+[data-hws-mode="simplified"] .nav-ai-tool,
+[data-hws-mode="simplified"] .nav__login-btn,
+[data-hws-mode="simplified"] .mobile-login,
+[data-hws-mode="simplified"] .ai-section,
+[data-hws-mode="simplified"] .ai-process-section,
+[data-hws-mode="simplified"] .memberships-section,
+[data-hws-mode="simplified"] [data-category="memberships"],
+.hws-hidden-in-simplified {
+  display: none !important;
+}
+
+/* Elements that only appear when simplified mode is active */
+.hws-visible-in-simplified-only {
+  display: none !important;
+}
+
+[data-hws-mode="simplified"] .hws-visible-in-simplified-only {
+  display: block !important;
+}
+
+[data-hws-mode="simplified"] .quiz-complement-banner.hws-visible-in-simplified-only {
+  display: flex !important;
+}
+
+/* Smooth visual transition between Hero and Problem section on index.html */
+[data-hws-mode="simplified"] .hero {
+  padding-bottom: 72px;
+}
+
+[data-hws-mode="simplified"] #problem {
+  position: relative;
+  border-top: 1px solid var(--border, #E8E5E0);
+}
+
+/* Pricing page adjustments in simplified mode */
+[data-hws-mode="simplified"] .pricing-controls__inner {
+  justify-content: space-between;
+}
+
+/* Quiz complement banner in index.html (replaces app complement banner) */
+.quiz-complement-banner {
+  margin-top: 48px;
+  padding: 24px 28px;
+  background: var(--cream, #F5F3F0);
+  border: 1px solid rgba(196, 30, 58, 0.18);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.quiz-complement-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.quiz-complement-icon {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.quiz-complement-text {
+  font-size: 14.5px;
+  color: var(--charcoal, #2B2927);
+  line-height: 1.55;
+}
+
+.quiz-complement-text strong {
+  color: var(--burgundy, #C41E3A);
+}
+
+@media (max-width: 640px) {
+  .quiz-complement-banner {
+    padding: 18px 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .quiz-complement-banner .btn {
+    width: 100%;
+    text-align: center;
+  }
+}

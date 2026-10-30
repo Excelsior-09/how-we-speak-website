@@ -111,6 +111,10 @@
   <link rel="stylesheet" href="/assets/css/animations.min.css" />
   <link rel="stylesheet" href="/assets/css/index.min.css" />
   <link rel="stylesheet" href="/assets/css/responsive.css" />
+  <link rel="stylesheet" href="/assets/css/simplified-mode.css" />
+
+  <!-- Centralized Feature Visibility Configuration -->
+  <script src="/assets/js/feature-flags.js"></script>
 
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="https://tryhowwespeak.com/" />
@@ -374,7 +378,7 @@
 
           <!-- CENTER LINKS (Desktop single line; Mobile drawer full list) -->
           <ul class="nav__links" id="navLinks" role="list">
-            <li><a href="#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
+            <li class="hws-feature-ai hws-hidden-in-simplified"><a href="#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
             <li><a href="/pricing">Guides</a></li>
             <li><a href="/pricing">Pricing</a></li>
             <li><a href="articles.html">Articles</a></li>
@@ -384,7 +388,7 @@
             <li class="mobile-nav-item"><a href="#bundle">Bundle</a></li>
             <li class="mobile-nav-item"><a href="#story">Our Story</a></li>
             <li class="mobile-nav-item"><a href="#faq">FAQ</a></li>
-            <li class="mobile-login">
+            <li class="mobile-login hws-feature-auth hws-hidden-in-simplified">
               <a href="/app?auth=login" class="mobile-login-link">Log in</a>
             </li>
             <li class="mobile-cta">
@@ -395,7 +399,7 @@
           <!-- RIGHT ACTIONS: CTA GROUP & MOBILE TOGGLE -->
           <div class="nav__right">
             <div class="nav__cta">
-              <a href="/app?auth=login" class="nav__login-btn" id="navLoginBtn">Log in</a>
+              <a href="/app?auth=login" class="nav__login-btn hws-feature-auth hws-hidden-in-simplified" id="navLoginBtn">Log in</a>
               <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
             </div>
 
@@ -588,7 +592,7 @@
        DEDICATED AI WEB APP SECTION
        Introducing Conversation Rehearsal Studio
   ============================================================ -->
-  <section class="ai-section section" id="ai-tool">
+  <section class="ai-section section hws-feature-ai hws-hidden-in-simplified" id="ai-tool" style="display:none;">
     <div class="container">
 
       <!-- HEADER -->
@@ -768,7 +772,7 @@
        THREE-STEP EXPLANATION
        Compact, clear process overview
   ============================================================ -->
-  <section class="ai-process-section section">
+  <section class="ai-process-section section hws-feature-ai hws-hidden-in-simplified" style="display:none;">
     <div class="container">
 
       <div class="text-center reveal" style="max-width:640px;margin:0 auto 48px;">
@@ -1158,8 +1162,8 @@
           </div>
         </div>
 
-        <!-- APP INTEGRATION BRIDGE -->
-        <div class="app-complement-banner reveal">
+        <!-- APP INTEGRATION BRIDGE (Full Mode) -->
+        <div class="app-complement-banner reveal hws-feature-app hws-hidden-in-simplified" style="display:none;">
           <div class="app-complement-content">
             <span class="app-complement-icon" aria-hidden="true">✨</span>
             <div class="app-complement-text">
@@ -1167,6 +1171,17 @@
             </div>
           </div>
           <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-secondary">Try Rehearsal Free →</a>
+        </div>
+
+        <!-- QUIZ INTEGRATION BRIDGE (Simplified Mode) -->
+        <div class="quiz-complement-banner reveal hws-visible-in-simplified-only">
+          <div class="quiz-complement-content">
+            <span class="quiz-complement-icon" aria-hidden="true">💡</span>
+            <div class="quiz-complement-text">
+              <strong>Not sure which guide fits your dynamic?</strong> Take our free 2-minute relationship communication quiz to discover your conversation pattern.
+            </div>
+          </div>
+          <a href="quiz.html" class="btn btn-secondary">Take the Free Quiz →</a>
         </div>
 
       </div>
@@ -1395,7 +1410,8 @@
             <li>Sex Talk Framework — intimacy communication</li>
             <li>Instant digital delivery — all formats</li>
             <li>Lifetime access + future updates</li>
-            <li><strong>Full AI Web App Access:</strong> Unlimited Conversation Rehearsals</li>
+            <li class="hws-feature-ai hws-hidden-in-simplified" style="display:none;"><strong>Full AI Web App Access:</strong> Unlimited Conversation Rehearsals</li>
+            <li class="hws-visible-in-simplified-only">Complete 30-Day Relational Implementation Action Plan</li>
           </ul>
 
           <div class="bundle__pricing">
@@ -1865,17 +1881,25 @@
       </div>
 
       <div class="final-cta__trust reveal reveal-delay-3">
-        <div class="final-cta__trust-item">
+        <div class="final-cta__trust-item hws-feature-ai hws-hidden-in-simplified" style="display:none;">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
           3 Free AI Rehearsals Included
+        </div>
+        <div class="final-cta__trust-item hws-visible-in-simplified-only">
+          <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
+          Instant Digital PDF Download
         </div>
         <div class="final-cta__trust-item">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
           Gottman-Informed Protocols
         </div>
-        <div class="final-cta__trust-item">
+        <div class="final-cta__trust-item hws-feature-ai hws-hidden-in-simplified" style="display:none;">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
           Encrypted Sanctuary &amp; RLS Protection
+        </div>
+        <div class="final-cta__trust-item hws-visible-in-simplified-only">
+          <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
+          30-Day Money-Back Guarantee
         </div>
         <div class="final-cta__trust-item">
           <span class="final-cta__trust-icon" aria-hidden="true">✓</span>
@@ -2067,6 +2091,10 @@
     // ── DYNAMIC AUTH CTA & SESSION SYNC ──
     (function initSessionNav() {
       function checkAuth() {
+        // Skip auth navigation rewrite if running in simplified mode
+        if (window.HWS_VISIBILITY_CONFIG && !window.HWS_VISIBILITY_CONFIG.features.authentication) {
+          return;
+        }
         let isAuth = false;
         try {
           for (let i = 0; i < localStorage.length; i++) {

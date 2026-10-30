@@ -11,6 +11,27 @@
   /* Quiz page gets a minimal, distraction-free nav — just Home + Take the Quiz. */
   const isQuizPage = /(^|\/)quiz\.html$/.test(window.location.pathname);
 
+  // Centralized Feature Visibility Mode:
+  // When mode is 'simplified_ebooks_and_quiz' (or HWS_VISIBILITY_CONFIG not yet loaded),
+  // hide Dashboard, Login, Signup, Memberships & AI tools from the public navigation.
+  const isSimplified = typeof window !== 'undefined'
+    ? (!window.HWS_VISIBILITY_CONFIG || window.HWS_VISIBILITY_CONFIG.mode === 'simplified_ebooks_and_quiz')
+    : true;
+
+  const NAV_LINKS_SIMPLIFIED = `
+        <li><a href="/pricing">Guides</a></li>
+        <li><a href="/pricing#bundle">Bundle</a></li>
+        <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
+        <li><a href="articles.html">Articles</a></li>
+        <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        <li class="mobile-nav-item"><a href="/pricing">All Guides</a></li>
+        <li class="mobile-nav-item"><a href="/pricing#bundle">Complete Bundle</a></li>
+        <li class="mobile-nav-item"><a href="index.html#story">Our Story</a></li>
+        <li class="mobile-nav-item"><a href="index.html#faq">FAQ</a></li>
+        <li class="mobile-cta">
+          <a href="quiz.html" class="btn btn-primary" id="mobilePrimaryCta">Take the Quiz</a>
+        </li>`;
+
   const NAV_LINKS_FULL = `
         <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
         <li><a href="/pricing">Guides</a></li>
@@ -45,7 +66,26 @@
           <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary">Try It Free</a>
         </li>`;
 
+  const RIGHT_CTA_SIMPLIFIED = `
+        <div class="nav__cta">
+          <a href="quiz.html" class="btn btn-primary" id="navPrimaryCta">Take the Quiz</a>
+        </div>`;
+
+  const RIGHT_CTA_FULL = `
+        <div class="nav__cta">
+          <a href="/app?auth=login" class="nav__login-btn" id="navLoginBtn">Log in</a>
+          <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
+        </div>`;
+
   /* ── NAV HTML ─────────────────────────────────────────── */
+  const activeNavLinks = isSimplified
+    ? NAV_LINKS_SIMPLIFIED
+    : (isQuizPage ? NAV_LINKS_QUIZ : NAV_LINKS_FULL);
+
+  const activeRightCta = isSimplified
+    ? RIGHT_CTA_SIMPLIFIED
+    : RIGHT_CTA_FULL;
+
   const NAV_HTML = `
 <nav class="nav" id="navbar" role="navigation" aria-label="Main navigation">
   <div class="container nav-container">
@@ -54,16 +94,13 @@
         <img src="${LOGO}" alt="How We Speak" class="nav__logo-img" width="156" height="62" fetchpriority="high" decoding="async"/>
       </a>
 
-      <!-- Desktop Links (Single line, 5 essential destinations) -->
-      <ul class="nav__links" id="navLinks" role="list">${isQuizPage ? NAV_LINKS_QUIZ : NAV_LINKS_FULL}
+      <!-- Desktop Links (Single line, essential destinations) -->
+      <ul class="nav__links" id="navLinks" role="list">${activeNavLinks}
       </ul>
 
       <!-- Right Actions: CTA group + Mobile Toggle -->
       <div class="nav__right">
-        <div class="nav__cta">
-          <a href="/app?auth=login" class="nav__login-btn" id="navLoginBtn">Log in</a>
-          <a href="/app?auth=signup&returnTo=/app/rehearse" class="btn btn-primary" id="navPrimaryCta">Try It Free</a>
-        </div>
+        ${activeRightCta}
         <button class="nav__mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
           <span></span><span></span><span></span>
         </button>
@@ -167,31 +204,37 @@
     const footerSlot = document.getElementById('hws-footer');
     if (navSlot) {
       navSlot.outerHTML = NAV_HTML;
-      // Check auth state to update navbar dynamically
+      // Check auth state to update navbar dynamically (only when full application mode is active)
       try {
-        let isAuth = false;
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && ((key.startsWith('sb-') && key.endsWith('-auth-token')) || key === 'hws-auth-token')) {
-            const data = JSON.parse(localStorage.getItem(key));
-            if (data && (data.user || data.currentSession)) { isAuth = true; break; }
+        const canShowAuthNav = typeof window !== 'undefined' && window.HWS_VISIBILITY_CONFIG
+          ? window.HWS_VISIBILITY_CONFIG.features.authentication
+          : !isSimplified;
+
+        if (canShowAuthNav) {
+          let isAuth = false;
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && ((key.startsWith('sb-') && key.endsWith('-auth-token')) || key === 'hws-auth-token')) {
+              const data = JSON.parse(localStorage.getItem(key));
+              if (data && (data.user || data.currentSession)) { isAuth = true; break; }
+            }
           }
-        }
-        if (isAuth) {
-          const loginBtn = document.getElementById('navLoginBtn');
-          const primaryCta = document.getElementById('navPrimaryCta');
-          const mobilePrimary = document.getElementById('mobilePrimaryCta');
-          if (loginBtn) {
-            loginBtn.textContent = 'Dashboard';
-            loginBtn.setAttribute('href', '/app');
-          }
-          if (primaryCta) {
-            primaryCta.textContent = 'Go to App';
-            primaryCta.setAttribute('href', '/app/dashboard');
-          }
-          if (mobilePrimary) {
-            mobilePrimary.textContent = 'Go to App';
-            mobilePrimary.setAttribute('href', '/app/dashboard');
+          if (isAuth) {
+            const loginBtn = document.getElementById('navLoginBtn');
+            const primaryCta = document.getElementById('navPrimaryCta');
+            const mobilePrimary = document.getElementById('mobilePrimaryCta');
+            if (loginBtn) {
+              loginBtn.textContent = 'Dashboard';
+              loginBtn.setAttribute('href', '/app');
+            }
+            if (primaryCta) {
+              primaryCta.textContent = 'Go to App';
+              primaryCta.setAttribute('href', '/app/dashboard');
+            }
+            if (mobilePrimary) {
+              mobilePrimary.textContent = 'Go to App';
+              mobilePrimary.setAttribute('href', '/app/dashboard');
+            }
           }
         }
       } catch (e) {}

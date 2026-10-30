@@ -31,6 +31,10 @@
   <link rel="stylesheet" href="/assets/css/animations.min.css" />
   <link rel="stylesheet" href="/assets/css/pricing.css" />
   <link rel="stylesheet" href="/assets/css/responsive.css" />
+  <link rel="stylesheet" href="/assets/css/simplified-mode.css" />
+
+  <!-- Centralized Feature Visibility Configuration -->
+  <script src="/assets/js/feature-flags.js"></script>
 
   <!-- SEO & Social Metadata -->
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
@@ -161,7 +165,8 @@
 
           <div class="pricing-hero__ctas">
             <a href="#collection" class="btn btn-primary btn-lg">Explore the Collection</a>
-            <a href="#memberships" class="btn btn-secondary btn-lg">Compare Memberships</a>
+            <a href="#memberships" class="btn btn-secondary btn-lg hws-feature-membership hws-hidden-in-simplified">Compare Memberships</a>
+            <a href="quiz.html" class="btn btn-secondary btn-lg hws-visible-in-simplified-only">Take the Free Quiz</a>
           </div>
 
           <div class="pricing-hero__reassurance">
@@ -208,7 +213,7 @@
             <button class="category-pill" data-category="bundles" role="tab" aria-selected="false">
               Bundles
             </button>
-            <button class="category-pill" data-category="memberships" role="tab" aria-selected="false">
+            <button class="category-pill hws-feature-membership hws-hidden-in-simplified" data-category="memberships" role="tab" aria-selected="false">
               Memberships
             </button>
           </div>
@@ -339,7 +344,7 @@
     <!-- ============================================================
          SECTION E: MEMBERSHIP PLANS & COMPARISON
     ============================================================ -->
-    <section class="memberships-section" id="memberships" aria-label="Membership and Subscription Plans">
+    <section class="memberships-section hws-feature-membership hws-hidden-in-simplified" id="memberships" aria-label="Membership and Subscription Plans" style="display:none;">
       <div class="container">
         <div class="section-intro">
           <p class="eyebrow">MEMBERSHIP OPTIONS</p>
@@ -591,8 +596,8 @@
             </a>
           </div>
 
-          <!-- Pathway 3: Ongoing Support & Practice -->
-          <div class="decision-card">
+          <!-- Pathway 3: Ongoing Support & Practice (Full Mode) -->
+          <div class="decision-card hws-feature-membership hws-hidden-in-simplified">
             <div class="decision-card__icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -608,6 +613,26 @@
             </div>
             <a href="#memberships" class="btn btn-primary" style="width:100%;text-align:center;">
               Compare Memberships
+            </a>
+          </div>
+
+          <!-- Pathway 3 (Simplified Mode): Discover Communication Pattern -->
+          <div class="decision-card hws-visible-in-simplified-only">
+            <div class="decision-card__icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+            <h3 class="decision-card__title">I want to discover our communication pattern</h3>
+            <p class="decision-card__desc">
+              You know conversations feel strained or distant, but you are not sure which specific guide addresses your current relational dynamic.
+            </p>
+            <div class="decision-card__recommendation">
+              <strong>Recommended Starting Point:</strong>
+              Take our 2-minute Relationship Communication Quiz for an instant personalized guide recommendation.
+            </div>
+            <a href="quiz.html" class="btn btn-primary" style="width:100%;text-align:center;">
+              Take the Free Quiz
             </a>
           </div>
 
@@ -764,7 +789,7 @@
             </div>
           </div>
 
-          <div class="faq__item">
+          <div class="faq__item hws-feature-membership hws-hidden-in-simplified">
             <button class="faq__question" aria-expanded="false" aria-controls="faq-ans-4">
               <span>What is the difference between an eBook and a membership?</span>
               <span class="faq__icon" aria-hidden="true">+</span>
@@ -779,7 +804,7 @@
             </div>
           </div>
 
-          <div class="faq__item">
+          <div class="faq__item hws-feature-membership hws-hidden-in-simplified">
             <button class="faq__question" aria-expanded="false" aria-controls="faq-ans-5">
               <span>What is included in the Workspace Pro membership?</span>
               <span class="faq__icon" aria-hidden="true">+</span>
@@ -793,7 +818,7 @@
             </div>
           </div>
 
-          <div class="faq__item">
+          <div class="faq__item hws-feature-membership hws-hidden-in-simplified">
             <button class="faq__question" aria-expanded="false" aria-controls="faq-ans-6">
               <span>Does the membership renew automatically, and how do I cancel?</span>
               <span class="faq__icon" aria-hidden="true">+</span>
@@ -823,7 +848,7 @@
             </div>
           </div>
 
-          <div class="faq__item">
+          <div class="faq__item hws-feature-membership hws-hidden-in-simplified">
             <button class="faq__question" aria-expanded="false" aria-controls="faq-ans-8">
               <span>How does Mira AI work, and what can it help with?</span>
               <span class="faq__icon" aria-hidden="true">+</span>
@@ -880,7 +905,8 @@
 
           <div class="final-cta__buttons">
             <a href="#collection" class="btn btn-primary btn-lg">Explore the Collection</a>
-            <a href="#memberships" class="btn btn-secondary btn-lg">Explore Memberships</a>
+            <a href="#memberships" class="btn btn-secondary btn-lg hws-feature-membership hws-hidden-in-simplified">Explore Memberships</a>
+            <a href="quiz.html" class="btn btn-secondary btn-lg hws-visible-in-simplified-only">Take the Free Quiz</a>
           </div>
         </div>
       </div>
