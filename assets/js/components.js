@@ -19,11 +19,13 @@
     : true;
 
   const NAV_LINKS_SIMPLIFIED = `
+        <li><a href="index.html">Home</a></li>
         <li><a href="/pricing">Guides</a></li>
         <li><a href="/pricing#bundle">Bundle</a></li>
         <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
         <li><a href="articles.html">Articles</a></li>
         <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        <li class="mobile-nav-item"><a href="index.html">Home</a></li>
         <li class="mobile-nav-item"><a href="/pricing">All Guides</a></li>
         <li class="mobile-nav-item"><a href="/pricing#bundle">Complete Bundle</a></li>
         <li class="mobile-nav-item"><a href="index.html#story">Our Story</a></li>
@@ -33,12 +35,14 @@
         </li>`;
 
   const NAV_LINKS_FULL = `
+        <li><a href="index.html">Home</a></li>
         <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
         <li><a href="/pricing">Guides</a></li>
         <li><a href="/pricing">Pricing</a></li>
         <li><a href="articles.html">Articles</a></li>
         <li><a href="quiz.html" class="nav-quiz">Take the Quiz</a></li>
         <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        <li class="mobile-nav-item"><a href="index.html">Home</a></li>
         <li class="mobile-nav-item"><a href="index.html#bundle">Bundle</a></li>
         <li class="mobile-nav-item"><a href="index.html#story">Our Story</a></li>
         <li class="mobile-nav-item"><a href="index.html#faq">FAQ</a></li>
@@ -50,12 +54,14 @@
         </li>`;
 
   const NAV_LINKS_QUIZ = `
+        <li><a href="index.html">Home</a></li>
         <li><a href="index.html#ai-tool" class="nav-ai-tool">AI Conversation Tool</a></li>
         <li><a href="/pricing">Guides</a></li>
         <li><a href="/pricing">Pricing</a></li>
         <li><a href="articles.html">Articles</a></li>
         <li><a href="quiz.html" class="nav-quiz" aria-current="page">Take the Quiz</a></li>
         <li><a href="https://form.jotform.com/262898494732071" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        <li class="mobile-nav-item"><a href="index.html">Home</a></li>
         <li class="mobile-nav-item"><a href="index.html#bundle">Bundle</a></li>
         <li class="mobile-nav-item"><a href="index.html#story">Our Story</a></li>
         <li class="mobile-nav-item"><a href="index.html#faq">FAQ</a></li>
